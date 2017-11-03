@@ -108,6 +108,14 @@ languages['c++']['compiler']['llvm clang++'] = copy.deepcopy( languages['c++']['
 languages['c++']['compiler']['llvm clang++']['linux']['flags']['common'] = ['-stdlib=libstdc++']
 languages['c++']['compiler']['llvm clang++']['linux']['flags']['debug'].remove('-fsignaling-nans')
 
+languages['c++']['compiler']['llvm clang++']['cygwin']['standard'] = {'c++98' : '-std=gnu++98',
+                                                                      'c++11' : '-std=gnu++11',
+                                                                      'c++14' : '-std=gnu++14'}
+
+languages['c++']['compiler']['g++']['cygwin']['standard'] = {'c++98' : '-std=gnu++98',
+                                                             'c++11' : '-std=gnu++11',
+                                                             'c++14' : '-std=gnu++14'}
+
 languages['c++']['compiler']['llvm clang++']['osx']['flags'] = copy.deepcopy(languages['c++']['compiler']['llvm clang++']['linux']['flags'])
 languages['c++']['compiler']['llvm clang++']['osx']['flags']['common'] = ['-stdlib=libc++']
 languages['c++']['compiler']['llvm clang++']['windows'] = languages['c++']['compiler']['llvm clang++']['osx']
