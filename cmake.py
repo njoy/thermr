@@ -3,7 +3,8 @@ import textwrap
 from . import description
 
 language = {'c' : 'C', 'c++' : 'CXX', 'fortran' : 'Fortran'}
-platform = {'linux':'Linux', 'osx':'Darwin', 'windows':'Windows'}
+platform = {'linux':'Linux', 'osx':'Darwin', 'windows':'Windows',
+            'cygwin':'CYGWIN', 'mingw':'MinGW'}
 vendor = {'gcc' : 'GNU',
           'g++' : 'GNU',
           'gfortran' : 'GNU',
@@ -643,6 +644,9 @@ set( CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Supported configura
         contents += add_targets(state)
         contents += add_tests(state) 
         contents += install(state)
+        contents += """
+                    INCLUDE(CPack)
+                    """
         
     with open('CMakeLists.txt', 'w') as CMakeFile:
         CMakeFile.write(contents)
