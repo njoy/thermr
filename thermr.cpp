@@ -1,16 +1,14 @@
 #include <iostream>
 #include <vector>
+#include "thermr_util/openz.h"
 
 
 int main(){
 
-  int nendf, nin, nout, nscr, nscr2, matdde, nbin, iprint, ncds, matdpp, 
+  int nendf, nin, nout, nscr, nscr2, matde, nbin, iprint, ncds, matdp, 
     natom, ntemp, iinc, iform, mtref, ncdse;
   double za, awr, tol, emax, sb, az, tevz, teff, sb2, az2, teff2, cliq;
   int lasym, lat;
-
-  // array for user temperatures
-  std::vector<double> tempr;
 
   // array for thermal elastic data
   std::vector<double> fl;
@@ -132,7 +130,6 @@ int main(){
   int iverp, itemp, nwb, it, ntape, nex, ne, np, isave, lthr;
   double e, enext, emaxs, time, sz2, t, templ, s, temp;
   std::vector<double> ex(2);
-  std::vector<double> eftemp, eftmp2;
   double s1099 = 3.76e0, a1099 = 15.86e0, s1095 = 4.74e0, a1095 = 11.90e0,
     eps = 1.e-4, breakVal = 3000.e0, small = 1.e-10, up = 1.00001e0, zero = 0;
 
@@ -151,6 +148,235 @@ int main(){
     std::cout << "OH NO! Mode conversion not allowed" << std::endl;
   }
   
+  iprint=0;
+  ntemp=1;
+  std::vector<double> tempr(ntemp), eftemp(ntemp,0.0), eftmp2(ntemp,0.0);
+  if ( matde == 0 ){ 
+    for ( int i = 0; i < ntemp; ++i ){ eftemp[i] = tempr[i]; }
+  }
+
+  matde = 101, matdp = 600, nbin = 8, ntemp = 1, iinc = 2, icoh = 1, iform = 0,
+    natom = 1, mtref = 222, iprint = 2;
+  
+
+  if ( mtref < 221 or mtref > 250 ){ 
+    std::cout << "OH NO! Illegal reference mt" << std::endl;
+  }
+
+  /*
+   call openz(nendf,0)
+   call openz(nin,0)
+   call openz(nout,1)
+
+   !--check for endf-6 format data
+   call tpidio(nendf,0,0,scr,nb,nw)
+   call contio(nendf,0,0,scr,nb,nw)
+   call contio(nendf,0,0,scr,nb,nw)
+   if (n1h.ne.0) then
+      iverf=4
+   else if (n2h.eq.0) then
+      iverf=5
+   else
+      iverf=6
+   endif
+   call skiprz(nendf,-1)
+
+   !--set up internal data for older endf versions
+   if (iverf.lt.6) then
+
+      !--check for mixed s(a,b) cases (beo, benzine)
+      !--supply appropriate parameters
+      sz2=0
+      az2=0
+      if (matde.eq.1099) sz2=s1099
+      if (matde.eq.1099) az2=a1099
+      if (matde.eq.1095) sz2=s1095
+      if (matde.eq.1095) az2=a1095
+      sb2=sz2
+      if (az2.ne.zero) sb2=sz2*((az2+1)/az2)**2
+
+         !--default effective temperatures to standard values if
+         !--available, otherwise set them to the material temperature
+         if (matde.ne.0) then
+            call gateff(tempr,eftemp,ntemp,matde)
+            if (sz2.ne.zero) then
+               call gatef2(tempr,eftmp2,ntemp,matde)
+            endif
+         endif
+      endif
+
+   !--write parameters.
+   write(nsyso,'(/&
+     &'' unit for endf tape ................... '',i10/&
+     &'' unit for input pendf tape ............ '',i10/&
+     &'' unit for output pendf tape ........... '',i10)')&
+     nendf,nin,nout
+   write(nsyso,'(/&
+     &'' material to be processed (endf) ...... '',i10/&
+     &'' material to be processed (pendf) ..... '',i10/&
+     &'' number of angle bins ................. '',i10/&
+     &'' number of temperatures ............... '',i10/&
+     &'' inelastic option ..................... '',i10/&
+     &'' elastic option ....................... '',i10/&
+     &'' MF6 format option .................... '',i10/&
+     &'' number of principal atoms ............ '',i10/&
+     &'' reference mt ......................... '',i10/&
+     &'' print option (0 min, 1 max) .......... '',i10)')&
+     matde,matdp,nbin,ntemp,iinc,icoh,iform,natom,mtref,iprint
+   write(nsyso,'(&
+     &'' temperatures (kelvin) ................ '',1p,e10.4)')&
+     tempr(1)
+   if (ntemp.gt.1) write(nsyso,'(40x,1p,e10.4)')&
+     (tempr(i),i=2,ntemp)
+   write(nsyso,'(&
+     &'' tolerance ............................ '',1p,e10.4/&
+     &'' max energy for thermal treatment ..... '',e10.4)')&
+     tol,emax
+   if (iinc.eq.2.and.iverf.lt.6) then
+      write(nsyso,'(/&
+        &'' parameters for sct app.''/&
+        &'' -----------------------'')')
+      write(nsyso,'(&
+        &'' effective temperatures ............... '',1p,e10.4)')&
+        eftemp(1)
+      if (ntemp.gt.1) write(nsyso,'(40x,1p,e10.4)')&
+        (eftemp(i),i=2,ntemp)
+      if (sz2.ne.zero) then
+         write(nsyso,'(&
+           &'' free xsec for second atom ............ '',1p,e10.4/&
+           &'' mass ratio for second atom ........... '',1p,e10.4/&
+           &'' eff. temps for second atom ........... '',1p,e10.4)')&
+           sz2,az2,eftmp2(1)
+         if (ntemp.gt.1) write(nsyso,'(40x,1p,e10.4)')&
+           (eftmp2(i),i=2,ntemp)
+      endif
+   endif
+   write(nsyso,'(/'' endf uses endf-'',i1,'' format'')') iverf
+
+   !--initialize i/o units
+   iold=10
+   inew=11
+   nscr=12
+   if (nout.lt.0) nscr=-nscr
+   nscr2=13
+   if (nout.lt.0) nscr2=-nscr2
+   call openz(-iold,1)
+   call openz(-inew,1)
+   call openz(nscr,1)
+   call openz(nscr2,1)
+   call repoz(nendf)
+   call repoz(nout)
+   call repoz(nin)
+   call repoz(nscr2)
+
+   !--copy through to desired material
+   nsh=0
+   call tpidio(nin,nout,0,scr,nb,nw)
+  110 continue
+   call contio(nin,0,0,scr,nb,nw)
+   if (math.eq.matdp) go to 120
+   if (math.lt.0)&
+     call error('thermr','desired material not on pendf tape.',' ')
+   call contio(0,nout,0,scr,nb,nw)
+   call tomend(nin,nout,0,scr)
+   go to 110
+  120 continue
+   call contio(nin,0,0,scr(7),nb,nw)
+   if (n1h.ne.0) then
+      iverp=4
+   else if (n2h.eq.0) then
+      iverp=5
+   else
+      iverp=6
+   endif
+   call skiprz(nin,-1)
+   write(nsyso,'(/'' pendf uses endf-'',i1,'' format'')') iverp
+
+   !--loop over desired temperatures
+   itemp=1
+   icopy=0
+  130 continue
+   call contio(0,0,nscr2,scr,nb,nw)
+   if (math.ne.matdp)&
+     call error('thermr','desired material not on pendf tape.',' ')
+   nwb=0
+   za=scr(1)
+   awr=scr(2)
+   az=scr(2)
+   if (iverp.ge.5) call contio(nin,0,nscr2,scr,nb,nw)
+   if (iverp.ge.6) call contio(nin,0,nscr2,scr,nb,nw)
+   call hdatio(nin,0,nscr2,scr,nb,nw)
+   t=scr(1)
+   if (abs(t-tempr(itemp)).le.eps*tempr(itemp)) go to 180
+   if (t.gt.tempr(itemp))&
+     call error('thermr','desired temperature not on tape.',' ')
+
+   !--check for skipped temperatures to be copied
+   if (itemp.eq.1) icopy=icopy+1
+   if (itemp.eq.1) go to 160
+   templ=tempr(itemp-1)
+   it=0
+  150 continue
+   it=it+1
+   if (it.ge.itemp) go to 160
+   if (abs(t-tempr(it)).le.eps*tempr(it)) go to 150
+   if (abs(t-templ).le.eps*templ) go to 150
+   if (t.lt.templ) go to 150
+   icopy=icopy+1
+   go to 150
+  160 continue
+   if (icopy.eq.0) call repoz(nscr2)
+   ntape=nscr2
+   if (icopy.eq.0) ntape=0
+   call tomend(nin,0,ntape,scr)
+   call contio(nin,0,0,scr,nb,nw)
+   go to 130
+  180 continue
+   call findf(matdp,3,2,nin)
+
+   !--save elastic cross section on scratch file.
+   call contio(nin,0,0,scr,nb,nw)
+   nex=2
+   ne=0
+   e=0
+   call gety1(e,enext,idis,s,nin,scr)
+   emaxs=emax
+   if (t.gt.break) emax=emax*t/break
+  200 continue
+   e=enext
+   call gety1(e,enext,idis,s,nin,scr)
+   ex(1)=e
+   ex(2)=s
+   if (e.gt.emax*(1+small)) ex(2)=0
+   ne=ne+1
+   if (e.gt.emax*(1+small)) ne=-ne
+   call loada(ne,ex,nex,inew,bufn,nbuf)
+   if (ne.lt.0) go to 210
+   if (enext.gt.emax*(1+small)) enext=emax
+   if (abs(e-emax).lt.small*emax) enext=up*emax
+   go to 200
+  210 continue
+   np=-ne
+   emax=emaxs
+   isave=iold
+   iold=inew
+   inew=isave
+   call skiprz(nin,-1)
+
+   !--set up for elastic calculation
+   if (iverf.ge.6.and.nendf.ne.0) then
+      call findf(matde,7,0,nendf)
+      call contio(nendf,0,0,scr,nb,nw)
+      if (mth.eq.2) then
+         lthr=l1h
+         icoh=10*lthr
+         temp=tempr(itemp)
+         call rdelas(temp,lthr,nendf,nwb)
+      endif
+   endif
+   write(*,*) "HERE"
+   return
+*/
 return 1;
 }
 
