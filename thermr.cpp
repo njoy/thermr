@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
-#include "thermr_util/openz.h"
+//#include "thermr_util/openz.h"
+#include "thermr_util/tpidio.h"
+#include <fstream>
 
 
 int main(){
@@ -163,11 +165,20 @@ int main(){
     std::cout << "OH NO! Illegal reference mt" << std::endl;
   }
 
+  nendf = 24;
+  nin = 23;
+  nout = 25;
+  std::ofstream nendfFile;
+  std::ofstream ninFile;
+  std::ofstream noutFile;
+  nendfFile.open( "tape" + std::to_string(nendf) );
+  ninFile.open  ( "tape" + std::to_string(nin) );
+  noutFile.open ( "tape" + std::to_string(nout) );
+  nendfFile.close();
+  ninFile.close();
+ 
+  
   /*
-   call openz(nendf,0)
-   call openz(nin,0)
-   call openz(nout,1)
-
    !--check for endf-6 format data
    call tpidio(nendf,0,0,scr,nb,nw)
    call contio(nendf,0,0,scr,nb,nw)

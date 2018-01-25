@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <fstream>
 
 
 auto openz( int lun, int newInt ){
@@ -32,6 +33,18 @@ auto openz( int lun, int newInt ){
   if (nun > 10 and nun <= 19){
     // scratch
     age = "scratch";
+    std::ofstream myfile;
+    myfile.open ("tape20");
+    myfile.close();
+  } 
+  else {
+    if ( newInt != 1 ){
+      // existing units
+      age = "old";
+    } 
+    else {
+      // new units
+    }  
     
   } 
   return;
