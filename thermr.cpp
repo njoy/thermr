@@ -138,8 +138,8 @@ int main(){
   std::vector<double> scr(nwscr,0.0), bufo(nbuf), bufn(nbuf);
 
   nendf = 24;
-  nin = -23;
-  nout = -25;
+  nin = 23;
+  nout = 25;
 
   if (nin == 0){ 
     std::cout << "OH NO! nin equals zero" << std::endl;
@@ -168,14 +168,17 @@ int main(){
   nendf = 24;
   nin = 23;
   nout = 25;
-  std::ofstream nendfFile;
-  std::ofstream ninFile;
+  // Nendf and Nin are both to be read in
+  std::ifstream nendfFile;
+  std::ifstream ninFile;
+  // Nout will be written to
   std::ofstream noutFile;
   nendfFile.open( "tape" + std::to_string(nendf) );
   ninFile.open  ( "tape" + std::to_string(nin) );
   noutFile.open ( "tape" + std::to_string(nout) );
   nendfFile.close();
   ninFile.close();
+  noutFile.close();
  
   
   /*
