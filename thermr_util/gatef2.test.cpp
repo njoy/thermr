@@ -7,7 +7,7 @@ TEST_CASE( "gatef2" ){
     THEN( "output is okay" ){
       std::vector<double> temp {296}, eftemp(1);
       int mat = 101;
-      //gateff( temp, eftemp, mat );
+      gatef2( temp, eftemp, mat );
       REQUIRE( true );
     } // THEN
   } // GIVEN
