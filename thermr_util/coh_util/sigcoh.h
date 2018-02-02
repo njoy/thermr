@@ -1,6 +1,12 @@
 #include <iostream>
 #include <vector>
 
+
+auto tausq( int m1, int m2, int m3, double c1, double c2 ){
+  return (c1*(m1*m1+m2*m2+m1*m2)+(m3*m3*c2))*4*M_PI*M_PI;
+}
+
+
 auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat, 
   double temp, double emax, int natom ){
  /*-------------------------------------------------------------------
@@ -93,37 +99,43 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
    i1m = a * std::pow(phi,0.5);
    i1m = i1m + 1;
    k = 0;
-   /*
-   do 185 i1=1,i1m
-   l1=i1-1
-   i2m=int(half*(l1+sqrt(3*(a*a*phi-l1*l1))))
-   i2m=i2m+1
-   do 180 i2=i1,i2m
-   l2=i2-1
-   x=phi-c1*(l1*l1+l2*l2-l1*l2)
-   i3m=0
-   if (x.gt.zero) i3m=int(c*sqrt(x))
-   i3m=i3m+1
-   do 175 i3=1,i3m
-   l3=i3-1
-   w1=2
-   if (l1.eq.l2) w1=1
-   w2=2
-   if (l1.eq.0.or.l2.eq.0) w2=1
-   if (l1.eq.0.and.l2.eq.0) w2=half
-   w3=2
-   if (l3.eq.0) w3=1
 
-   tsq=tausq(l1,l2,l3,c1,c2,twopis)
-   if (tsq.le.zero.or.tsq.gt.ulim) go to 160
-   tau=sqrt(tsq)
-   w=exp(-tsq*t2*wint)*w1*w2*w3/tau
-   f=w*form(lat,l1,l2,l3)
-   if (k.gt.0.and.tsq.gt.tsqx) go to 150
-   k=k+1
-   if ((2*k).gt.nw) call error('sigcoh','storage exceeded.',' ')
-   wrk(2*k-1)=tsq
-   wrk(2*k)=f
+  // do 185 i1=1,i1m
+   l1 = i1 - 1;
+   i2m = half * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) );
+   i2m = i2m + 1;
+  // do 180 i2=i1,i2m
+   l2 = i2 - 1;
+   x = phi - c1 * ( l1 * l1 + l2 * l2 - l1 * l2 );
+   i3m = 0;
+   if (x > 0) { i3m = c * std::pow(x,0.5); }
+   i3m = i3m + 1;
+  // do 175 i3=1,i3m
+   l3 = i3 - 1;
+   w1 = 2;
+   if (l1 == l2) w1 = 1;
+   w2 = 2;
+   if (l1 == 0 or l2 == 0) w2 = 1;
+   if (l1 == 0 and l2 == 0) w2 = half;
+   w3 = 2;
+   if (l3 == 0) w3 = 1;
+
+   tsq = tausq(l1,l2,l3,c1,c2);
+   //if (tsq.le.zero.or.tsq.gt.ulim) go to 160
+   tau=std::pow(tsq,0.5);
+   w=exp(-tsq*t2*wint)*w1*w2*w3/tau;
+   //f=w*form(lat,l1,l2,l3) --> This is another function in thermr
+   //if (k.gt.0.and.tsq.gt.tsqx) go to 150
+   k=k+1;
+   if ((2*k) > nw){
+     std::cout << "storage exceeded oh no!" << std::endl;
+     //call error('sigcoh','storage exceeded.',' ')
+   } 
+   wrk[2*k-1] = tsq;
+   wrk[2*k] = f;
+
+
+   /*
    go to 160
   150 continue
    do 155 i=1,k
