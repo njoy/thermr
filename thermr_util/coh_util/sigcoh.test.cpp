@@ -1,9 +1,9 @@
 #define CATCH_CONFIG_MAIN
-#include "../catch.hpp"
-#include "coh.h"
+#include "../../catch.hpp"
+#include "sigcoh.h"
 
 
-TEST_CASE( "coh" ){
+TEST_CASE( "sigcoh" ){
   GIVEN( "" ){
     WHEN( "" ){
       REQUIRE( true );
