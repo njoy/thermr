@@ -19,7 +19,6 @@ auto gateff( std::vector<double>& temp, std::vector<double>& eftemp,
   *-------------------------------------------------------------------
   */
   int i, j, jmat, ntabl = 67;
-  double diff, test;
   std::vector<double> tabl1, tabl2, tabl3;
   tabl1 = { 1002, 1002, 1002, 1002, 1002, 1002, 1002, 1002, 1004, 1004, 1004, 
     1004, 1004, 1004, 1004, 1004, 1064, 1064, 1064, 1064, 1064, 1064, 1064, 
@@ -47,19 +46,13 @@ auto gateff( std::vector<double>& temp, std::vector<double>& eftemp,
   for ( size_t i = 0; i < temp.size(); ++i ){
     if (eftemp[i] == 0) {
       for ( size_t j = 0; j < ntabl; ++j ){
-        jmat = tabl1[j];
-        if (jmat == mat) {
-          test = 5;
-          diff = tabl2[j] - temp[i];
-          if (std::abs(diff) <= test) {
-            eftemp[i]=tabl3[j];
-          } // end if 
+        if (tabl1[j] == mat and std::abs( tabl2[j] - temp[i] ) <= 5 ) {
+          eftemp[i]=tabl3[j];
         } // end if 
       } // end for 
-      if (eftemp[i] == 0) eftemp[i] = temp[i];
+      if (eftemp[i] == 0) { eftemp[i] = temp[i]; }
     } // end if 
   } // end do 
-  return;
 }
 
 
