@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include "sigcoh_util/form.h"
 
 
 auto tausq( int m1, int m2, int m3, double c1, double c2 ){
@@ -124,7 +125,8 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
    //if (tsq.le.zero.or.tsq.gt.ulim) go to 160
    tau=std::pow(tsq,0.5);
    w=exp(-tsq*t2*wint)*w1*w2*w3/tau;
-   //f=w*form(lat,l1,l2,l3) --> This is another function in thermr
+   f = w * form( lat, l1, l2, l3 );
+   std::cout << f << std::endl;
    //if (k.gt.0.and.tsq.gt.tsqx) go to 150
    k=k+1;
    if ((2*k) > nw){
