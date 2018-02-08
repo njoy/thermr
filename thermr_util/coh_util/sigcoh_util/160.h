@@ -20,8 +20,8 @@ auto do160( int lat, double w1, double w2, double w3, int l1, int l2, int l3,
    // if (k > 0 and tsq > tsqx) go to 165
    k = k + 1;
    if ((2*k) > nw) { std::cout << "oh no, sigcoh! Storage exceeded" << std::endl; } 
-   wrk[2*k-1] = tsq;
-   wrk[2*k] = f;
+   wrk[2*k-2] = tsq;
+   wrk[2*k-1] = f;
 
 }
 

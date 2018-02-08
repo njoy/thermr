@@ -24,10 +24,75 @@ TEST_CASE( "tausq" ){
 
 
 TEST_CASE( "computeCrossSections" ){
+  int l1, l2, l3, k, lat, nw;
+  double c1, c2, w1, w2, w3, t2, wint;
+  std::vector<double> wrk(10);
+
   GIVEN( "" ){
-      
+    WHEN( "wint value is zero, eliminating exponential contribution" ){
+    l1 = 1, l2 = 0, l3 = 0, k = 0, lat = 1;
+    c1 = 2, c2 = 4;
+    w1 = 1, w2 = 2, w3 = 3;
+    t2 = 5;
+    wint = 0;
+    nw = 10;
+    do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw );
     THEN( "" ){
-      REQUIRE( true );
+      REQUIRE( 78.95683520871 == Approx( wrk[0] ).epsilon(1e-6) );
+      REQUIRE( 0.168809309279 == Approx( wrk[1] ).epsilon(1e-6) );
+      for ( size_t i = 2; i < wrk.size(); ++i ){ 
+        REQUIRE( 0 == Approx( wrk[i] ).epsilon(1e-6) );
+      }
     } // THEN
+    } // WHEN
+    WHEN( "wint value is significantly small to suppress exponential term" ){
+      wint = 0.01;
+      do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw );
+    THEN( "" ){
+      REQUIRE( 78.95683520871 == Approx( wrk[0] ).epsilon(1e-6) );
+      REQUIRE( 3.257395853E-3 == Approx( wrk[1] ).epsilon(1e-6) );
+      for ( size_t i = 2; i < wrk.size(); ++i ){ 
+        REQUIRE( 0 == Approx( wrk[i] ).epsilon(1e-6) );
+      }
+    } // THEN
+    } // WHEN
+
+  } // GIVEN
+  
+  GIVEN( "" ){
+    WHEN( "wint value is zero, eliminating exponential contribution" ){
+    l1 = 1, l2 = 2, l3 = 3, k = 0, lat = 1;
+    c1 = 2, c2 = 4;
+    w1 = 1, w2 = 2, w3 = 3;
+    t2 = 5;
+    wint = 0.01;
+    nw = 10;
+    do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw );
+    THEN( "" ){
+      REQUIRE(  1658.0935393830089 == Approx( wrk[0] ).epsilon(1e-6) );
+      REQUIRE(  1.5205534520116722E-66 == Approx( wrk[1] ).epsilon(1e-6) );
+      for ( size_t i = 2; i < wrk.size(); ++i ){ 
+        REQUIRE( 0 == Approx( wrk[i] ).epsilon(1e-6) );
+      }
+    } // THEN
+    } // WHEN
+  } // GIVEN
+
+  GIVEN( "lat value greater than 1" ){
+    WHEN( "wint value is zero, eliminating exponential contribution" ){
+    l1 = 1, l2 = 2, l3 = 3, k = 0, lat = 2;
+    c1 = 2, c2 = 4;
+    w1 = 1, w2 = 2, w3 = 3;
+    t2 = 5;
+    wint = 0.01;
+    nw = 10;
+    do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw );
+    THEN( "" ){
+      REQUIRE(  1658.0935393830089 == Approx( wrk[0] ).epsilon(1e-6) );
+      for ( size_t i = 1; i < wrk.size(); ++i ){ 
+        REQUIRE( 0 == Approx( wrk[i] ).epsilon(1e-6) );
+      }
+    } // THEN
+    } // WHEN
   } // GIVEN
 } // TEST CASE
