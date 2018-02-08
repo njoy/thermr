@@ -1,6 +1,34 @@
 #include <iostream>
 #include <vector>
 
+
+
+auto do260( std::vector<double> x, std::vector<double> y,
+  double arg, int l, int il ){
+   // 260 continue
+   // interpolation section
+   double sum = 0, p, pk, in;
+   for ( size_t i = 0; i < il; ++i ){
+      p = 1;
+      pk = 1;
+      in = l + i - 1;
+      for ( size_t ip = 0; ip < il; ++ip ){
+         if (ip != i){
+            auto inp = l + ip - 1;
+            p = p * (arg-x[inp]);
+            pk = pk * (x[in]-x[inp]);
+          }
+      }
+      sum=sum+p*y[in]/pk;
+   } 
+   //terp = sum;
+   return sum;
+}
+
+
+
+
+
 auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg, 
   int il1 ){
 
@@ -54,26 +82,29 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
       last = 2;
       iadd = 1 - iadd;
     }
+
     /*
+
    // checks if arg is smaller than table values
   // if (std::abs(arg-x(ilow)) < small*arg) go to 160
   // if (arg > x(ilow)) go to 170
    // smaller than smallest table value
    l = iusel;
    //go to 260
-  //160 continue
-   terp=y(ilow)
-   go to 300
-   ! checks if arg is greater than table values
+   
+  160 continue
+   terp = y(ilow);
+   return; // go to 300
+   // checks if arg is greater than table values
   170 continue
     if (abs(x(ihi)-arg).lt.small*arg) go to 190
-   if (x(ihi).gt.arg) go to 200
-   ! arg greater than table value
-   l=iuseh
+   if (x(ihi) > arg) go to 200
+   // arg greater than table value
+   l = iuseh;
    go to 260
   190 continue
-   terp=y(ihi)
-   go to 300
+   terp = y(ihi);
+   return; // go to 300
    ! searches x array to bracket arg
   200 continue
    do 230 n=ibeg,iend
@@ -88,34 +119,31 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
   230 continue
    l=last
    go to 260
-   ! equals argument, return ok
+   // equals argument, return ok
   240 continue
    terp=y(m)
-   go to 300
-   ! eureka
+   return; // go to 300
+   // eureka
   250 continue
    l=m-il2+iadd
   260 continue
-   ! interpolation section
+   // interpolation section
    sum=0
-   do i=1,il
-      p=1
-      pk=1
-      in=l+i-1
-      do ip=1,il
-         if (ip.ne.i) then
-            inp=l+ip-1
-            p=p*(arg-x(inp))
-            pk=pk*(x(in)-x(inp))
-         endif
-      enddo
+   for ( size_t i = 0; i < il; ++i ){
+      p = 1;
+      pk = 1;
+      in = l + i - 1;
+      for ( size_t ip = 0; ip < il; ++ip ){
+         if (ip != i){
+            inp = l + ip - 1;
+            p = p * (arg-x(inp));
+            pk = pk * (x(in)-x(inp));
+          }
+      }
       sum=sum+p*y(in)/pk
-   enddo
-   terp=sum
-  300 continue
-   return
-   end function terp
-
-   */
+   } 
+   terp = sum;
+   
+  */
 
   }
