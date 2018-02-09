@@ -22,6 +22,21 @@ auto do260( std::vector<double> x, std::vector<double> y, double arg, int l,
   return sum;
 }
 
+ 
+
+auto do230( std::vector<double> x, std::vector<double> y, double arg, int il, 
+  int last ){
+
+  int l = last;
+  return do260( x, y, arg, l, il );
+   
+}
+
+
+auto do240( std::vector<double> y, int m ){
+  return y[m-1];
+}
+
 
 auto do250( std::vector<double> x, std::vector<double> y, double arg, int il, 
   int m, int il2, int iadd  ){
@@ -30,6 +45,21 @@ auto do250( std::vector<double> x, std::vector<double> y, double arg, int il,
   return do260( x, y, arg, l, il );
    
 }
+
+auto do220( std::vector<double> x, std::vector<double> y, double arg, int il,
+  int m, int il2, int iadd, int last ){
+  double small = 1e-10;
+  if ( std::abs(x[m-1] - arg) < small*arg ){ 
+    std::cout << "in 220" << "   " << m << std::endl;
+    std::cout << do240( y, m ) << std::endl;
+    return do240( y, m ); 
+  }
+  if ( x[m-1] > arg ) { 
+    return do250( x, y, arg, il, m, il2, iadd );
+  }
+  return do230( x, y, arg, il, last );
+}
+
 
 
 
@@ -57,9 +87,9 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
    // if (nl > il) go to 120
    // if (nl == il) go to 110
    // not enough entries in tables for this order interpolation
-   il = nl;
+  // il = nl;
   // 110 continue
-   l = 1;
+  // l = 1;
   //  go to 260
   // 120 continue
    il2 = il / 2;
@@ -88,15 +118,34 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
       iadd = 1 - iadd;
     }
 
-    /*
 
    // checks if arg is smaller than table values
-  // if (std::abs(arg-x(ilow)) < small*arg) go to 160
-  // if (arg > x(ilow)) go to 170
+   if (std::abs(arg-x[ilow-1]) < small*arg) {  // go to 160
+     return y[ilow];
+    }
+   if (arg > x[ilow-1]) {                      // go to 170
    // smaller than smallest table value
+     // if (abs(x(ihi)-arg).lt.small*arg) go to 190
+     if (x[ihi-1] > arg) {                     // go to 200
+       // HERE WE WANT TO DO 200
+       for ( int n = ibeg; n < iend; ++n ){
+      //   if (iusel.gt.1) go to 210
+         m = n;
+         // 220 
+         if ( std::abs(x[m-1] - arg) < small*arg ){ return do240( y, m ); }
+         if ( x[m-1] > arg ) { return do250( x, y, arg, il, m, il2, iadd ); }
+
+ 
+       
+       }
+     }
+     l = iuseh;
+     // go to 260
+   }
    l = iusel;
    //go to 260
    
+    /*
   160 continue
    terp = y(ilow);
    return; // go to 300
@@ -151,4 +200,5 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
    
   */
 
+   return 5.0;
   }
