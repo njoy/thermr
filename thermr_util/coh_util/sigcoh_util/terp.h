@@ -2,29 +2,34 @@
 #include <vector>
 
 
+auto do260( std::vector<double> x, std::vector<double> y, double arg, int l, 
+  int il ){
 
-auto do260( std::vector<double> x, std::vector<double> y,
-  double arg, int l, int il ){
-   // 260 continue
-   // interpolation section
-   double sum = 0, p, pk, in;
-   for ( size_t i = 0; i < il; ++i ){
-      p = 1;
-      pk = 1;
-      in = l + i - 1;
-      for ( size_t ip = 0; ip < il; ++ip ){
-         if (ip != i){
-            auto inp = l + ip - 1;
-            p = p * (arg-x[inp]);
-            pk = pk * (x[in]-x[inp]);
-          }
-      }
-      sum=sum+p*y[in]/pk;
-   } 
-   //terp = sum;
-   return sum;
+  // interpolation section
+  double sum = 0, p, pk, in, inp;
+  for ( size_t i = 0; i < il; ++i ){
+    p = 1;
+    pk = 1;
+    in = l + i - 1;
+    for ( size_t ip = 0; ip < il; ++ip ){
+      if ( ip == i ){ continue; }
+      inp = l + ip - 1;
+      p  *= arg   - x[inp];
+      pk *= x[in] - x[inp];
+    }
+    sum += p * y[in] / pk;
+  } 
+  return sum;
 }
 
+
+auto do250( std::vector<double> x, std::vector<double> y, double arg, int il, 
+  int m, int il2, int iadd  ){
+
+  int l = m-il2 + iadd;
+  return do260( x, y, arg, l, il );
+   
+}
 
 
 
