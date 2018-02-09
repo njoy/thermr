@@ -222,27 +222,76 @@ TEST_CASE( "do260" ){
 TEST_CASE( "terp" ){
   std::vector<double> x, y, out;
   int nl = 10, il1 = 2;
-  double arg = 1000;
+  double arg;
 
 
   GIVEN( "" ){
     x = { 296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000 },
     y = { 2.1997, 2.7448, 3.2912, 3.851, 4.421, 4.9969, 6.1624, 7.3387, 
           9.6287, 11.992 };
-    REQUIRE( 6.1624 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
-    arg = 500;
-    REQUIRE( 3.2912 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+    WHEN( "120 260 300" ){ 
+      arg = 50;
+      REQUIRE( 0.910328 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
-    arg = 700;
-    REQUIRE( 4.421 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+      arg = 100;
+      REQUIRE( 1.17239615 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
-    arg = 800;
-    REQUIRE( 4.9969 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+      arg = 200;
+      REQUIRE( 1.69653076 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
     
+      arg = 300;
+      REQUIRE( 2.2206653 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
-    THEN( "" ){
-      REQUIRE( true );
-    } // THEN
+
+
+    } // WHEN
+
+    WHEN( "120 170 200 220 240 300" ){ 
+
+      arg = 500;
+      REQUIRE( 3.2912 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 700;
+      REQUIRE( 4.421 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 800;
+      REQUIRE( 4.9969 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 1000;
+      REQUIRE( 6.1624 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+
+    } // WHEN
+
+    WHEN( "120 170 200 220 230 260 300" ){
+
+      arg = 1300;
+      REQUIRE( 7.9112 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 1500;
+      REQUIRE( 9.0562 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+    } // WHEN
+
+    WHEN( "120 170 260 300" ){
+
+      arg = 1800;
+      REQUIRE( 10.81035 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 2800;
+      REQUIRE( 16.7186 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+    } // WHEN
+
+    WHEN( "120 160 300" ){
+
+      arg = 400;
+      REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+
+    } // WHEN
+
   } // GIVEN
+
 } // TEST CASE

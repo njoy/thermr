@@ -121,11 +121,12 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
 
    // checks if arg is smaller than table values
    if (std::abs(arg-x[ilow-1]) < small*arg) {  // go to 160
-     return y[ilow];
+     return y[ilow-1];
     }
    if (arg > x[ilow-1]) {                      // go to 170
    // smaller than smallest table value
      // if (abs(x(ihi)-arg).lt.small*arg) go to 190
+     //
      if (x[ihi-1] > arg) {                     // go to 200
        // HERE WE WANT TO DO 200
        for ( int n = ibeg; n < iend; ++n ){
@@ -134,16 +135,20 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
          // 220 
          if ( std::abs(x[m-1] - arg) < small*arg ){ return do240( y, m ); }
          if ( x[m-1] > arg ) { return do250( x, y, arg, il, m, il2, iadd ); }
-
- 
-       
        }
+       return do230( x, y, arg, il, last );
+
+
      }
      l = iuseh;
+     return do260( x, y, arg, l, il );
      // go to 260
    }
    l = iusel;
    //go to 260
+  return do260( x, y, arg, l, il );
+
+
    
     /*
   160 continue
