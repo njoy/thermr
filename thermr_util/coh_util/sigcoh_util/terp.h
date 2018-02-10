@@ -138,7 +138,6 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
        }
        return do230( x, y, arg, il, last );
 
-
      }
      l = iuseh;
      return do260( x, y, arg, l, il );
@@ -150,60 +149,4 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
 
 
    
-    /*
-  160 continue
-   terp = y(ilow);
-   return; // go to 300
-   // checks if arg is greater than table values
-  170 continue
-    if (abs(x(ihi)-arg).lt.small*arg) go to 190
-   if (x(ihi) > arg) go to 200
-   // arg greater than table value
-   l = iuseh;
-   go to 260
-  190 continue
-   terp = y(ihi);
-   return; // go to 300
-   ! searches x array to bracket arg
-  200 continue
-   do 230 n=ibeg,iend
-   if (iusel.gt.1) go to 210
-   m=n
-   go to 220
-  210 continue
-   m=nl-n+1
-  220 continue
-   if (abs(x(m)-arg).lt.small*arg) go to 240
-   if (x(m).gt.arg) go to 250
-  230 continue
-   l=last
-   go to 260
-   // equals argument, return ok
-  240 continue
-   terp=y(m)
-   return; // go to 300
-   // eureka
-  250 continue
-   l=m-il2+iadd
-  260 continue
-   // interpolation section
-   sum=0
-   for ( size_t i = 0; i < il; ++i ){
-      p = 1;
-      pk = 1;
-      in = l + i - 1;
-      for ( size_t ip = 0; ip < il; ++ip ){
-         if (ip != i){
-            inp = l + ip - 1;
-            p = p * (arg-x(inp));
-            pk = pk * (x(in)-x(inp));
-          }
-      }
-      sum=sum+p*y(in)/pk
-   } 
-   terp = sum;
-   
-  */
-
-   return 5.0;
   }

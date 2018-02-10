@@ -284,13 +284,37 @@ TEST_CASE( "terp" ){
 
     } // WHEN
 
-    WHEN( "120 160 300" ){
+    WHEN( "120 160 300 ( arg is basically equal to x(ilow) )" ){
+
+      arg = 399.999999;
+      REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
       arg = 400;
       REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
+      arg = 400.000001;
+      REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
 
     } // WHEN
+
+    WHEN( "120 170 190 300 ( arg is basically equal to x(ihi) )" ){
+
+      arg = 1599.999999;
+      REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 1600;
+      REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 1600.000001;
+      REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+
+
+
+    } // WHEN
+
+
 
   } // GIVEN
 
