@@ -2,172 +2,6 @@
 #include "../../../catch.hpp"
 #include "terp.h"
 
-TEST_CASE( "do220" ){
-  std::vector<double> x, y;
-
-  GIVEN( "inputs" ){
-    REQUIRE( true );
-
-
-  } // GIVEN
-} // TEST CASE
-
-
-TEST_CASE( "do230" ){
-  std::vector<double> x, y, out;
-  std::vector<double> inputs (4);
-  int il = 2;
-  double arg;
-
-  GIVEN( "x, y vectors of equal length" ){
-    x = { 296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000 },
-    y = { 2.1997, 2.7448, 3.2912, 3.851, 4.421, 4.9969, 6.1624, 7.3387, 
-          9.6287, 11.992 };
-    WHEN( "arg value is a value in x" ){
-      arg = 296;
-
-      inputs = { 5, 8, 2, 4 };
-      out = { 2.094364, 2.1633, 2.176544, 2.1182 };
-
-      for ( size_t i = 0; i < inputs.size(); ++i ){
-        REQUIRE( out[i] == Approx( do230( x, y, arg, il, inputs[i] ) ).epsilon( 1e-6 ) );
-      }
-
-      arg = 590;
-      out = { 3.78751, 3.84645, 3.78296, 3.794 };
-
-      for ( size_t i = 0; i < inputs.size(); ++i ){
-        REQUIRE( out[i] == Approx( do230( x, y, arg, il, inputs[i] ) ).epsilon( 1e-6 ) );
-      }
-
-    } // WHEN
-    WHEN( "arg value is not a value in x" ){
-      AND_WHEN( "arg value is within range" ){
-        arg = 350;
-
-        inputs = { 5, 8, 2, 4 };
-        out = { 2.40535,  2.47245, 2.4716, 2.426 };
-
-        for ( size_t i = 0; i < inputs.size(); ++i ){
-          REQUIRE( out[i] == Approx( do230( x, y, arg, il, inputs[i] ) ).epsilon( 1e-6 ) );
-        }
-
-        arg = 1500;
-        out = { 9.0282, 9.0562, 8.7552, 8.981 };
-
-        for ( size_t i = 0; i < inputs.size(); ++i ){
-          REQUIRE( out[i] == Approx( do230( x, y, arg, il, inputs[i] ) ).epsilon( 1e-6 ) );
-        }
-
-      } // AND WHEN
-      AND_WHEN( "arg value is not within range" ){
-        arg = 200;
-
-        inputs = { 5, 8, 2, 4 };
-        out = { 1.5415, 1.6137, 1.652, 1.571 };
-
-        for ( size_t i = 0; i < inputs.size(); ++i ){
-          REQUIRE( out[i] == Approx( do230( x, y, arg, il, inputs[i] ) ).epsilon( 1e-6 ) );
-        }
-
-        arg = 3000;
-        out = { 17.6667,  17.6437, 16.9512, 17.531 };
-
-        for ( size_t i = 0; i < inputs.size(); ++i ){
-          REQUIRE( out[i] == Approx( do230( x, y, arg, il, inputs[i] ) ).epsilon( 1e-6 ) );
-        }
-
-      } // AND WHEN
-
-    } // WHEN
-  } // GIVEN
-} // TEST CASE
-
-
-
-TEST_CASE( "do250" ){
-  std::vector<double> x, y, out;
-  std::vector<std::tuple<int,int,int>> inputs (4);
-  int il = 2;
-  double arg;
-
-  GIVEN( "x, y vectors of equal length" ){
-    x = { 296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000 },
-    y = { 2.1997, 2.7448, 3.2912, 3.851, 4.421, 4.9969, 6.1624, 7.3387, 
-          9.6287, 11.992 };
-    WHEN( "arg value is a value in x" ){
-      arg = 296;
-
-      inputs = { { 4, 5, 6 }, { 9, 3, 2 }, { 4, 3, 1 }, { -1, -5, 0 } };
-      out = { 2.094364, 2.1633, 2.176544, 2.1182 };
-
-      for ( size_t i = 0; i < inputs.size(); ++i ){
-        REQUIRE( out[i] == Approx( do250( x, y, arg, il, 
-          std::get<0>(inputs[i]), std::get<1>(inputs[i]), 
-          std::get<2>(inputs[i]) ) ).epsilon( 1e-6 ) );
-      }
-
-      arg = 590;
-      out = { 3.78751, 3.84645, 3.78296, 3.794 };
-
-      for ( size_t i = 0; i < inputs.size(); ++i ){
-        REQUIRE( out[i] == Approx( do250( x, y, arg, il, 
-          std::get<0>(inputs[i]), std::get<1>(inputs[i]), 
-          std::get<2>(inputs[i]) ) ).epsilon( 1e-6 ) );
-      }
-
-    } // WHEN
-    WHEN( "arg value is not a value in x" ){
-      AND_WHEN( "arg value is within range" ){
-        arg = 350;
-
-        inputs = { { 4, 5, 6 }, { 9, 3, 2 }, { 4, 3, 1 }, { -1, -5, 0 } };
-        out = { 2.40535,  2.47245, 2.4716, 2.426 };
-
-        for ( size_t i = 0; i < inputs.size(); ++i ){
-          REQUIRE( out[i] == Approx( do250( x, y, arg, il, 
-            std::get<0>(inputs[i]), std::get<1>(inputs[i]), 
-            std::get<2>(inputs[i]) ) ).epsilon( 1e-6 ) );
-        }
-
-        arg = 1500;
-        out = { 9.0282, 9.0562, 8.7552, 8.981 };
-
-        for ( size_t i = 0; i < inputs.size(); ++i ){
-          REQUIRE( out[i] == Approx( do250( x, y, arg, il, 
-            std::get<0>(inputs[i]), std::get<1>(inputs[i]), 
-            std::get<2>(inputs[i]) ) ).epsilon( 1e-6 ) );
-        }
-
-      } // AND WHEN
-      AND_WHEN( "arg value is not within range" ){
-        arg = 200;
-
-        inputs = { { 4, 5, 6 }, { 9, 3, 2 }, { 4, 3, 1 }, { -1, -5, 0 } };
-        out = { 1.5415, 1.6137, 1.652, 1.571 };
-
-        for ( size_t i = 0; i < inputs.size(); ++i ){
-          REQUIRE( out[i] == Approx( do250( x, y, arg, il, 
-            std::get<0>(inputs[i]), std::get<1>(inputs[i]), 
-            std::get<2>(inputs[i]) ) ).epsilon( 1e-6 ) );
-        }
-
-        arg = 3000;
-        out = { 17.6667,  17.6437, 16.9512, 17.531 };
-
-        for ( size_t i = 0; i < inputs.size(); ++i ){
-          REQUIRE( out[i] == Approx( do250( x, y, arg, il, 
-            std::get<0>(inputs[i]), std::get<1>(inputs[i]), 
-            std::get<2>(inputs[i]) ) ).epsilon( 1e-6 ) );
-        }
-
-      } // AND WHEN
-
-    } // WHEN
-  } // GIVEN
-} // TEST CASE
-
-
 
 TEST_CASE( "do260" ){
   std::vector<double> x, y, arg, out;
@@ -284,23 +118,27 @@ TEST_CASE( "terp" ){
 
 
       // 120 160 300
-      AND_WHEN( "arg is basically equal to x(ilow)" ){
-        argVal = { 399.999999, 400, 400.0000001 }; 
-        outVal = { 2.7448, 2.7448, 2.7448 };
+      AND_WHEN( "arg is basically equal to x[ilow-1]" ){
+        THEN( "corresponding y[ilow-1] value is returned" ){
+          argVal = { 399.999999, 400, 400.0000001 }; 
+          outVal = { 2.7448, 2.7448, 2.7448 };
 
-        for ( size_t i = 0; i < argVal.size(); ++i ){ 
-          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
-        }
+          for ( size_t i = 0; i < argVal.size(); ++i ){ 
+            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          }
+        } // THEN
       } // AND WHEN
 
       // 120 170 190 300
       AND_WHEN( "arg is basically equal to x(ihi)" ){
-        argVal = { 1599.999999, 1600, 1600.0000001 }; 
-        outVal = { 9.6287, 9.6287, 9.6287 };
+        THEN( "corresponding y[ihi-1] value is returned" ){
+          argVal = { 1599.999999, 1600, 1600.0000001 }; 
+          outVal = { 9.6287, 9.6287, 9.6287 };
 
-        for ( size_t i = 0; i < argVal.size(); ++i ){ 
-          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
-        }
+          for ( size_t i = 0; i < argVal.size(); ++i ){ 
+            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          }
+        } // THEN
 
       } // AND WHEN
 

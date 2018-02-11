@@ -22,42 +22,6 @@ auto do260( std::vector<double> x, std::vector<double> y, double arg, int l,
   return sum;
 }
 
- 
-
-auto do230( std::vector<double> x, std::vector<double> y, double arg, int il, 
-  int last ){
-
-  int l = last;
-  return do260( x, y, arg, l, il );
-   
-}
-
-
-auto do240( std::vector<double> y, int m ){
-  return y[m-1];
-}
-
-
-auto do250( std::vector<double> x, std::vector<double> y, double arg, int il, 
-  int m, int il2, int iadd  ){
-
-  int l = m-il2 + iadd;
-  return do260( x, y, arg, l, il );
-   
-}
-
-auto do220( std::vector<double> x, std::vector<double> y, double arg, int il,
-  int m, int il2, int iadd, int last ){
-  double small = 1e-10;
-  if ( std::abs(x[m-1] - arg) < small*arg ){ 
-    return do240( y, m ); 
-  }
-  if ( x[m-1] > arg ) { 
-    return do250( x, y, arg, il, m, il2, iadd );
-  }
-  return do230( x, y, arg, il, last );
-}
-
 
 
 
@@ -77,85 +41,99 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
    *-------------------------------------------------------------------
    */
 
-   int il,l,iadd,il2,ilow,ihi,iusel,iuseh,ibeg,iend,last,n,m,i,in,ip,inp;
-   double sum,p,pk;
-   double small=1.e-10;
+  int il, l, iadd, il2, ilow, ihi, iusel, iuseh, ibeg, iend, last, n, m, i, in,
+      ip, inp;
+  double sum, p, pk;
 
-   il = il1;
+  il = il1;
 
-   // Doing 110 if necessary
-   if ( nl <= il ){
-     if ( nl == il ){ l = 1; return do260( x, y, arg, l, il ); }
-     if ( nl < il ){ il = nl; l = 1; return do260( x, y, arg, l, il ); }
-   } 
+  // 110
+  // If order of interpolation is too large, make it equal to the size of the
+  // input vectors
+  if ( nl <= il ){
+    l = 1; il = nl;                    // Make sure nl is not less than il. 
+    return do260( x, y, arg, l, il );  // Continue with interpolation
+  } 
    
-   // Continuing to 120
-
-   il2 = il / 2;
-   iadd = il%2;
-   // check if tables in increasing or decreasing sequence
-   if (x[0] <= x[nl-1]) {
-      // increasing sequence
-      ilow = il2 + 1;
-      ihi = nl - il2 - iadd;
-      iusel = 1;
-      iuseh = nl - il + 1;
-      ibeg = ilow + 1;
-      iend = ihi - 1;
-      last = iend - il2 + 1;
-      iadd = 0;
-    }
-    else {
-      // decreasing sequence
-      ilow = nl - il2;
-      ihi = il2 + iadd + 1;
-      iusel = nl - il + 1;
-      iuseh = 1;
-      ibeg = ihi + 1;
-      iend = ilow - 1;
-      last = 2;
-      iadd = 1 - iadd;
-    }
-
-
-   // checks if arg is smaller than table values
-   if (std::abs(arg-x[ilow-1]) < small*arg) {  // go to 160
-     return y[ilow-1];
-    }
-   if (arg > x[ilow-1]) {                      // go to 170
-   // smaller than smallest table value
-     if (std::abs(x[ihi-1]-arg) < small*arg){  // go to 190
-       return y[ihi-1];
-      }
-     
-     if (x[ihi-1] > arg) {                     // go to 200
-       // HERE WE WANT TO DO 200
-       for ( int n = ibeg; n <= iend; ++n ){
-         if (iusel > 1) {
-           m = nl - n + 1;
-         }
-         else {
-           m = n;
-         }
-         // 220 
-         if ( std::abs(x[m-1] - arg) < small*arg ){ 
-           return do240( y, m );
-         }
-         if ( x[m-1] > arg ) { 
-           return do250( x, y, arg, il, m, il2, iadd ); 
-         }
-       }
-       return do230( x, y, arg, il, last );
-
-     }
-     l = iuseh;
-     return do260( x, y, arg, l, il );
-     // go to 260
-   }
-   l = iusel;
-   //go to 260
-  return do260( x, y, arg, l, il );
-
-
-   
+  // 120
+  // If order of interpolation is sufficiently small, continue
+  il2 = il / 2;
+  // check if tables in increasing or decreasing sequence
+  if (x[0] <= x[nl-1]) {
+    // increasing sequence
+    ilow = il2 + 1;
+    ihi = nl - il2 - il%2;
+    iusel = 1;
+    iuseh = nl - il + 1;
+    ibeg = ilow + 1;
+    iend = ihi - 1;
+    last = iend - il2 + 1;
+    iadd = 0;
   }
+  else {
+    // decreasing sequence
+    ilow = nl - il2;
+    ihi = il2 + il%2 + 1;
+    iusel = nl - il + 1;
+    iuseh = 1;
+    ibeg = ihi + 1;
+    iend = ilow - 1;
+    last = 2;
+    iadd = 1 - il%2;
+  }
+
+  // 170 The following is a weird mess of 170
+
+  // 160
+  // If arg is approximately equal to lowest value, return lowest known value
+  if ( std::abs( arg - x[ilow-1] ) < arg*1e-10 ) { return y[ilow-1]; }
+
+  // 190
+  // If arg is approximately equal to highest value, return highest value
+  if ( std::abs( arg - x[ihi-1] ) < arg*1e-10 ) { return y[ihi-1]; }
+
+  // This shows up at the end of 120
+  // If arg is lower than x[ilow-1], then set l = iusel and interpolate
+  if ( arg < x[ilow-1] ){
+    l = iusel;
+    return do260( x, y, arg, l, il );
+  }
+
+  // This also shows up later
+  // If arg is higher than x[ihi-1], then set l = iuseh and interpolate
+  if ( arg > x[ihi-1] ){
+    l = iuseh;
+    return do260( x, y, arg, l, il );
+  }
+
+  // 200
+  // If arg is a reasonable size, continue
+  for ( int n = ibeg; n <= iend; ++n ){
+
+    // If we have a decreasing seqeuence, and the order of interpolation is less
+    // than the size of the vector
+    m = iusel > 1 ? nl - n + 1 : n;
+
+    // 220 
+    
+    // 240
+    // If arg is approximately equal to a value in my x vector, just return its
+    // corresponding value in the y vector
+    if ( std::abs(x[m-1] - arg) < 1e-10*arg ){ return y[m-1]; }
+
+    // 250
+    // If while iterating through my x vector, I pass over arg, then I should 
+    // calculate l and interpolate
+    if ( x[m-1] > arg ) { 
+      l = m - il2 + iadd;
+      return do260( x, y, arg, l, il );
+    }
+  }
+  
+  // 230
+  // If after iterating through x I haven't found my arg value to interpolate,
+  // I assume the latest possible value and interpolate
+  l = last;
+  return do260( x, y, arg, l, il );
+   
+}
