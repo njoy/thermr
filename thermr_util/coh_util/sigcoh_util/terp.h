@@ -129,12 +129,20 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
      //
      if (x[ihi-1] > arg) {                     // go to 200
        // HERE WE WANT TO DO 200
-       for ( int n = ibeg; n < iend; ++n ){
-      //   if (iusel.gt.1) go to 210
-         m = n;
+       for ( int n = ibeg; n <= iend; ++n ){
+         if (iusel > 1) {
+           m = nl - n + 1;
+         }
+         else {
+           m = n;
+         }
          // 220 
-         if ( std::abs(x[m-1] - arg) < small*arg ){ return do240( y, m ); }
-         if ( x[m-1] > arg ) { return do250( x, y, arg, il, m, il2, iadd ); }
+         if ( std::abs(x[m-1] - arg) < small*arg ){ 
+           return do240( y, m );
+         }
+         if ( x[m-1] > arg ) { 
+           return do250( x, y, arg, il, m, il2, iadd ); 
+         }
        }
        return do230( x, y, arg, il, last );
 

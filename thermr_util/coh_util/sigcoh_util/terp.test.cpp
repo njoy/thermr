@@ -231,17 +231,41 @@ TEST_CASE( "terp" ){
           9.6287, 11.992 };
 
     WHEN( "120 260 300" ){ 
-      arg = 50;
-      REQUIRE( 0.910328 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
-      arg = 100;
-      REQUIRE( 1.17239615 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+      AND_WHEN( "sequence is increasing" ){
 
-      arg = 200;
-      REQUIRE( 1.69653076 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+        arg = 50;
+        REQUIRE( 0.910328 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 100;
+        REQUIRE( 1.17239615 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 200;
+        REQUIRE( 1.69653076 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
     
-      arg = 300;
-      REQUIRE( 2.2206653 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+        arg = 300;
+        REQUIRE( 2.2206653 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      } // AND WHEN
+
+      AND_WHEN( "sequence is decreasing" ){
+        x = { 2000, 1600, 1200, 1000, 800, 700, 600, 500, 400, 296 };
+
+        arg = 40;
+        REQUIRE( 17.80935384 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 80;
+        REQUIRE( 16.90039230 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 120;
+        REQUIRE( 15.99143076 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 190;
+        REQUIRE( 14.40074807 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+
+
+      } // AND WHEN
 
 
 
@@ -276,24 +300,59 @@ TEST_CASE( "terp" ){
 
     WHEN( "120 170 260 300" ){
 
-      arg = 1800;
-      REQUIRE( 10.81035 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+      AND_WHEN( "sequence is increasing" ){
 
-      arg = 2800;
-      REQUIRE( 16.7186 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+        arg = 1800;
+        REQUIRE( 10.81035 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 2800;
+        REQUIRE( 16.7186 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      } // AND WHEN
+
+      AND_WHEN( "sequence is decreasing" ){
+        x = { 2000, 1600, 1200, 1000, 800, 700, 600, 500, 400, 296 };
+
+        arg = 2400;
+        REQUIRE( 1.6546 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 3400;
+        REQUIRE( 0.29185 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      } // AND WHEN
+
+
 
     } // WHEN
 
     WHEN( "120 160 300 ( arg is basically equal to x(ilow) )" ){
 
-      arg = 399.999999;
-      REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+      AND_WHEN( "sequence is increasing" ){
+        arg = 399.999999;
+        REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
-      arg = 400;
-      REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+        arg = 400;
+        REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
-      arg = 400.000001;
-      REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+        arg = 400.000001;
+        REQUIRE( 2.7448 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+      } // AND WHEN
+
+      AND_WHEN( "sequence is decreasing" ){
+        x = { 2000, 1600, 1200, 1000, 800, 700, 600, 500, 400, 296 };
+
+        arg = 399.999999;
+        REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 400;
+        REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 400.000001;
+        REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      } // AND WHEN
+
+
 
 
     } // WHEN
@@ -310,9 +369,28 @@ TEST_CASE( "terp" ){
       REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
 
+    } // WHEN
 
+    WHEN( "120 170 200 220 230 260 300 ( sequence is decreasing )" ){
+      x = { 2000, 1600, 1200, 1000, 800, 700, 600, 500, 400, 296 };
+      y = { 2.1997, 2.7448, 3.2912, 3.851, 4.421, 4.9969, 6.1624, 7.3387, 
+            9.6287, 11.992 };
+
+      arg = 500;
+      REQUIRE( 7.3387 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 800;
+      REQUIRE( 4.421 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 1100;
+      REQUIRE( 3.5711 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+    
+      arg = 1300;
+      REQUIRE( 3.1546 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
     } // WHEN
+
+
 
 
 
