@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "sigcoh_util/form.h"
+#include "sigcoh_util/terp.h"
 
 
 auto tausq( int m1, int m2, int m3, double c1, double c2 ){
@@ -63,7 +64,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
       c = gr2;
       amsc = gr3;
       scoh = gr4 / natom;
-      // wal2 = terp(tmp,dwf1,nd,temp,nord);
+      wal2 = terp(tmp,dwf1,nd,temp,nord);
    }
    else if (lat == 2) {
       // beryllium constants
@@ -71,7 +72,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
       c = be2;
       amsc = be3;
       scoh = be4/natom;
-      // wal2 = terp(tmp,dwf2,nd,temp,nord);
+      wal2 = terp(tmp,dwf2,nd,temp,nord);
    }
    else if (lat == 3){
       // beryllium oxide constants
@@ -79,7 +80,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
       c = beo2;
       amsc = beo3;
       scoh = beo4/natom;
-      // wal2 = terp(tmp,dwf3,nd,temp,nord);
+      wal2 = terp(tmp,dwf3,nd,temp,nord);
    } 
    else {
       std::cout << "OH NO! Error over here. Illegal lat value" << std::endl;
