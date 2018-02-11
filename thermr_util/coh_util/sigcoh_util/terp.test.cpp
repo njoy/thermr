@@ -217,93 +217,175 @@ TEST_CASE( "do260" ){
   } // GIVEN
 } // TEST CASE
 
+
+
+
 TEST_CASE( "terp" ){
-  std::vector<double> x, y, out;
+  std::vector<double> x, y, out, argVal, outVal;
   int nl = 10, il1 = 2;
   double arg;
 
+  GIVEN( "vector is in increasing order" ){
 
-  GIVEN( "" ){
     x = { 296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000 },
     y = { 2.1997, 2.7448, 3.2912, 3.851, 4.421, 4.9969, 6.1624, 7.3387, 
           9.6287, 11.992 };
 
-    WHEN( "110 260 300 --> order of interpolation is larger than the size of x, y" ){ 
+    // 110 260 300
+    WHEN( "order of interpolation is equal or larger than size of vectors" ){
+      argVal = { 45, 305, 1325, 1845 }; 
+      outVal = { 1.93113202, 2.24507589, 8.04692000, 11.9017192 };
+
       AND_WHEN( "order of interpolation is exactly size of x, y" ){
         il1 = 10;
-
-        arg = 1325; 
-        REQUIRE( 8.04692000 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-        arg = 45; 
-        REQUIRE( 1.93113202 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-        arg = 1845;
-        REQUIRE( 11.9017192 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-      } // AND WHEN
-      AND_WHEN( "order of interpolation is exactly size of x, y" ){
-        il1 = 11;
-        THEN( "order of interpolation is changed to be sizez of x, y" ){
-
-          arg = 45; 
-          REQUIRE( 1.93113202 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-          arg = 1325; 
-          REQUIRE( 8.04692000 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-          arg = 305; 
-          REQUIRE( 2.24507589 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-          arg = 1845;
-          REQUIRE( 11.9017192 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+        THEN( "order of interpolation is kept same" ){
+          for ( size_t i = 0; i < argVal.size(); ++i ){ 
+            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          }
         } // THEN
       } // AND WHEN
 
-
-
+      AND_WHEN( "order of interpolation is larger than the size of x, y" ){
+        THEN( "order of interpolation is changed to be sizez of x, y and answer same as above" ){
+          il1 = 11;
+          for ( size_t i = 0; i < argVal.size(); ++i ){ 
+            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          }
+          il1 = 18;
+          for ( size_t i = 0; i < argVal.size(); ++i ){ 
+            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          }
+        } // THEN
+      } // AND WHEN
     } // WHEN
 
+    WHEN( "order of interpolation is less than size of vectors" ){
 
-    WHEN( "120 260 300" ){ 
+      // 120 260 300
+      AND_WHEN( "argument is too low for good interpolation" ){ 
+        argVal = { 50, 100, 200, 300 }; 
+        outVal = { 0.910328, 1.17239615, 1.69653076, 2.2206653 };
+
+        for ( size_t i = 0; i < argVal.size(); ++i ){ 
+          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+        }
+
+      } // AND WHEN
+
+      // 120 170 260 300
+      AND_WHEN( "argument is too high for good interpolation" ){
+
+        argVal = { 1800, 2800 }; outVal = { 10.81035, 16.7186 };
+        for ( size_t i = 0; i < argVal.size(); ++i ){ 
+          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+        }
+
+      } // AND WHEN
+
+
+      // 120 160 300
+      AND_WHEN( "arg is basically equal to x(ilow)" ){
+        argVal = { 399.999999, 400, 400.0000001 }; 
+        outVal = { 2.7448, 2.7448, 2.7448 };
+
+        for ( size_t i = 0; i < argVal.size(); ++i ){ 
+          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+        }
+      } // AND WHEN
+
+      // 120 170 190 300
+      AND_WHEN( "arg is basically equal to x(ihi)" ){
+        argVal = { 1599.999999, 1600, 1600.0000001 }; 
+        outVal = { 9.6287, 9.6287, 9.6287 };
+
+        for ( size_t i = 0; i < argVal.size(); ++i ){ 
+          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+        }
+
+      } // AND WHEN
+
+
+      AND_WHEN( "arg is within an appropriate range" ){
+
+        // 120 170 200 220 240 300
+        AND_WHEN( "arg is approximately equal to an x value" ){ 
+
+          argVal = { 500, 700, 800, 1000 }; outVal = { 3.2912, 4.421, 4.9969, 6.1624 };
+          for ( size_t i = 0; i < argVal.size(); ++i ){ 
+            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          }
+
+        } // AND WHEN
+
+        // 120 170 200 220 230 260 300
+        AND_WHEN( "120 170 200 220 230 260 300" ){
+
+          argVal = { 1300, 1325, 1500 }; outVal = { 7.9112, 8.054325, 9.0562 };
+          for ( size_t i = 0; i < argVal.size(); ++i ){ 
+            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          }
+
+        } // AND WHEN
+
+        // 120 170 200 220 250 260 300
+        AND_WHEN( "120 170 200 220 250 260 300" ){
+          argVal = { 510, 580, 835 }; 
+          outVal = { 3.34718, 3.73904, 5.2008625 };
+
+          for ( size_t i = 0; i < argVal.size(); ++i ){ 
+            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          }
+
+        } // AND WHEN
+
+      } // AND WHEN
+
+    } // WHEN 
+
+  } // GIVEN
+
+  GIVEN( "vector is in decreasing order" ){
+
+     x = { 2000, 1600, 1200, 1000, 800, 700, 600, 500, 400, 296 };
+     y = { 2.1997, 2.7448, 3.2912, 3.851, 4.421, 4.9969, 6.1624, 7.3387, 
+           9.6287, 11.992 };
+
+
+
+  } // GIVEN
+
+
+
+
+
+  x = { 296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000 },
+  y = { 2.1997, 2.7448, 3.2912, 3.851, 4.421, 4.9969, 6.1624, 7.3387, 
+        9.6287, 11.992 };
+
+
+
+  GIVEN( "order of interpolation is less than size of vectors" ){
+
+    // 120 260 300
+    WHEN( "argument is too low for good interpolation" ){ 
 
       AND_WHEN( "sequence is increasing" ){
 
-        arg = 50;
-        REQUIRE( 0.910328 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-        arg = 100;
-        REQUIRE( 1.17239615 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-        arg = 200;
-        REQUIRE( 1.69653076 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-    
-        arg = 300;
-        REQUIRE( 2.2206653 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+        argVal = { 50, 100, 200, 300 }; outVal = { 0.910328, 1.17239615, 1.69653076, 2.2206653 };
+        for ( size_t i = 0; i < argVal.size(); ++i ){ 
+          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+        }
 
       } // AND WHEN
 
       AND_WHEN( "sequence is decreasing" ){
         x = { 2000, 1600, 1200, 1000, 800, 700, 600, 500, 400, 296 };
 
-        arg = 40;
-        REQUIRE( 17.80935384 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-        arg = 80;
-        REQUIRE( 16.90039230 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-        arg = 120;
-        REQUIRE( 15.99143076 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-        arg = 190;
-        REQUIRE( 14.40074807 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
-
-
-
+        argVal = { 40, 80, 120, 190 }; outVal = { 17.80935384, 16.90039230, 15.99143076, 14.40074807 };
+        for ( size_t i = 0; i < argVal.size(); ++i ){ 
+          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+        }
       } // AND WHEN
-
-
-
     } // WHEN
 
     WHEN( "120 170 200 220 240 300" ){ 
