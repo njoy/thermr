@@ -50,8 +50,6 @@ auto do220( std::vector<double> x, std::vector<double> y, double arg, int il,
   int m, int il2, int iadd, int last ){
   double small = 1e-10;
   if ( std::abs(x[m-1] - arg) < small*arg ){ 
-    std::cout << "in 220" << "   " << m << std::endl;
-    std::cout << do240( y, m ) << std::endl;
     return do240( y, m ); 
   }
   if ( x[m-1] > arg ) { 
@@ -84,14 +82,15 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
    double small=1.e-10;
 
    il = il1;
-   // if (nl > il) go to 120
-   // if (nl == il) go to 110
-   // not enough entries in tables for this order interpolation
-  // il = nl;
-  // 110 continue
-  // l = 1;
-  //  go to 260
-  // 120 continue
+
+   // Doing 110 if necessary
+   if ( nl <= il ){
+     if ( nl == il ){ l = 1; return do260( x, y, arg, l, il ); }
+     if ( nl < il ){ il = nl; l = 1; return do260( x, y, arg, l, il ); }
+   } 
+   
+   // Continuing to 120
+
    il2 = il / 2;
    iadd = il%2;
    // check if tables in increasing or decreasing sequence
@@ -125,8 +124,10 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
     }
    if (arg > x[ilow-1]) {                      // go to 170
    // smaller than smallest table value
-     // if (abs(x(ihi)-arg).lt.small*arg) go to 190
-     //
+     if (std::abs(x[ihi-1]-arg) < small*arg){  // go to 190
+       return y[ihi-1];
+      }
+     
      if (x[ihi-1] > arg) {                     // go to 200
        // HERE WE WANT TO DO 200
        for ( int n = ibeg; n <= iend; ++n ){

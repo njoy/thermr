@@ -2,7 +2,6 @@
 #include "../../../catch.hpp"
 #include "terp.h"
 
-
 TEST_CASE( "do220" ){
   std::vector<double> x, y;
 
@@ -218,7 +217,6 @@ TEST_CASE( "do260" ){
   } // GIVEN
 } // TEST CASE
 
-
 TEST_CASE( "terp" ){
   std::vector<double> x, y, out;
   int nl = 10, il1 = 2;
@@ -229,6 +227,43 @@ TEST_CASE( "terp" ){
     x = { 296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000 },
     y = { 2.1997, 2.7448, 3.2912, 3.851, 4.421, 4.9969, 6.1624, 7.3387, 
           9.6287, 11.992 };
+
+    WHEN( "110 260 300 --> order of interpolation is larger than the size of x, y" ){ 
+      AND_WHEN( "order of interpolation is exactly size of x, y" ){
+        il1 = 10;
+
+        arg = 1325; 
+        REQUIRE( 8.04692000 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 45; 
+        REQUIRE( 1.93113202 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+        arg = 1845;
+        REQUIRE( 11.9017192 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      } // AND WHEN
+      AND_WHEN( "order of interpolation is exactly size of x, y" ){
+        il1 = 11;
+        THEN( "order of interpolation is changed to be sizez of x, y" ){
+
+          arg = 45; 
+          REQUIRE( 1.93113202 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+          arg = 1325; 
+          REQUIRE( 8.04692000 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+          arg = 305; 
+          REQUIRE( 2.24507589 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+          arg = 1845;
+          REQUIRE( 11.9017192 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+        } // THEN
+      } // AND WHEN
+
+
+
+    } // WHEN
+
 
     WHEN( "120 260 300" ){ 
 
@@ -292,6 +327,9 @@ TEST_CASE( "terp" ){
 
       arg = 1300;
       REQUIRE( 7.9112 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 1325;
+      REQUIRE( 8.054325 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
       arg = 1500;
       REQUIRE( 9.0562 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
@@ -359,13 +397,13 @@ TEST_CASE( "terp" ){
 
     WHEN( "120 170 190 300 ( arg is basically equal to x(ihi) )" ){
 
-      arg = 1599.999999;
+      arg = 1599.9999999999;
       REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
       arg = 1600;
       REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
-      arg = 1600.000001;
+      arg = 1600.0000000001;
       REQUIRE( 9.6287 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
 
 
@@ -391,6 +429,19 @@ TEST_CASE( "terp" ){
     } // WHEN
 
 
+    WHEN( "120 170 200 220 250 260 300" ){
+
+      arg = 510;
+      REQUIRE( 3.34718 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 580;
+      REQUIRE( 3.73904 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+      arg = 835;
+      REQUIRE( 5.2008625 == Approx( terp( x, y, nl, arg, il1 ) ).epsilon(1e-6) );
+
+
+    } // WHEN
 
 
 
