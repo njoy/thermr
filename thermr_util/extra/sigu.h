@@ -70,22 +70,21 @@ bool do150( std::vector<double>& x, std::vector<double>& y, int i, double yt,
 
 
 
-bool do160( int i, int j, std::vector<double>& s, double& sum, 
-   std::vector<double>& x, std::vector<double>& y, int jbeta, 
-   double& xl, double& yl, std::vector<double>& beta, int nemax, int bmax ) {
-   bool goTo111 = false;
+int do160( int& i, int& j, std::vector<double>& s, double& sum, 
+   std::vector<double>& x, std::vector<double>& y, int& jbeta, 
+   double& xl, double& yl, std::vector<double>& beta, int& nemax, double bmax ) {
    // point passes
    j = j + 1;
-   s[2*j+1] = x[i];
-   s[2*j+2] = y[i];
-   if (j > 1) sum = sum + (y[i]+yl) * (x[i]-xl);
-   xl = x[i];
-   yl = y[i];
+   s[2*j+1-1] = x[i-1];
+   s[2*j+2-1] = y[i-1];
+   if (j > 1) sum = sum + (y[i-1]+yl) * (x[i-1]-xl);
+   xl = x[i-1];
+   yl = y[i-1];
    //if (j >= nemax-1) { do170( s, sum, j ); }         // go to 170
-   if (j >= nemax-1) { goTo111 = false; return goTo111; }         // go to 170
+   if (j >= nemax-1) { return 170; }         // go to 170
    if (jbeta > 0) {
   //   if (beta[jbeta] > bmax) { do170( s, sum, j ); } // go to 170
-     if (beta[jbeta] > bmax) { goTo111 = false; return goTo111; } // go to 170
+     if (beta[jbeta-1] > bmax) { return 170; } // go to 170
    }
 
    // continue bin loop and linearization loop
@@ -93,16 +92,17 @@ bool do160( int i, int j, std::vector<double>& s, double& sum,
    //if (i > 1) go to 150
    jbeta = jbeta + 1;
    //if (jbeta <= beta.size() ) { do111( x, y ); }     // go to 111
-   if (jbeta <= int(beta.size()) ) {goTo111 = true; return goTo111; }     // go to 111
+   if (jbeta <= int(beta.size()) ) {return 111; }     // go to 111
    // if (i.eq.1) go to 160
-   return goTo111;
+   return 160;
    
 
 }
 
 
 
-auto sigu( double e, double u, double tev, double tevz,
+std::tuple<std::vector<double>,std::vector<double>,std::vector<double>>
+  sigu( double e, double u, double tev, double tevz,
     std::vector<double> alpha, std::vector<double> beta, 
     std::vector<std::vector<double>> sab, double tolin, double az, 
     int nemax, int lasym, int lat ){
@@ -178,17 +178,30 @@ auto sigu( double e, double u, double tev, double tevz,
      }
 
 
-     // 160 
+     // 160
+     int whereTo;
+     while ( true ){
+       std::cout << "160" << std::endl;
+       whereTo = do160( i, j, s, sum, x, y, jbeta, xl, yl, beta, nemax, bmax );
+       std::cout << "bring me to " << whereTo << std::endl;
+       std::cout << s[0] << "   " << s[1] << "   " << s[2] << std::endl;
+       std::cout << s[3] << "   " << s[4] << "   " << s[5] << std::endl;
+       std::cout << s[6] << "   " << s[7] << "   " << s[8] << std::endl;
+       std::cout << s[9] << std::endl;
+       std::cout << "   " << std::endl;
+       if ( whereTo != 160 ){ break; }
+     }
 
-       std::cout << "160\n" << std::endl;
-       bool goTo111 = do160( i, j, s, sum, x, y, jbeta, xl, yl, beta, nemax, bmax );
-       
-       counter += 1;
-
-       if ( counter > 4) {std::cout << "HAD TO BREAK" << std::endl; break;}
+     if ( whereTo == 170 ){ break; }
+     counter += 1;
+     if ( counter > 4) {std::cout << "HAD TO BREAK" << std::endl; break; }
   }
 
-
+   std::cout << "170" << std::endl;
+   s[0] = sum;
+   s[1] = j;
+   //for ( auto entry : x ) { std::cout << "---------- " << entry << std::endl; }
+   return { x, y, s };
 
 }
 
