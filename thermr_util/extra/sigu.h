@@ -32,13 +32,48 @@ void do113( int& jbeta, int& lat, double e, std::vector<double>& x,
 }
 
 void do170( std::vector<double>& s, double sum, int j ){
+  std::cout << "170" << std::endl;
   s[0] = sum;
   s[1] = j;
 }
 
-void do160( int i, int j, std::vector<double>& s, double& sum, 
+bool do150( std::vector<double>& x, std::vector<double>& y, int i, double yt,
+   double tol ){
+   bool failed;
+   // compare linear approximation to true function
+   
+   //if (i == imax) go to 160
+   if (i == 20) { failed = false; return failed; }
+
+   //if (i == 3 and 0.5*(y[i-1]+y[i])*(x[i-1]-x[i]) < tolmin) go to 160
+   if (i == 3 and .5*(y[i-1]+y[i])*(x[i-1]-x[i]) < 1e-6 ) { failed = false; return failed; } 
+
+   double xm = 0.5*(x[i-1]+x[i]);
+   //xm = sigfig(xm,8,0)
+   //if (xm <= x[i] or xm >= x[i-1]) go to 160
+   double ym = 0.5*(y[i-1]+y[i]);
+   //yt=sig(e,xm,u,tev,nalpha,alpha,nbeta,beta,sab)
+   double test = tol*std::abs(yt);
+   if (std::abs(yt-ym) <= test) { failed = false; return failed; }
+
+   // point fails
+   i = i + 1;
+   x[i] = x[i-1];
+   y[i] = y[i-1];
+   x[i-1] = xm;
+   y[i-1] = yt;
+   //go to 150
+   failed = true;
+   return failed;
+
+}
+
+
+
+bool do160( int i, int j, std::vector<double>& s, double& sum, 
    std::vector<double>& x, std::vector<double>& y, int jbeta, 
    double& xl, double& yl, std::vector<double>& beta, int nemax, int bmax ) {
+   bool goTo111 = false;
    // point passes
    j = j + 1;
    s[2*j+1] = x[i];
@@ -46,17 +81,22 @@ void do160( int i, int j, std::vector<double>& s, double& sum,
    if (j > 1) sum = sum + (y[i]+yl) * (x[i]-xl);
    xl = x[i];
    yl = y[i];
-   if (j >= nemax-1) { do170( s, sum, j ); }         // go to 170
+   //if (j >= nemax-1) { do170( s, sum, j ); }         // go to 170
+   if (j >= nemax-1) { goTo111 = false; return goTo111; }         // go to 170
    if (jbeta > 0) {
-     if (beta[jbeta] > bmax) { do170( s, sum, j ); } // go to 170
+  //   if (beta[jbeta] > bmax) { do170( s, sum, j ); } // go to 170
+     if (beta[jbeta] > bmax) { goTo111 = false; return goTo111; } // go to 170
    }
 
    // continue bin loop and linearization loop
    i = i - 1;
    //if (i > 1) go to 150
    jbeta = jbeta + 1;
-   if (jbeta <= beta.size() ) { do111( x, y ); }     // go to 111
+   //if (jbeta <= beta.size() ) { do111( x, y ); }     // go to 111
+   if (jbeta <= int(beta.size()) ) {goTo111 = true; return goTo111; }     // go to 111
    // if (i.eq.1) go to 160
+   return goTo111;
+   
 
 }
 
@@ -73,7 +113,7 @@ auto sigu( double e, double u, double tev, double tevz,
    *-------------------------------------------------------------------
    */
    int i, j, jbeta, imax = 20;
-   double sum, xl, yl, xm, ym, test, yt, tol, root1, root2;
+   double sum, xl, yl, xm, ym, test, yt = 0.0, tol, root1, root2;
    std::vector<double> x ( imax ), y ( imax );
    double tolmin = 1.e-6;
    double bmax = 20;
@@ -100,83 +140,55 @@ auto sigu( double e, double u, double tev, double tevz,
    xl = 0;
    yl = 0;
 
+   int counter = 0;
    // set up next panel
-   // 111 
-   std::cout << "111" << std::endl;
-   do111( x, y );
+   while ( true ){
+     while ( true ){
+       // 111 
+       std::cout << "111" << std::endl;
+       do111( x, y );
 
-   // 113 
-   std::cout << "113" << std::endl;
-   do113( jbeta, lat, e, x, beta, tev, tevz );
+       // 113 
+       std::cout << "113" << std::endl;
+       do113( jbeta, lat, e, x, beta, tev, tevz );
+
+       if (x[0] > x[1] ) {   // go to 116
+         break;
+       }
+
+       jbeta = jbeta + 1;
+     } 
 
 
-   if (x[0] > x[1] ) {   // go to 116
-      // 116 continue
-      std::cout << "116" << std::endl;
-      if (u < 0 and root1*root1 > 1.01*x[1] and root1*root1 < x[0]) {
-        x[0] = root1*root1;
-      }
-      //x(1)=sigfig(x(1),8,0)
-      //y(1)=sig(e,x(1),u,tev,nalpha,alpha,nbeta,beta,sab)
-      i = 2;
+     // 116 continue
+     std::cout << "116" << std::endl;
+     if (u < 0 and root1*root1 > 1.01*x[1] and root1*root1 < x[0]) {
+       x[0] = root1*root1;
+     }
+     //x(1)=sigfig(x(1),8,0)
+     //y(1)=sig(e,x(1),u,tev,nalpha,alpha,nbeta,beta,sab)
+     i = 2;
 
-   }
-   else { 
-     jbeta = jbeta + 1;
-     // go to 113
-   } 
-   /*
 
-   !--compare linear approximation to true function
-  150 continue
-   if (i.eq.imax) go to 160
-   if (i.gt.3.and.0.5*(y(i-1)+y(i))*(x(i-1)-x(i)).lt.tolmin) go to 160
-   xm=0.5*(x(i-1)+x(i))
-   xm=sigfig(xm,8,0)
-   if (xm.le.x(i).or.xm.ge.x(i-1)) go to 160
-   ym=0.5*(y(i-1)+y(i))
-   yt=sig(e,xm,u,tev,nalpha,alpha,nbeta,beta,sab)
-    if (abs(u-.99219).lt..0001) then
-       if (abs(e-10).lt..01) then
-       endif
-    endif
-   test=tol*abs(yt)
-   if (abs(yt-ym).le.test) go to 160
+     // 150
+     bool failed = true;
+     while ( failed == true ){
+       std::cout << "150" << std::endl;
+       failed = do150( x, y, i, yt, tol );
+     }
 
-   !--point fails
-   i=i+1
-   x(i)=x(i-1)
-   y(i)=y(i-1)
-   x(i-1)=xm
-   y(i-1)=yt
-   go to 150
 
-   !--point passes
-  160 continue
-   j=j+1
-   s(2*j+1)=x(i)
-   s(2*j+2)=y(i)
-   if (j.gt.1) sum=sum+(y(i)+yl)*(x(i)-xl)
-   xl=x(i)
-   yl=y(i)
-   if (j.ge.nemax-1) go to 170
-   if (jbeta.gt.0) then
-     if (beta(jbeta).gt.bmax) go to 170
-   endif
+     // 160 
 
-   !--continue bin loop and linearization loop
-   i=i-1
-   if (i.gt.1) go to 150
-   jbeta=jbeta+1
-   if (jbeta.le.nbeta) go to 111
-   if (i.eq.1) go to 160
-  170 continue
-   s(1)=sum
-   s(2)=j
+       std::cout << "160\n" << std::endl;
+       bool goTo111 = do160( i, j, s, sum, x, y, jbeta, xl, yl, beta, nemax, bmax );
+       
+       counter += 1;
 
-   return
-   end subroutine sigu
+       if ( counter > 4) {std::cout << "HAD TO BREAK" << std::endl; break;}
+  }
 
-   */
+
+
 }
 
