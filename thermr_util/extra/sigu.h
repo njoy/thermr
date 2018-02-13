@@ -2,41 +2,6 @@
 #include <vector>
 
 
-
-void do111( std::vector<double>& x, std::vector<double>& y ){
-  x[1] = x[0];
-  y[1] = y[0];
-}
-
-void do113( int& jbeta, int& lat, double e, std::vector<double>& x, 
-    std::vector<double>& beta, double tev, double tevz ){
-   if ( jbeta == 0 ){ jbeta = 1; } 
-   if ( jbeta <= 0 ){
-      if (lat == 1){
-         x[0] = e-beta[-jbeta-1]*tevz;
-      }
-      else {
-         x[0] = e-beta[-jbeta-1]*tev;
-      }
-      //x[0] = sigfig(x(1),8,0);
-      //if (x[0] == e) x[0] = sigfig(e,8,-1);
-   } 
-   else {
-      if (lat == 1){
-         x[0] = e + beta[jbeta-1]*tevz;
-      }
-      else {
-         x[0] = e + beta[jbeta-1]*tev;
-      } 
-   }
-}
-
-void do170( std::vector<double>& s, double sum, int j ){
-  std::cout << "170" << std::endl;
-  s[0] = sum;
-  s[1] = j;
-}
-
 bool do150( std::vector<double>& x, std::vector<double>& y, int i, double yt,
    double tol ){
    bool failed;
@@ -124,7 +89,6 @@ std::tuple<std::vector<double>,std::vector<double>,std::vector<double>>
 
    root1 = ( u*sqrt(e) + sqrt( u*u*e + (az-1) * (az+1) * e ) ) / (az+1);
    root2 = ( u*sqrt(e) - sqrt( u*u*e + (az-1) * (az+1) * e ) ) / (az+1);
-   //std::cout << root1 << "    " << root2 << std::endl;
 
    // adaptive calculation of cross section
    sum = 0;
@@ -142,22 +106,39 @@ std::tuple<std::vector<double>,std::vector<double>,std::vector<double>>
 
    int counter = 0;
    // set up next panel
-   while ( true ){
-     while ( true ){
+   while ( counter < 4 ){
        // 111 
        std::cout << "111" << std::endl;
-       do111( x, y );
+       x[1] = x[0];
+       y[1] = y[0];
 
-       // 113 
-       std::cout << "113" << std::endl;
-       do113( jbeta, lat, e, x, beta, tev, tevz );
+    do {
+      // 113 
+      std::cout << "113" << std::endl;
+      if ( jbeta == 0 ){ jbeta = 1; } 
+      if ( jbeta <= 0 ){
+        if (lat == 1){
+          x[0] = e-beta[-jbeta-1]*tevz;
+        }
+        else {
+          x[0] = e-beta[-jbeta-1]*tev;
+        }
+        //x[0] = sigfig(x(1),8,0);
+        //if (x[0] == e) x[0] = sigfig(e,8,-1);
+      } 
+      else {
+        if (lat == 1){
+          x[0] = e + beta[jbeta-1]*tevz;
+        }
+        else {
+          x[0] = e + beta[jbeta-1]*tev;
+        } 
+      }
 
-       if (x[0] > x[1] ) {   // go to 116
-         break;
-       }
-
-       jbeta = jbeta + 1;
-     } 
+      if ( x[0] <= x[1] ){
+        jbeta = jbeta + 1;
+      }
+    } while ( x[0] <= x[1] ); // if x[0] > x[1] we leave and go to 116
 
 
      // 116 continue
@@ -171,37 +152,38 @@ std::tuple<std::vector<double>,std::vector<double>,std::vector<double>>
 
 
      // 150
-     bool failed = true;
-     while ( failed == true ){
+     bool failed;
+     do {
        std::cout << "150" << std::endl;
        failed = do150( x, y, i, yt, tol );
-     }
+     } while ( failed );
 
 
      // 160
      int whereTo;
-     while ( true ){
+     do {
        std::cout << "160" << std::endl;
        whereTo = do160( i, j, s, sum, x, y, jbeta, xl, yl, beta, nemax, bmax );
        std::cout << "bring me to " << whereTo << std::endl;
-       std::cout << s[0] << "   " << s[1] << "   " << s[2] << std::endl;
-       std::cout << s[3] << "   " << s[4] << "   " << s[5] << std::endl;
-       std::cout << s[6] << "   " << s[7] << "   " << s[8] << std::endl;
-       std::cout << s[9] << std::endl;
+  //     std::cout << s[0] << "   " << s[1] << "   " << s[2] << std::endl;
+  //     std::cout << s[3] << "   " << s[4] << "   " << s[5] << std::endl;
+  //     std::cout << s[6] << "   " << s[7] << "   " << s[8] << std::endl;
+  //     std::cout << s[9] << std::endl;
        std::cout << "   " << std::endl;
-       if ( whereTo != 160 ){ break; }
+     } while ( whereTo == 160 );
+
+     if ( whereTo == 170 ){ 
+       std::cout << "170" << std::endl;
+       s[0] = sum;
+       s[1] = j;
+       //for ( auto entry : s ) { std::cout << "---------- " << entry << std::endl; }
+       return { x, y, s };
      }
-
-     if ( whereTo == 170 ){ break; }
      counter += 1;
-     if ( counter > 4) {std::cout << "HAD TO BREAK" << std::endl; break; }
   }
+  if ( counter > 4) {std::cout << "HAD TO BREAK" << std::endl; }
 
-   std::cout << "170" << std::endl;
-   s[0] = sum;
-   s[1] = j;
-   //for ( auto entry : x ) { std::cout << "---------- " << entry << std::endl; }
-   return { x, y, s };
-
+   std::cout << "OH NO DONT END LIKE THIS" << std::endl;
+  return { x, y, s };
 }
 
