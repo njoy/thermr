@@ -26,10 +26,10 @@ auto terpq( double x1, double x2, double x3, double x, double y1, double y2, dou
          y = y3;
       }
       else {
-      std::cout << "HERE" << std::endl;
          terp1(x2,y2,x3,y3,x,y,2);
       }
    }
+   // Big steps are taken
    else if (std::abs(y1-y2) > step or std::abs(y2-y3) > step) {
       if (x < x2) {
          terp1(x1,y1,x2,y2,x,y,2);
