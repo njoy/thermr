@@ -1,8 +1,10 @@
 #include <iostream>
 #include <vector>
+#include "terp1.h"
+//auto terpq( double x1, double y1, double x2, double y2, double x3, double y3,
+//  double x, double y ){
 
-auto terpq( double x1, double y1, double x2, double y2, double x3, double y3,
-  double x, double y ){
+auto terpq( double x1, double x2, double x3, double x, double y1, double y2, double y3, double y ){
   /*-------------------------------------------------------------------
    * Compute y(x) by quadratic interpolation,
    * except use log-lin if x < x1 and lin-lin if x > x3.
@@ -16,7 +18,7 @@ auto terpq( double x1, double y1, double x2, double y2, double x3, double y3,
          y = y1;
       } 
       else {
-         // call terp1(x1,y1,x2,y2,x,y,3);
+         terp1(x1,y1,x2,y2,x,y,3);
       }
    }
    else if (x > x3) {
@@ -24,15 +26,16 @@ auto terpq( double x1, double y1, double x2, double y2, double x3, double y3,
          y = y3;
       }
       else {
-         // call terp1(x2,y2,x3,y3,x,y,2)
+      std::cout << "HERE" << std::endl;
+         terp1(x2,y2,x3,y3,x,y,2);
       }
    }
    else if (std::abs(y1-y2) > step or std::abs(y2-y3) > step) {
       if (x < x2) {
-         // call terp1(x1,y1,x2,y2,x,y,2)
+         terp1(x1,y1,x2,y2,x,y,2);
       }
       else {
-         // call terp1(x2,y2,x3,y3,x,y,2)
+         terp1(x2,y2,x3,y3,x,y,2);
       }
    }
    else {
@@ -43,6 +46,7 @@ auto terpq( double x1, double y1, double x2, double y2, double x3, double y3,
       y = y1+b*(x-x1)+c*(x-x1)*(x-x1);
    }
    if (y < sabflg) y = sabflg;
+   return y;
 }
 
 
