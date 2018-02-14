@@ -1,10 +1,84 @@
 #include <iostream>
 #include <vector>
 
+auto do170( int lat, double a, double b, double tevz, double tev, 
+    double rtev, double teff, double teff2, double az, double az2, 
+    double sigc, double sb, double sb2, double arg, double e, 
+    double tfff, double tfff2, double sigmin, double u, 
+    double c, double bb, int sabflg ){
+   // short collision time for large beta or alpha
+   // 170 continue
+   double sigVal;
+   if (lat == 1) b = b * tevz * rtev;
+   if (lat == 1) a = a * tevz * rtev;
+   tfff = teff;
+   tfff2 = teff2;
+
+   double s = 0;
+   arg = (a-b)*(a-b)*tev/(4*a*tfff)+(b+bb)/2;
+   if (-arg > sabflg) s = exp(-arg) / (c*sqrt(a*tfff*rtev));
+   sigVal = sigc * sb * s;
+   if (sb2 > 0) {
+      a = a * az / az2;
+      arg = (a-b)*(a-b)*tev/(4*a*tfff2)+(b+bb)/2;
+      double s2 = 0;
+      if (-arg > sabflg) s2 = exp(-arg)/(c*sqrt(a*tfff2*rtev));
+      sigVal = sigVal + sigc * sb2 * s2;
+    }
+    if (std::abs(e-10) < .01 and std::abs(u-.99219) < .0001) {
+    }
+   if (sigVal < sigmin) sigVal = 0;
+   std::cout << sigVal << std::endl;
+   return sigVal; 
+}
+
+
+
+auto do150( double a, double az, double test2, double b, int ia, int ib,
+  int sabflg, int lat, double tevz, double tev, 
+  std::vector<std::vector<double>> sab, double rtev, double teff, double teff2,
+  double az2, double sigc, double sb, double sb2, double e, double tfff, 
+  double tfff2, double arg, double sigmin, double u, double c, int bb ){  //150 continue
+  //if (a*az < test2 and b < test2) go to 155
+  if (a*az < test2 and b < test2) { 
+    std::cout << "155" << std::endl; 
+  } // go to 155
+
+  //if (sab(ia,ib) <= sabflg) go to 170
+  if (sab[ia][ib] <= sabflg){ // go to 170
+    return do170( lat, a, b, tevz, tev, rtev, teff, teff2, az, az2, sigc, 
+       sb, sb2, arg, e, tfff, tfff2, sigmin, u, c, bb, sabflg );
+  }
+
+  //if (sab(ia+1,ib) <= sabflg) go to 170
+  if (sab[ia+1][ib] <= sabflg){// go to 170
+    return do170( lat, a, b, tevz, tev, rtev, teff, teff2, az, az2, sigc, 
+       sb, sb2, arg, e, tfff, tfff2, sigmin, u, c, bb, sabflg );
+  }
+
+  //if (sab(ia,ib+1) <= sabflg) go to 170
+  if (sab[ia][ib+1] <= sabflg){// go to 170
+    return do170( lat, a, b, tevz, tev, rtev, teff, teff2, az, az2, sigc, 
+       sb, sb2, arg, e, tfff, tfff2, sigmin, u, c, bb, sabflg );
+  }
+
+  //if (sab(ia+1,ib+1) <= sabflg) go to 170
+  if (sab[ia+1][ib+1] <= sabflg){// go to 170
+    return do170( lat, a, b, tevz, tev, rtev, teff, teff2, az, az2, sigc, 
+       sb, sb2, arg, e, tfff, tfff2, sigmin, u, c, bb, sabflg );
+  }
+  return 0.0;
+
+}
+
+
+
+
 auto sig( double e, double ep, double u, double tev, double tevz,
     std::vector<double>& alpha, std::vector<double>& beta, 
-    std::vector<std::vector<double>>& sab, double az, int lat, int iinc,
-    int lasym, double cliq, double sb ){
+    std::vector<std::vector<double>>& sab, double az, double az2, int lat, 
+    int iinc, int lasym, double cliq, double sb, double sb2, double teff,
+    double teff2 ){
   /*-------------------------------------------------------------------
    * Compute the differential scattering cross section from e to
    * ep through the angle with the cosine u from endf tabulated
@@ -31,15 +105,32 @@ auto sig( double e, double ep, double u, double tev, double tevz,
    //if (iinc != 2) go to 200
    if (lat == 1) b = b * tev / tevz;
    if (lat == 1) a = a * tev / tevz;
-   //if (a > alpha[nalpha-1]) go to 170
+   if (a > alpha[nalpha-1]) std::cout << "go to 170 A" << std::endl;
+   if (a > alpha[nalpha-1]) { 
+     return do170( lat, a, b, tevz, tev, rtev, teff, teff2, az, az2, sigc, 
+       sb, sb2, arg, e, tfff, tfff2, sigmin, u, c, bb, sabflg );
+   }
+
    if (lasym == 1) {
       bbm = bb;
       if (lat == 1) bbm = bb * tev / tevz;
-    //  if (bbm > beta[nbeta-1]) go to 170
-    //  if (bbm < beta[0]) go to 170
+      if (bbm > beta[nbeta-1]) { std::cout << "go to 170 B" << std::endl; }
+      if (bbm > beta[nbeta-1]) {
+        return do170( lat, a, b, tevz, tev, rtev, teff, teff2, az, az2, sigc, 
+          sb, sb2, arg, e, tfff, tfff2, sigmin, u, c, bb, sabflg );
+      }
+      if (bbm < beta[0]) { std::cout << "go to 170 C" << std::endl; }
+      if (bbm < beta[0]) {
+        return do170( lat, a, b, tevz, tev, rtev, teff, teff2, az, az2, sigc, 
+          sb, sb2, arg, e, tfff, tfff2, sigmin, u, c, bb, sabflg );
+      }
    }
    else {
-     // if (b > beta[nbeta-1]) go to 170
+     if (b > beta[nbeta-1]) { std::cout << "go to 170 D" << std::endl; }
+     if (b > beta[nbeta-1]) {
+        return do170( lat, a, b, tevz, tev, rtev, teff, teff2, az, az2, sigc, 
+          sb, sb2, arg, e, tfff, tfff2, sigmin, u, c, bb, sabflg );
+     }
    } 
    nb1 = nbeta - 1;
    na1 = nalpha - 1;
@@ -47,15 +138,20 @@ auto sig( double e, double ep, double u, double tev, double tevz,
    if (lasym == 1 and bb < 0) bbb = -b;
    for ( size_t i = 0; i < nb1; ++i ){
       ib = i;
-      if (bbb < beta[i+1]) return sigVal;
+      if (bbb < beta[i+1]) break;
+      //if (bbb < beta[i+1]) return sigVal;
    }
    for ( size_t i = 0; i < na1; ++i ) {
      ia = i;
-     if ( a < alpha[i+1] ){ return sigVal; }
+     if ( a < alpha[i+1] ){ break; }
+     //if ( a < alpha[i+1] ){ return sigVal; }
    }
 
+   if (cliq == 0 or a >= alpha[0]) std::cout << "150 A" << std::endl;
    // if (cliq == 0 or a >= alpha[0]) go to 150
+   if ( lasym == 1 ) std::cout << "150 B" << std::endl;
    // if ( lasym == 1 ) go to 150
+   if (b > test1) std::cout << "150 C" << std::endl;
    // if (b > test1) go to 150
    s = sab[0][0] + log(alpha[0]/a)/2 - cliq*b*b/a;
    if (s < sabflg) s = sabflg;
@@ -84,56 +180,20 @@ auto sig( double e, double ep, double u, double tev, double tevz,
    if (sigVal < sigmin) sigVal = 0;
    return sigVal;
 
-   /*
-   !--short collision time for large beta or alpha
-  170 continue
-   if (lat == 1) b=b*tevz*rtev
-   if (lat == 1) a=a*tevz*rtev
-   tfff=teff
-   tfff2=teff2
-   !if (az < 3) then
-   !   if (e > 10) then
-   !      tfff=tev
-   !      tfff2=tev
-   !   else if (e > 2) then
-   !      rat=(e-2)/8
-   !      tfff= (1-rat)*teff+rat*tev
-   !      tfff2= (1-rat)*teff2+rat*tev
-   !   endif
-   !endif
-   s=0
-   arg=(a-b)**2*tev/(4*a*tfff)+(b+bb)/2
-   if (-arg > sabflg) s=exp(-arg)/(c*sqrt(a*tfff*rtev))
-   sig=sigc*sb*s
-   if (sb2 > zero) then
-      a=a*az/az2
-      arg=(a-b)**2*tev/(4*a*tfff2)+(b+bb)/2
-      s2=0
-      if (-arg > sabflg) s2=exp(-arg)/(c*sqrt(a*tfff2*rtev))
-      sig=sig+sigc*sb2*s2
-   endif
-    if (abs(e-10) < .01.and.abs(u-.99219) < .0001) then
-    endif
-   if (sig < sigmin) sig=0
-   return
+   // free-gas scattering.
+  // 200 continue
+  // if (iinc != 1) go to 300
+   s = 0;
+   arg = (a+bb)*(a+bb)/(4*a);
+   if (-arg > sabflg) s = exp(-arg)/(c*sqrt(a));
+   sigVal = sigc * sb * s;
+   if (sigVal < sigmin) sigVal = 0;
+   return sigVal;
 
-   !--free-gas scattering.
-  200 continue
-   if (iinc != 1) go to 300
-   s=0
-   arg=(a+bb)**2/(4*a)
-   if (-arg > sabflg) s=exp(-arg)/(c*sqrt(a))
-   sig=sigc*sb*s
-   if (sig < sigmin) sig=0
-   return
-
-   !--other options not yet implemented.
-  300 continue
-   call error('sig','illegal option.',' ')
-   sig=0
-   return
-   end function sig
-   */
+   // other options not yet implemented.
+  // 300 continue
+  // call error('sig','illegal option.',' ')
+   sigVal = 0;
    return sigVal;
   }
 
