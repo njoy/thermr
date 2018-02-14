@@ -7,19 +7,17 @@ bool do150( std::vector<double>& x, std::vector<double>& y, int i, double yt,
    bool failed;
    // compare linear approximation to true function
    
-   //if (i == imax) go to 160
-   if (i == 20) { failed = false; return failed; }
+   if (i == 20) { failed = false; return failed; } // go to 160
 
-   //if (i == 3 and 0.5*(y[i-1]+y[i])*(x[i-1]-x[i]) < tolmin) go to 160
+   // go to 160
    if (i == 3 and .5*(y[i-1]+y[i])*(x[i-1]-x[i]) < 1e-6 ) { failed = false; return failed; } 
 
    double xm = 0.5*(x[i-1]+x[i]);
-   //xm = sigfig(xm,8,0)
-   //if (xm <= x[i] or xm >= x[i-1]) go to 160
+   if (xm <= x[i] or xm >= x[i-1]) { failed = false; return failed; } // go to 160
    double ym = 0.5*(y[i-1]+y[i]);
+
    //yt=sig(e,xm,u,tev,nalpha,alpha,nbeta,beta,sab)
-   double test = tol*std::abs(yt);
-   if (std::abs(yt-ym) <= test) { failed = false; return failed; }
+   if (std::abs(yt-ym) <= tol*std::abs(yt)) { failed = false; return failed; }
 
    // point fails
    i = i + 1;
@@ -40,26 +38,20 @@ int do160( int& i, int& j, std::vector<double>& s, double& sum,
    double& xl, double& yl, std::vector<double>& beta, int& nemax, double bmax ) {
    // point passes
    j = j + 1;
-   s[2*j+1-1] = x[i-1];
-   s[2*j+2-1] = y[i-1];
-   if (j > 1) sum = sum + (y[i-1]+yl) * (x[i-1]-xl);
+   s[2*j]   = x[i-1];
+   s[2*j+1] = y[i-1];
+   if (j > 1) sum += (y[i-1] + yl) * (x[i-1] - xl);
    xl = x[i-1];
    yl = y[i-1];
-   //if (j >= nemax-1) { do170( s, sum, j ); }         // go to 170
-   if (j >= nemax-1) { return 170; }         // go to 170
-   if (jbeta > 0) {
-  //   if (beta[jbeta] > bmax) { do170( s, sum, j ); } // go to 170
-     if (beta[jbeta-1] > bmax) { return 170; } // go to 170
-   }
+   if (j >= nemax - 1 or (jbeta > 0 and beta[jbeta-1] > bmax) ) { return 170; }
 
    // continue bin loop and linearization loop
    i = i - 1;
-   //if (i > 1) go to 150
-   jbeta = jbeta + 1;
-   //if (jbeta <= beta.size() ) { do111( x, y ); }     // go to 111
-   if (jbeta <= int(beta.size()) ) {return 111; }     // go to 111
-   // if (i.eq.1) go to 160
-   return 160;
+   if (i > 1) { return 150; } // go to 150
+   jbeta += 1;
+   if (jbeta <= int(beta.size()) ) { return 111; }     // go to 111
+   if (i == 1) { return 160; }
+   return 170;
    
 
 }
@@ -77,8 +69,8 @@ std::tuple<std::vector<double>,std::vector<double>,std::vector<double>>
    * Uses linear reconstruction with the cross section from function sig.
    *-------------------------------------------------------------------
    */
-   int i, j, jbeta, imax = 20;
-   double sum, xl, yl, xm, ym, test, yt = 0.0, tol, root1, root2;
+   int i, j, jbeta, imax = 20, whereTo;
+   double sum, xl, yl, xm, ym, yt = 0.0, tol, root1, root2;
    std::vector<double> x ( imax ), y ( imax );
    double tolmin = 1.e-6;
    double bmax = 20;
@@ -117,27 +109,14 @@ std::tuple<std::vector<double>,std::vector<double>,std::vector<double>>
       std::cout << "113" << std::endl;
       if ( jbeta == 0 ){ jbeta = 1; } 
       if ( jbeta <= 0 ){
-        if (lat == 1){
-          x[0] = e-beta[-jbeta-1]*tevz;
-        }
-        else {
-          x[0] = e-beta[-jbeta-1]*tev;
-        }
-        //x[0] = sigfig(x(1),8,0);
-        //if (x[0] == e) x[0] = sigfig(e,8,-1);
+        x[0] = lat == 1 ? e - beta[-jbeta-1]*tevz : e - beta[-jbeta-1]*tev;
       } 
       else {
-        if (lat == 1){
-          x[0] = e + beta[jbeta-1]*tevz;
-        }
-        else {
-          x[0] = e + beta[jbeta-1]*tev;
-        } 
+        x[0] = lat == 1 ? e + beta[jbeta-1]*tevz : e + beta[jbeta-1]*tev;
       }
 
-      if ( x[0] <= x[1] ){
-        jbeta = jbeta + 1;
-      }
+      if ( x[0] <= x[1] ){ jbeta = jbeta + 1; }
+
     } while ( x[0] <= x[1] ); // if x[0] > x[1] we leave and go to 116
 
 
@@ -146,31 +125,31 @@ std::tuple<std::vector<double>,std::vector<double>,std::vector<double>>
      if (u < 0 and root1*root1 > 1.01*x[1] and root1*root1 < x[0]) {
        x[0] = root1*root1;
      }
-     //x(1)=sigfig(x(1),8,0)
-     //y(1)=sig(e,x(1),u,tev,nalpha,alpha,nbeta,beta,sab)
      i = 2;
 
 
      // 150
      bool failed;
      do {
-       std::cout << "150" << std::endl;
-       failed = do150( x, y, i, yt, tol );
-     } while ( failed );
+       do {
+         std::cout << "150" << std::endl;
+         failed = do150( x, y, i, yt, tol );
+       } while ( failed );
 
 
-     // 160
-     int whereTo;
-     do {
-       std::cout << "160" << std::endl;
-       whereTo = do160( i, j, s, sum, x, y, jbeta, xl, yl, beta, nemax, bmax );
-       std::cout << "bring me to " << whereTo << std::endl;
-  //     std::cout << s[0] << "   " << s[1] << "   " << s[2] << std::endl;
-  //     std::cout << s[3] << "   " << s[4] << "   " << s[5] << std::endl;
-  //     std::cout << s[6] << "   " << s[7] << "   " << s[8] << std::endl;
-  //     std::cout << s[9] << std::endl;
-       std::cout << "   " << std::endl;
-     } while ( whereTo == 160 );
+       // 160
+       do {
+         std::cout << "160" << std::endl;
+         whereTo = do160( i, j, s, sum, x, y, jbeta, xl, yl, beta, nemax, bmax );
+         std::cout << "bring me to " << whereTo << std::endl;
+    //     std::cout << s[0] << "   " << s[1] << "   " << s[2] << std::endl;
+    //     std::cout << s[3] << "   " << s[4] << "   " << s[5] << std::endl;
+    //     std::cout << s[6] << "   " << s[7] << "   " << s[8] << std::endl;
+    //     std::cout << s[9] << std::endl;
+         std::cout << "   " << std::endl;
+       } while ( whereTo == 160 );
+
+     } while ( whereTo == 150 );
 
      if ( whereTo == 170 ){ 
        std::cout << "170" << std::endl;
