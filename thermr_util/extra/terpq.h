@@ -13,40 +13,34 @@ auto terpq( double x1, double x2, double x3, double x, double y1, double y2, dou
    */
   double b, c, sabflg = -225, step = 2;
 
+  // If desired value x is below known range (x1,x2,x3), then log-lin 
+  // interpolation is used. 
    if (x < x1) {
-      if (y1 > y2) {
-         y = y1;
-      } 
-      else {
-         terp1(x1,y1,x2,y2,x,y,3);
-      }
+     return (y1 > y2) ? y1 : terp1( x1, y1, x2, y2, x, y, 3 );
    }
-   else if (x > x3) {
-      if (y3 > y2) {
-         y = y3;
-      }
-      else {
-         terp1(x2,y2,x3,y3,x,y,2);
-      }
+
+  // If desired value x is above known range (x1,x2,x3), then lin-lin 
+  // interpolation is used. 
+   if (x > x3) {
+     return (y3 > y2) ? y3 : terp1( x2, y2, x3, y3, x, y, 2 );
    }
-   // Big steps are taken
-   else if (std::abs(y1-y2) > step or std::abs(y2-y3) > step) {
-      if (x < x2) {
-         terp1(x1,y1,x2,y2,x,y,2);
-      }
-      else {
-         terp1(x2,y2,x3,y3,x,y,2);
-      }
+
+   // Big steps are taken, so use lin-lin interpolation
+   if (std::abs(y1-y2) > step or std::abs(y2-y3) > step) {
+     return (x < x2) ? terp1(x1,y1,x2,y2,x,y,2) : terp1(x2,y2,x3,y3,x,y,2);
    }
-   else {
-      b = (y2-y1)*(x3-x1)/((x2-x1)*(x3-x2));
-      b = b-(y3-y1)*(x2-x1)/((x3-x1)*(x3-x2));
-      c = (y3-y1)/((x3-x1)*(x3-x2)); 
-      c = c-(y2-y1)/((x2-x1)*(x3-x2));
-      y = y1+b*(x-x1)+c*(x-x1)*(x-x1);
-   }
-   if (y < sabflg) y = sabflg;
-   return y;
+
+   // Small steps are taken across a reasonable range, so we use quadratic
+   // interpolation
+   b = (y2-y1) * (x3-x1) / ( (x2-x1) * (x3-x2) ) - 
+       (y3-y1) * (x2-x1) / ( (x3-x1) * (x3-x2) );
+
+   c = (y3-y1) / ( (x3-x1) * (x3-x2) ) - 
+       (y2-y1) / ( (x2-x1) * (x3-x2) );
+
+   return y1 + b * (x-x1) + c * (x-x1) * (x-x1);
+
+   if (y < sabflg) { std::cout << "here" << std::endl; y = sabflg; }
 }
 
 

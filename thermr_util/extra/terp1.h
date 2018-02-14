@@ -13,7 +13,7 @@ auto terp1( const double& x1, const double& y1, const double& x2,
   // make sure x2 .ne. x1
   if (x2 == x1) {
     y = y1;
-    return;
+    return y;
   }
 
   // y is constant
@@ -60,6 +60,7 @@ auto terp1( const double& x1, const double& y1, const double& x2,
     }
   }
   */
+  return y;
 }
 
 
