@@ -147,14 +147,21 @@ auto sig( double e, double ep, double u, double tev, double tevz,
      //if ( a < alpha[i+1] ){ return sigVal; }
    }
 
-   if (cliq == 0 or a >= alpha[0]) std::cout << "150 A" << std::endl;
-   // if (cliq == 0 or a >= alpha[0]) go to 150
+   if (cliq == 0 or a >= alpha[0]) {
+     std::cout << "150 A" << std::endl;
+
+     do150( a, az, test2, b, ia, ib, sabflg, lat, tevz, tev, sab, rtev, teff, 
+       teff2, az2, sigc, sb, sb2, e, tfff, tfff2, arg, sigmin, u, c, bb );
+   }
+
    if ( lasym == 1 ) std::cout << "150 B" << std::endl;
-   // if ( lasym == 1 ) go to 150
+
    if (b > test1) std::cout << "150 C" << std::endl;
-   // if (b > test1) go to 150
+
    s = sab[0][0] + log(alpha[0]/a)/2 - cliq*b*b/a;
+
    if (s < sabflg) s = sabflg;
+
    // go to 160
   
   //150 continue
@@ -163,6 +170,7 @@ auto sig( double e, double ep, double u, double tev, double tevz,
    //if (sab(ia+1,ib) <= sabflg) go to 170
    //if (sab(ia,ib+1) <= sabflg) go to 170
    //if (sab(ia+1,ib+1) <= sabflg) go to 170
+   
   //155 continue
    if (ia+1 == nalpha) ia = ia - 1;
    if (ib+1 == nbeta) ib = ib - 1;
