@@ -2,13 +2,13 @@
 #include <vector>
 
 auto terp1( const double& x1, const double& y1, const double& x2, 
-  const double& y2, const double& x, double& y, int i ){
+  const double& y2, const double& x, int i ){
   /* Interpolate one point, where  (x1,y1) and (x2,y2) are the end points of 
    * the line,  (x,y) is the interpolated point, i is the interpolation code,
    * thr6 is the kinematic threshold for i = 6 (thr6 > 0)
    */
 
-  double a, b, t;
+  double a, b, t, y;
 
   // make sure x2 .ne. x1
   if (x2 == x1) {

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include "terpq.h"
 
 auto do170( int lat, double a, double b, double tevz, double tev, 
     double rtev, double teff, double teff2, double az, double az2, 
@@ -34,14 +35,52 @@ auto do170( int lat, double a, double b, double tevz, double tev,
 
 
 
+auto do155( int ia, int ib, int nalpha, int nbeta, double s, double bb,
+  double sigc, double sb, double sigmin, double sabflg, 
+  std::vector<double> alpha, std::vector<double> beta, 
+  std::vector<std::vector<double>> sab, double a, double bbb ) {
+  //155 continue
+  if (ia+2 == nalpha) ia = ia - 1;
+  if (ib+2 == nbeta) ib = ib - 1;
+
+  double s1, s2, s3;
+  s1 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib], sab[ia+1][ib], sab[ia+2][ib] );
+  //std::cout << s1 << std::endl;
+  s2 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib+1], sab[ia+1][ib+1], sab[ia+2][ib+1] );
+  //std::cout << s2 << std::endl;
+  s3 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib+2], sab[ia+1][ib+2], sab[ia+2][ib+2] );
+  //std::cout << s3 << std::endl;
+  s = terpq( beta[ib], beta[ib+1], beta[ib+2], bbb, s1, s2, s3 );
+  //std::cout << s << std::endl;
+
+  std::cout << "160" << std::endl;
+  double sigVal = 0;
+  if (s-bb/2 > sabflg) sigVal = exp(s-bb/2);
+  sigVal = sigc * sb * sigVal;
+  //std::cout << "sigVal  " << sigVal << std::endl;
+  if (sigVal < sigmin) sigVal = 0;
+  //std::cout << "sigVal  " << sigVal << std::endl;
+  return sigVal;
+
+}
+
+
+
+
+
 auto do150( double a, double az, double test2, double b, int ia, int ib,
   int sabflg, int lat, double tevz, double tev, 
   std::vector<std::vector<double>> sab, double rtev, double teff, double teff2,
   double az2, double sigc, double sb, double sb2, double e, double tfff, 
-  double tfff2, double arg, double sigmin, double u, double c, int bb ){  //150 continue
+  double tfff2, double arg, double sigmin, double u, double c, int bb, 
+  int nalpha, int nbeta, double s, std::vector<double> alpha, 
+  std::vector<double> beta, double bbb ){  //150 continue
   //if (a*az < test2 and b < test2) go to 155
   if (a*az < test2 and b < test2) { 
     std::cout << "155" << std::endl; 
+    
+    return do155( ia, ib, nalpha, nbeta, s, bb, sigc, sb, sigmin, sabflg, alpha, beta, sab, a, bbb );
+ 
   } // go to 155
 
   //if (sab(ia,ib) <= sabflg) go to 170
@@ -73,7 +112,6 @@ auto do150( double a, double az, double test2, double b, int ia, int ib,
 
 
 
-
 auto sig( double e, double ep, double u, double tev, double tevz,
     std::vector<double>& alpha, std::vector<double>& beta, 
     std::vector<std::vector<double>>& sab, double az, double az2, int lat, 
@@ -102,7 +140,26 @@ auto sig( double e, double ep, double u, double tev, double tevz,
    c = sqrt(4*M_PI);
 
    // tabulated s(alpha,beta).
-   //if (iinc != 2) go to 200
+   if (iinc != 2) { 
+     std::cout << "200" << std::endl;
+     // free-gas scattering.
+     // 200 continue
+      if (iinc != 1) {
+        std::cout << "300" << std::endl;
+        std::cout << "illegal option in sig! oh no!" << std::endl;
+        sigVal = 0;
+        return sigVal;
+      }
+
+      s = 0;
+      arg = (a+bb)*(a+bb)/(4*a);
+      if (-arg > sabflg) s = exp(-arg)/(c*sqrt(a));
+      sigVal = sigc * sb * s;
+      if (sigVal < sigmin) sigVal = 0;
+      return sigVal;
+
+    }
+
    if (lat == 1) b = b * tev / tevz;
    if (lat == 1) a = a * tev / tevz;
    if (a > alpha[nalpha-1]) std::cout << "go to 170 A" << std::endl;
@@ -150,8 +207,10 @@ auto sig( double e, double ep, double u, double tev, double tevz,
    if (cliq == 0 or a >= alpha[0]) {
      std::cout << "150 A" << std::endl;
 
-     do150( a, az, test2, b, ia, ib, sabflg, lat, tevz, tev, sab, rtev, teff, 
-       teff2, az2, sigc, sb, sb2, e, tfff, tfff2, arg, sigmin, u, c, bb );
+     return do150( a, az, test2, b, ia, ib, sabflg, lat, tevz, tev, sab, rtev, 
+       teff, teff2, az2, sigc, sb, sb2, e, tfff, tfff2, arg, sigmin, u, c, bb, 
+       nalpha, nbeta, s, alpha, beta, bbb );
+
    }
 
    if ( lasym == 1 ) std::cout << "150 B" << std::endl;
@@ -171,22 +230,8 @@ auto sig( double e, double ep, double u, double tev, double tevz,
    //if (sab(ia,ib+1) <= sabflg) go to 170
    //if (sab(ia+1,ib+1) <= sabflg) go to 170
    
-  //155 continue
-   if (ia+1 == nalpha) ia = ia - 1;
-   if (ib+1 == nbeta) ib = ib - 1;
-   //call terpq(alpha(ia),sab(ia,ib),alpha(ia+1),sab(ia+1,ib),&
-   //  alpha(ia+2),sab(ia+2,ib),a,s1)
-   //call terpq(alpha(ia),sab(ia,ib+1),alpha(ia+1),sab(ia+1,ib+1),&
-   //  alpha(ia+2),sab(ia+2,ib+1),a,s2)
-   //call terpq(alpha(ia),sab(ia,ib+2),alpha(ia+1),sab(ia+1,ib+2),&
-   //  alpha(ia+2),sab(ia+2,ib+2),a,s3)
-   //call terpq(beta(ib),s1,beta(ib+1),s2,beta(ib+2),s3,bbb,s)
-  //160 continue
-   sigVal = 0;
-   if (s-bb/2 > sabflg) sigVal = exp(s-bb/2);
-   sigVal = sigc * sb * sigVal;
-   if (sigVal < sigmin) sigVal = 0;
-   return sigVal;
+
+   // 155
 
    // free-gas scattering.
   // 200 continue
