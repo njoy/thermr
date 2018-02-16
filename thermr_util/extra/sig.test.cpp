@@ -100,5 +100,45 @@ TEST_CASE( "compute differential scattering ccross sections" ){
       } // AND WHEN
 
     } // WHEN
+
+    // 170C
+    WHEN( "lasym = 1" ){
+      e = 17;
+      ep = 16;
+      tev = 5.2;
+      sb = 13;
+      teff = 320.5;
+      lasym = 1;
+      sigVal = sig( e, ep, u, tev, tevz, alpha, beta, sab, az, az2, lat, iinc, lasym, cliq, sb, sb2, teff, teff2 );
+      REQUIRE( 4.20709698E-2 == Approx( sigVal ).epsilon(1e-6) );
+    } // WHEN
+
+    // 170C
+    WHEN( "lasym = 1 and 170C" ){
+      e = 17;
+      ep = 22;
+      tev = 5.2;
+      sb = 13;
+      teff = 20.5;
+      lasym = 1;
+      beta = { 0.01, 0.1, 0.6 };
+      sigVal = sig( e, ep, u, tev, tevz, alpha, beta, sab, az, az2, lat, iinc, lasym, cliq, sb, sb2, teff, teff2 );
+      REQUIRE( 6.86308387285E-2== Approx( sigVal ).epsilon(1e-6) );
+
+    } // WHEN
+    // 170D
+    WHEN( "lasym = 0 and 170C" ){
+      e = 17;
+      ep = 22;
+      tev = 5.2;
+      sb = 13;
+      teff = 20.5;
+      lasym = 1;
+      beta = { 0.01, 0.1, 0.6 };
+      sigVal = sig( e, ep, u, tev, tevz, alpha, beta, sab, az, az2, lat, iinc, lasym, cliq, sb, sb2, teff, teff2 );
+      REQUIRE( 6.863083872E-2 == Approx( sigVal ).epsilon(1e-6) );
+
+    } // WHEN
+
   } // GIVEN
 } // TEST CASE
