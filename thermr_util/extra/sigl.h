@@ -7,7 +7,7 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
   std::vector<std::vector<double>> sab, 
   double tolin, int nlin, double az, double az2,  
   double teff, double teff2, int lat, double tevz, int lasym, int iinc, 
-  double cliq, double sb, double sb2 ){
+  double cliq, double sb, double sb2, int nbin ){
 
  /*-------------------------------------------------------------------
   * Compute the cross section and legendre components or equally-
@@ -86,76 +86,117 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
      i=i-1;
      //if (i > 1) go to 110
      //if (i == 1) go to 120
-     //if ( i > 1 ) { std::cout << "go back to 110" << std::endl; break; }
-     //if ( i < 1 ){ break; }
      if ( i != 1 ){ break; }
    }
    if ( i < 1 ){ break; }
   }
    s[0]=sum;
-   //if (sum > sigmin) go to 130
-   for ( int il = 0; il < nl-1; ++il ){ s[il] = 0.0; }
-   return;
+   if (sum <= sigmin) {
+     for ( int il = 0; il < nl-1; ++il ){ s[il] = 0.0; }
+     return;
+   } 
+
+   // prime stack for equally-probable angles
+   // 130 continue
+   std::cout << "130" << std::endl;
+   nbin=nl-1;
+   rnbin=1/nbin;
+   fract=sum*rnbin;
+   rfract=1/fract;
+   sum=0;
+   gral=0;
+   for ( int il = 2; il < nl; ++il ){ 
+     s[il] = 0; 
+   }
+   j=0;
+
+   // adaptive linearization
+   i = 3;
+   x[3-1]=-1;
+   xl=x[3-1];
+   y[3-1]=sig(e,ep,x[3-1],tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
+   if (ep == 0 ) x[2-1]=0;
+   if (ep != 0 ) x[2-1]=0.5*(e+ep-(s1bb-1)*az*tev)*seep;
+   if (abs(x[2-1]) > 1-eps) x[2-1]=0.99e0;
+   y[2-1]=sig(e,ep,x[2-1],tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
+   x[1-1]=+1;
+   y[1-1]=sig(e,ep,x[1-1],tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
+   ymax=y[1-1];
+   if (y[2-1] > ymax) ymax=y[2-1];
+   if (y[3-1] > ymax) ymax=y[3-1];
+   if (ymax < eps) ymax=eps;
+   
+   while (true){
+     while (true){
+  //150 continue
+   std::cout << "150" << std::endl;
+   if (i == imax) { std::cout << "go to 160" << std::endl; break; }
+   //if (i == imax) go to 160
+   xm=0.5*(x[i-1-1]+x[i-1]);
+   ym=0.5*(y[i-1-1]+y[i-1]);
+   yt=sig(e,ep,xm,tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
+   test=tol*std::abs(yt)+tol*ymax/50;
+   test2=ym+ymax/100;
+   if (abs(yt-ym) <= test and 
+       std::abs(y[i-1-1]-y[i-1]) <= test2 and 
+      (x[i-1-1]-x[i-1]) < 0.5) {
+      break; 
+   }
+   if (x[i-1-1]-x[i-1] < xtol){
+      break; 
+   }
+   i=i+1;
+   x[i-1]=x[i-1-1];
+   y[i-1]=y[i-1-1];
+   x[i-1-1]=xm;
+   y[i-1-1]=yt;
+   //go to 150
+   }
+
+   // check bins for this panel
+  //160 continue
+  while (true ){
+   std::cout << "160" << std::endl;
+   add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
+   if (x[i-1] == xl) {
+     std::cout << "250" << std::endl;
+     xl=x[i-1];
+     yl=y[i-1];
+     i=i-1;
+     if (i > 1){
+       std::cout << "go to 150" << std::endl;
+       return;
+     }
+     if (i == 1){
+       std::cout << "go to 160" << std::endl;
+     }
+
+   }
+   xil=1/(x[i-1]-xl);
+   if (i == 1 and j == nbin-1) {
+     std::cout << "go to 165" << std::endl;
+   }
+   if (sum+add >= fract*shade and j < nbin-1) {
+     std::cout << "go to 170" << std::endl;
+   }
+   sum=sum+add;
+   gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
+     +(1/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
+     std::cout << "250" << std::endl;
+     xl=x[i-1];
+     yl=y[i-1];
+     i=i-1;
+     if (i > 1){
+       std::cout << "go to 150" << std::endl;
+       return;
+     }
+     if (i == 1){
+       std::cout << "go to 160" << std::endl;
+     }
+  } 
+   } // when near 150
+
   /* 
-
-   !--prime stack for equally-probable angles
-  130 continue
-   nbin=nl-1
-   rnbin=one/nbin
-   fract=sum*rnbin
-   rfract=1/fract
-   sum=0
-   gral=0
-   do il=2,nl
-      s(il)=0
-   enddo
-   j=0
-
-   !--adaptive linearization
-   i=3
-   x(3)=-1
-   xl=x(3)
-   y(3)=sig(e,ep,x(3),tev,nalpha,alpha,nbeta,beta,sab)
-   if (ep == zero) x(2)=0
-   if (ep.ne.zero) x(2)=0.5*(e+ep-(s1bb-1)*az*tev)*seep
-   if (abs(x(2)) > 1-eps) x(2)=0.99e0_kr
-   x(2)=sigfig(x(2),8,0)
-   y(2)=sig(e,ep,x(2),tev,nalpha,alpha,nbeta,beta,sab)
-   x(1)=+1
-   y(1)=sig(e,ep,x(1),tev,nalpha,alpha,nbeta,beta,sab)
-   ymax=y(1)
-   if (y(2) > ymax) ymax=y(2)
-   if (y(3) > ymax) ymax=y(3)
-   if (ymax < eps) ymax=eps
-  150 continue
-   if (i == imax) go to 160
-   xm=0.5*(x(i-1)+x(i))
-   xm=sigfig(xm,8,0)
-   ym=0.5*(y(i-1)+y(i))
-   yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab)
-   test=tol*abs(yt)+tol*ymax/50
-   test2=ym+ymax/100
-   if (abs(yt-ym).le.test.and.abs(y(i-1)-y(i)).le.test2.and.&
-     (x(i-1)-x(i)) < 0.5) go to 160
-   if (x(i-1)-x(i) < xtol) go to 160
-   i=i+1
-   x(i)=x(i-1)
-   y(i)=y(i-1)
-   x(i-1)=xm
-   y(i-1)=yt
-   go to 150
-
-   !--check bins for this panel
-  160 continue
-   add=0.5*(y(i)+yl)*(x(i)-xl)
-   if (x(i) == xl) go to 250
-   xil=1/(x(i)-xl)
-   if (i == 1.and.j == nbin-1) go to 165
-   if (sum+add.ge.fract*shade.and.j < nbin-1) go to 170
-   sum=sum+add
-   gral=gral+0.5*(yl*x(i)-y(i)*xl)*(x(i)+xl)&
-     +third*(y(i)-yl)*(x(i)**2+x(i)*xl+xl**2)
-   go to 250
   165 continue
    xn=x(i)
    j=j+1
