@@ -3,43 +3,10 @@
 #include "sig.h"
 
 
-auto do160( double sum, double xl, double yl, std::vector<double> x,
-    std::vector<double> y, int i, int j, double gral, double fract, 
-    double rfract, std::vector<double> s, std::vector<double> p, int nl, 
-    double rnbin, int nlin, int nbin, double shade, double sigmin, double ytol,
-    double rl){
-  // 160 --> either 250, 165, or 170. These mostly somehow get to 190, and then
-  // either return completely or go to 250. 250 will go back to 150 or 160. So
-  // hopefully getting this done will help with the logic web
- 
-  // check bins for this panel
-  //160 continue
-  
-  // ----- So chances are that we're going to have to go to 250 at some point
-  // ----- during this evaluation, so let's separate out the change that we 
-  // ----- have something else to do before then
-   double add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
-   double xil, xn;
-
-   if ( x[i-1] != xl ){
-     xil=1/(x[i-1]-xl);
-     if (i == 1 and j == nbin-1){
-       std::cout << "go to 165" << std::endl;
-       // 165 continue
-       xn=x[i-1];
-       j=j+1;
-       std::cout << "go to 190" << std::endl;
-
-
-      }
-      if (sum+add >= fract*shade and j < nbin-1) {
-        std::cout << "go to 170" << std::endl;
-     }
-     sum=sum+add;
-     gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
-       +(1/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
-   }
-   std::cout << "go to 250" << std::endl;
+auto do170( double& xn, double& xl, int& j, double& yl, double& sigmin, double& fract,
+    double& sum, double& ytol, std::vector<double>& x, std::vector<double>& y,
+    double& xil, std::vector<double>& s, double& rnbin, int& nl, int& nlin, 
+    double& rfract, double& gral, int& nbin, int& i, std::vector<double>& p){
 
   // 170 continue
    j=j+1;
@@ -62,7 +29,7 @@ auto do160( double sum, double xl, double yl, std::vector<double> x,
   //175 continue
    double f=(y[i-1]-yl)*xil;
    double rf=1/f;
-   double disc=(yl*rf)*(rl*rf)+2*(fract-sum)*rf;
+   double disc=(yl*rf)*(yl*rf)+2*(fract-sum)*rf;
    if (disc < 0) {
      std::cout << " write(strng,'(''disc='',1p,e12.4)') disc" << std::endl;
      std::cout << "call mess('sigl',strng,'set to abs value and continue')" << std::endl;
@@ -109,14 +76,66 @@ auto do160( double sum, double xl, double yl, std::vector<double> x,
    if (xl < x[i-1]){
      std::cout << "go to 160" << std::endl;
    }
-  // 250 continue
+   return 0;
+}
+
+
+
+auto do160( double& sum, double& xl, double& yl, std::vector<double>& x,
+    std::vector<double>& y, int& i, int& j, double& gral, double& fract, 
+    double& rfract, std::vector<double>& s, std::vector<double>& p, int& nl, 
+    double& rnbin, int& nlin, int& nbin, double& shade, double& sigmin, double& ytol){
+  // 160 --> either 250, 165, or 170. These mostly somehow get to 190, and then
+  // either return completely or go to 250. 250 will go back to 150 or 160. So
+  // hopefully getting this done will help with the logic web
+ 
+  // check bins for this panel
+  //160 continue
+  
+  // ----- So chances are that we're going to have to go to 250 at some point
+  // ----- during this evaluation, so let's separate out the change that we 
+  // ----- have something else to do before then
+   double add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
+   double xil, xn;
+
+   if ( x[i-1] != xl ){
+     xil=1/(x[i-1]-xl);
+     if (i == 1 and j == nbin-1){
+       std::cout << "go to 165" << std::endl;
+       // 165 continue
+       xn=x[i-1];
+       j=j+1;
+       std::cout << "go to 190" << std::endl;
+
+
+      }
+      if (sum+add >= fract*shade and j < nbin-1) {
+        std::cout << "go to 170" << std::endl;
+        return do170( xn, xl, j, yl, sigmin, fract, sum, ytol, x, y, xil, s, 
+            rnbin, nl, nlin, rfract, gral, nbin, i, p);
+
+     }
+     sum=sum+add;
+     gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
+       +(1/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
+   }
+
+   // 250 continue
+   std::cout << "250" << std::endl;
    xl=x[i-1];
    yl=y[i-1];
    i=i-1;
-   if (i > 1) { std::cout << "go to 150" << std::endl; }
-   if (i == 1) { std::cout << "go to 160" << std::endl; }
+   if (i > 1) { 
+     std::cout << "go to 150" << std::endl;
+     return 150;
+   }
+   if (i == 1) { 
+     std::cout << "go to 160" << std::endl; 
+     return 160;
+   }
+
   // 260 continue
-   return;
+   return 0;
  
   
 }
@@ -250,76 +269,64 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
    if (y[3-1] > ymax) ymax=y[3-1];
    if (ymax < eps) ymax=eps;
    
+   int counter = 0;
    while (true){
      while (true){
        //150 continue
        std::cout << "150" << std::endl;
-       if (i == imax) { std::cout << "go to 160" << std::endl; break; }
-       //if (i == imax) go to 160
-       xm=0.5*(x[i-1-1]+x[i-1]);
-       ym=0.5*(y[i-1-1]+y[i-1]);
-       yt=sig(e,ep,xm,tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
-       test=tol*std::abs(yt)+tol*ymax/50;
-       test2=ym+ymax/100;
-       if (abs(yt-ym) <= test and 
-           std::abs(y[i-1-1]-y[i-1]) <= test2 and 
-          (x[i-1-1]-x[i-1]) < 0.5) {
-          break; 
+       if (i == imax) { std::cout << "go to 160!!!" << std::endl; break; }
+       else {
+         //if (i == imax) go to 160
+         xm=0.5*(x[i-1-1]+x[i-1]);
+         ym=0.5*(y[i-1-1]+y[i-1]);
+         yt=sig(e,ep,xm,tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
+         test=tol*std::abs(yt)+tol*ymax/50;
+         test2=ym+ymax/100;
+         if (abs(yt-ym) <= test and 
+             std::abs(y[i-1-1]-y[i-1]) <= test2 and 
+            (x[i-1-1]-x[i-1]) < 0.5) {
+            break; 
+         }
+         if (x[i-1-1]-x[i-1] < xtol){
+            break; 
+         }
+         i=i+1;
+         x[i-1]=x[i-1-1];
+         y[i-1]=y[i-1-1];
+         x[i-1-1]=xm;
+         y[i-1-1]=yt;
+         //go to 150
        }
-       if (x[i-1-1]-x[i-1] < xtol){
-          break; 
-       }
-       i=i+1;
-       x[i-1]=x[i-1-1];
-       y[i-1]=y[i-1-1];
-       x[i-1-1]=xm;
-       y[i-1-1]=yt;
-       //go to 150
      }
 
     // check bins for this panel
     //160 continue
-    while (true ){
+    //while (true ){
+    int whatToDo; 
+     do {
       std::cout << "160" << std::endl;
-      add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
-      if (x[i-1] == xl) {
-        std::cout << "250" << std::endl;
-        xl=x[i-1];
-        yl=y[i-1];
-        i=i-1;
-        if (i > 1){
-          //std::cout << "go to 150" << std::endl;
-          break;
-        }
-        if (i == 1){
-          //std::cout << "go to 160" << std::endl;
-        }
-      }
-      xil=1/(x[i-1]-xl);
-      if (i == 1 and j == nbin-1) {
-        std::cout << "go to 165" << std::endl;
-      }
-      if (sum+add >= fract*shade and j < nbin-1) {
-        std::cout << "go to 170" << std::endl;
-      }
-      sum=sum+add;
-      gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
-        +(1/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
-      std::cout << "250" << std::endl;
-      xl=x[i-1];
-      yl=y[i-1];
-      i=i-1;
-      if (i > 1){
-        //std::cout << "go to 150" << std::endl;
-        break;
-      }
-      if (i == 1){
-        //std::cout << "go to 160" << std::endl;
-      }
-      if ( i < 1 ){
-        return;
-      }
-    }  // while 160
+      std::cout << "" << std::endl;
+
+       whatToDo = do160( sum, xl, yl, x, y, i, j, gral, fract, rfract, s, p, nl, rnbin, 
+          nlin, nbin, shade, sigmin, ytol);
+        
+      counter += 1;
+      if ( whatToDo != 150 ){ break; }
+      if ( counter > 1 ){ break; }
+ 
+    } while ( whatToDo == 160 );
+
+
    } // when near 150
 }
+
+
+
+
+
+
+
+
+
+
 
