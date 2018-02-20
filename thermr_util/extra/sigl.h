@@ -2,6 +2,130 @@
 #include <vector>
 #include "sig.h"
 
+
+auto do160( double sum, double xl, double yl, std::vector<double> x,
+    std::vector<double> y, int i, int j, double gral, double fract, 
+    double rfract, std::vector<double> s, std::vector<double> p, int nl, 
+    double rnbin, int nlin, int nbin, double shade, double sigmin, double ytol,
+    double rl){
+  // 160 --> either 250, 165, or 170. These mostly somehow get to 190, and then
+  // either return completely or go to 250. 250 will go back to 150 or 160. So
+  // hopefully getting this done will help with the logic web
+ 
+  // check bins for this panel
+  //160 continue
+  
+  // ----- So chances are that we're going to have to go to 250 at some point
+  // ----- during this evaluation, so let's separate out the change that we 
+  // ----- have something else to do before then
+   double add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
+   double xil, xn;
+
+   if ( x[i-1] != xl ){
+     xil=1/(x[i-1]-xl);
+     if (i == 1 and j == nbin-1){
+       std::cout << "go to 165" << std::endl;
+       // 165 continue
+       xn=x[i-1];
+       j=j+1;
+       std::cout << "go to 190" << std::endl;
+
+
+      }
+      if (sum+add >= fract*shade and j < nbin-1) {
+        std::cout << "go to 170" << std::endl;
+     }
+     sum=sum+add;
+     gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
+       +(1/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
+   }
+   std::cout << "go to 250" << std::endl;
+
+  // 170 continue
+   j=j+1;
+   if (yl < sigmin) {
+     std::cout << "go to 175" << std::endl;
+   }
+   double test=(fract-sum)*(y[i-1]-yl)/((x[i-1]-xl)*yl*yl);
+   if (std::abs(test) > ytol){
+     std::cout << "go to 175" << std::endl;
+   }
+   xn=xl+(fract-sum)/yl;
+   if (xn > x[i-1]) { 
+     std::cout << "go to 180" << std::endl;
+   }
+   if (xn >= xl and xn <=  x[i-1]){
+     std::cout << "go to 190" << std::endl;
+   }
+   std::cout << "call error('sigl','no legal solution.',' ')" << std::endl;
+
+  //175 continue
+   double f=(y[i-1]-yl)*xil;
+   double rf=1/f;
+   double disc=(yl*rf)*(rl*rf)+2*(fract-sum)*rf;
+   if (disc < 0) {
+     std::cout << " write(strng,'(''disc='',1p,e12.4)') disc" << std::endl;
+     std::cout << "call mess('sigl',strng,'set to abs value and continue')" << std::endl;
+      disc=std::abs(disc);
+   }
+   if (f > 0 ) xn=xl-(yl*rf)+sqrt(disc);
+   if (f < 0 ) xn=xl-(yl*rf)-sqrt(disc);
+   if (xn > xl and xn <= x[i-1]){
+     std::cout << "go to 190" << std::endl;
+   }
+   if (xn > xl and xn < (x[i-1]+ytol*(x[i-1]-xl))){
+     std::cout << "go to 180" << std::endl;
+   }
+   std::cout << "call error('sigl','no legal solution (quadratic path).',' ')" << std::endl;
+  // 180 continue
+   xn=x[i-1];
+  // 190 continue
+   double yn=yl+(y[i-1]-yl)*(xn-xl)*xil;
+   gral=gral+(xn-xl)*(yl*0.5*(xn+xl)
+     +(y[i-1]-yl)*xil*(-xl*0.5*(xn+xl)
+     +(1/3)*(xn*xn+xn*xl+xl*xl)));
+   double xbar=gral*rfract;
+
+   // compute legendre components
+   if (nlin >= 0){
+      // call legndr(xbar,p,nl);
+      for ( int il = 2; il < nl; ++il ){
+        s[il-1]=s[il-1]+p[il-1]*rnbin;
+      }
+   } 
+   // output equally probable angles
+   else{
+      s[j+1-1]=xbar;
+  }
+
+   // continue bin loop and linearization loop
+   xl=xn;
+   yl=yn;
+   sum=0;
+   gral=0;
+   if (j == nbin) {
+     std::cout << "go to 260" << std::endl;
+   }
+   if (xl < x[i-1]){
+     std::cout << "go to 160" << std::endl;
+   }
+  // 250 continue
+   xl=x[i-1];
+   yl=y[i-1];
+   i=i-1;
+   if (i > 1) { std::cout << "go to 150" << std::endl; }
+   if (i == 1) { std::cout << "go to 160" << std::endl; }
+  // 260 continue
+   return;
+ 
+  
+}
+
+
+
+
+
+
 auto sigl( double e, double ep, double tev, std::vector<double> alpha,
   std::vector<double> beta, std::vector<double>& s, 
   std::vector<std::vector<double>> sab, 
@@ -45,7 +169,7 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
    yl=y[3-1];
    if (ep == 0) x[2-1]=0;
    if (ep != 0) x[2-1]=0.5*(e+ep-(s1bb-1)*az*tev)*seep;
-   if (abs(x[2-1]) > 1-eps) x[2-1]=0.99e0;
+   if (std::abs(x[2-1]) > 1-eps) x[2-1]=0.99e0;
    y[2-1]=sig(e,ep,x[2-1],tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
    x[1-1]=1;
    y[1-1]=sig(e,ep,x[1-1],tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
@@ -128,140 +252,74 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
    
    while (true){
      while (true){
-  //150 continue
-   std::cout << "150" << std::endl;
-   if (i == imax) { std::cout << "go to 160" << std::endl; break; }
-   //if (i == imax) go to 160
-   xm=0.5*(x[i-1-1]+x[i-1]);
-   ym=0.5*(y[i-1-1]+y[i-1]);
-   yt=sig(e,ep,xm,tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
-   test=tol*std::abs(yt)+tol*ymax/50;
-   test2=ym+ymax/100;
-   if (abs(yt-ym) <= test and 
-       std::abs(y[i-1-1]-y[i-1]) <= test2 and 
-      (x[i-1-1]-x[i-1]) < 0.5) {
-      break; 
-   }
-   if (x[i-1-1]-x[i-1] < xtol){
-      break; 
-   }
-   i=i+1;
-   x[i-1]=x[i-1-1];
-   y[i-1]=y[i-1-1];
-   x[i-1-1]=xm;
-   y[i-1-1]=yt;
-   //go to 150
-   }
-
-   // check bins for this panel
-  //160 continue
-  while (true ){
-   std::cout << "160" << std::endl;
-   add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
-   if (x[i-1] == xl) {
-     std::cout << "250" << std::endl;
-     xl=x[i-1];
-     yl=y[i-1];
-     i=i-1;
-     if (i > 1){
-       std::cout << "go to 150" << std::endl;
-       return;
-     }
-     if (i == 1){
-       std::cout << "go to 160" << std::endl;
+       //150 continue
+       std::cout << "150" << std::endl;
+       if (i == imax) { std::cout << "go to 160" << std::endl; break; }
+       //if (i == imax) go to 160
+       xm=0.5*(x[i-1-1]+x[i-1]);
+       ym=0.5*(y[i-1-1]+y[i-1]);
+       yt=sig(e,ep,xm,tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
+       test=tol*std::abs(yt)+tol*ymax/50;
+       test2=ym+ymax/100;
+       if (abs(yt-ym) <= test and 
+           std::abs(y[i-1-1]-y[i-1]) <= test2 and 
+          (x[i-1-1]-x[i-1]) < 0.5) {
+          break; 
+       }
+       if (x[i-1-1]-x[i-1] < xtol){
+          break; 
+       }
+       i=i+1;
+       x[i-1]=x[i-1-1];
+       y[i-1]=y[i-1-1];
+       x[i-1-1]=xm;
+       y[i-1-1]=yt;
+       //go to 150
      }
 
-   }
-   xil=1/(x[i-1]-xl);
-   if (i == 1 and j == nbin-1) {
-     std::cout << "go to 165" << std::endl;
-   }
-   if (sum+add >= fract*shade and j < nbin-1) {
-     std::cout << "go to 170" << std::endl;
-   }
-   sum=sum+add;
-   gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
-     +(1/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
-     std::cout << "250" << std::endl;
-     xl=x[i-1];
-     yl=y[i-1];
-     i=i-1;
-     if (i > 1){
-       std::cout << "go to 150" << std::endl;
-       return;
-     }
-     if (i == 1){
-       std::cout << "go to 160" << std::endl;
-     }
-  } 
+    // check bins for this panel
+    //160 continue
+    while (true ){
+      std::cout << "160" << std::endl;
+      add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
+      if (x[i-1] == xl) {
+        std::cout << "250" << std::endl;
+        xl=x[i-1];
+        yl=y[i-1];
+        i=i-1;
+        if (i > 1){
+          //std::cout << "go to 150" << std::endl;
+          break;
+        }
+        if (i == 1){
+          //std::cout << "go to 160" << std::endl;
+        }
+      }
+      xil=1/(x[i-1]-xl);
+      if (i == 1 and j == nbin-1) {
+        std::cout << "go to 165" << std::endl;
+      }
+      if (sum+add >= fract*shade and j < nbin-1) {
+        std::cout << "go to 170" << std::endl;
+      }
+      sum=sum+add;
+      gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
+        +(1/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
+      std::cout << "250" << std::endl;
+      xl=x[i-1];
+      yl=y[i-1];
+      i=i-1;
+      if (i > 1){
+        //std::cout << "go to 150" << std::endl;
+        break;
+      }
+      if (i == 1){
+        //std::cout << "go to 160" << std::endl;
+      }
+      if ( i < 1 ){
+        return;
+      }
+    }  // while 160
    } // when near 150
-
-  /* 
-  165 continue
-   xn=x(i)
-   j=j+1
-   go to 190
-  170 continue
-   j=j+1
-   if (yl < sigmin) go to 175
-   test=(fract-sum)*(y(i)-yl)/((x(i)-xl)*yl**2)
-   if (abs(test) > ytol) go to 175
-   xn=xl+(fract-sum)/yl
-   if (xn > x(i)) go to 180
-   if (xn.ge.xl.and.xn.le.x(i)) go to 190
-   call error('sigl','no legal solution.',' ')
-  175 continue
-   f=(y(i)-yl)*xil
-   rf=1/f
-   disc=(yl*rf)**2+2*(fract-sum)*rf
-   if (disc < zero) then
-      write(strng,'(''disc='',1p,e12.4)') disc
-      call mess('sigl',strng,'set to abs value and continue')
-      disc=abs(disc)
-   endif
-   if (f > zero) xn=xl-(yl*rf)+sqrt(disc)
-   if (f < zero) xn=xl-(yl*rf)-sqrt(disc)
-   if (xn > xl.and.xn.le.x(i)) go to 190
-   if (xn > xl.and.xn < (x(i)+ytol*(x(i)-xl))) go to 180
-   call error('sigl','no legal solution (quadratic path).',' ')
-  180 continue
-   xn=x(i)
-  190 continue
-   yn=yl+(y(i)-yl)*(xn-xl)*xil
-   gral=gral+(xn-xl)*(yl*0.5*(xn+xl)&
-     +(y(i)-yl)*xil*(-xl*0.5*(xn+xl)&
-     +third*(xn**2+xn*xl+xl**2)))
-   xbar=gral*rfract
-
-   !--compute legendre components
-   if (nlin.ge.0) then
-      call legndr(xbar,p,nl)
-      do il=2,nl
-         s(il)=s(il)+p(il)*rnbin
-      enddo
-
-   !--output equally probable angles
-   else
-      s(j+1)=xbar
-   endif
-
-   !--continue bin loop and linearization loop
-   xl=xn
-   yl=yn
-   sum=0
-   gral=0
-   if (j == nbin) go to 260
-   if (xl < x(i)) go to 160
-  250 continue
-   xl=x(i)
-   yl=y(i)
-   i=i-1
-   if (i > 1) go to 150
-   if (i == 1) go to 160
-  260 continue
-   return
-   end subroutine sigl
-
-   */
 }
 
