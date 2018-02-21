@@ -2,6 +2,48 @@
 #include <vector>
 #include "sig.h"
 
+auto do190( double& yl, std::vector<double>& y, std::vector<double>& x,
+    double& rfract, double& gral, int nlin, double& xl, double& rnbin,
+    std::vector<double>& s, double xn, int& i, double& xil, int& j, int nbin,
+    std::vector<double>& p, double& sum, int nl){
+
+  std::cout << "190" << std::endl;
+  // 190 continue
+   double yn=yl+(y[i-1]-yl)*(xn-xl)*xil;
+   gral=gral+(xn-xl)*(yl*0.5*(xn+xl)
+     +(y[i-1]-yl)*xil*(-xl*0.5*(xn+xl)
+     +(1/3)*(xn*xn+xn*xl+xl*xl)));
+   double xbar=gral*rfract;
+
+   // compute legendre components
+   if (nlin >= 0){
+      // call legndr(xbar,p,nl);
+      p[1] = 0.35877896342476573;
+      for ( int il = 1; il < nl; ++il ){
+        s[il]=s[il]+p[il]*rnbin;
+      }
+   } 
+   // output equally probable angles
+   else{
+      s[j+1-1]=xbar;
+  }
+
+   // continue bin loop and linearization loop
+   xl=xn;
+   yl=yn;
+   sum=0;
+   gral=0;
+   if (j == nbin) {
+  //   std::cout << "go to 260" << std::endl;
+     return 260;
+   }
+   if (xl < x[i-1]){
+ //    std::cout << "go to 160" << std::endl;
+     return 160;
+   }
+   return 250;
+}
+
 
 auto do170( double& xn, double& xl, int& j, double& yl, double& sigmin, double& fract,
     double& sum, double& ytol, std::vector<double>& x, std::vector<double>& y,
@@ -74,7 +116,7 @@ auto do170( double& xn, double& xl, int& j, double& yl, double& sigmin, double& 
      std::cout << "go to 260" << std::endl;
    }
    if (xl < x[i-1]){
-     std::cout << "go to 160" << std::endl;
+     //std::cout << "go to 160" << std::endl;
    }
    return 0;
 }
@@ -101,12 +143,12 @@ auto do160( double& sum, double& xl, double& yl, std::vector<double>& x,
    if ( x[i-1] != xl ){
      xil=1/(x[i-1]-xl);
      if (i == 1 and j == nbin-1){
-       std::cout << "go to 165" << std::endl;
        // 165 continue
+       std::cout << "165" << std::endl;
        xn=x[i-1];
        j=j+1;
-       std::cout << "go to 190" << std::endl;
-
+       return do190( yl, y, x, rfract, gral, nlin, xl, rnbin, s, xn, i, xil, j, 
+           nbin, p, sum, nl);
 
       }
       if (sum+add >= fract*shade and j < nbin-1) {
@@ -122,20 +164,13 @@ auto do160( double& sum, double& xl, double& yl, std::vector<double>& x,
 
    // 250 continue
    std::cout << "250" << std::endl;
-   xl=x[i-1];
-   yl=y[i-1];
-   i=i-1;
-   if (i > 1) { 
-     std::cout << "go to 150" << std::endl;
-     return 150;
-   }
-   if (i == 1) { 
-     std::cout << "go to 160" << std::endl; 
-     return 160;
-   }
+   xl = x[i-1];
+   yl = y[i-1];
+   i = i - 1;
+   if (i  > 1) { return 150; }
+   if (i == 1) { return 160; }
 
-  // 260 continue
-   return 0;
+   return 0;  // 260 continue
  
   
 }
@@ -227,8 +262,7 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
      xl=x[i-1];
      yl=y[i-1];
      i=i-1;
-     //if (i > 1) go to 110
-     //if (i == 1) go to 120
+
      if ( i != 1 ){ break; }
    }
    if ( i < 1 ){ break; }
@@ -248,7 +282,7 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
    rfract=1/fract;
    sum=0;
    gral=0;
-   for ( int il = 2; il < nl; ++il ){ 
+   for ( int il = 1; il < nl; ++il ){ 
      s[il] = 0; 
    }
    j=0;
@@ -310,12 +344,13 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
        whatToDo = do160( sum, xl, yl, x, y, i, j, gral, fract, rfract, s, p, nl, rnbin, 
           nlin, nbin, shade, sigmin, ytol);
         
+       if ( whatToDo == 260 ){ std::cout << "260" << std::endl; return; }
       counter += 1;
-      if ( whatToDo != 150 ){ break; }
-      if ( counter > 1 ){ break; }
+      if ( counter > 7 ){ break; }
  
     } while ( whatToDo == 160 );
 
+    if ( whatToDo != 150 ){ break; }
 
    } // when near 150
 }

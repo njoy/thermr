@@ -42,11 +42,13 @@ TEST_CASE( "sigl" ){
     sigl( e, ep, tev, alpha, beta, s, sab, tolin, nlin, az, az2, teff, 
         teff2, lat,tevz, lasym, iinc, cliq, sb, sb2, nbin );
 
-   // REQUIRE( 0.0 == Approx( s[0] ).epsilon(1e-6) ); 
+    REQUIRE( 1.328733E-9 == Approx( s[0] ).epsilon(1e-6) ); 
+    REQUIRE( 0.358778963 == Approx( s[1] ).epsilon(1e-6) ); 
+
 
     THEN( "output s vector is correct" ){
-      for ( size_t i = 1; i < s.size(); ++i ){
-    //    REQUIRE( 1.2 == Approx( s[i] ).epsilon(1e-6) );
+      for ( size_t i = 2; i < s.size(); ++i ){
+      REQUIRE( 1.2 == Approx( s[i] ).epsilon(1e-6) );
       }
     } // THEN
   } // GIVEN
