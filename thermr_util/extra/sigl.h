@@ -9,16 +9,14 @@ auto do190( double& yl, std::vector<double>& y, std::vector<double>& x,
   std::vector<double>& p, double& sum, int nl){
 
   std::cout << "190" << std::endl;
-  std::cout << gral << std::endl;
   // 190 continue
   double yn = yl + (y[i-1]-yl) * (xn-xl) * xil;
   gral += (xn-xl) * ( yl * 0.5* (xn+xl) + (y[i-1]-yl) * 
-    xil * (-xl*0.5*(xn + xl) + (1/3) * ( xn + xl )* (xn + xl ) ) );
+    xil * (-xl*0.5*(xn + xl) + (1.0/3.0) * ( xn*xn + xn*xl + xl*xl ) ) );
   double xbar = gral / fract;
 
   // compute legendre components
   if (nlin >= 0){
-    xbar = 0.35877896342476573;
     legndr(xbar,p);
     for ( int il = 1; il < nl; ++il ){
       s[il]=s[il]+p[il]/nbin;
@@ -159,13 +157,12 @@ auto do160( double& sum, double& xl, double& yl, std::vector<double>& x,
 
      }
      sum += add;
-     std::cout << "HERE" << std::endl;
-     gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
-       +(1/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
+     gral+=0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
+       +(1.0/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
    }
 
    // 250 continue
-   std::cout << "250" << "     " << x[i-1] << "    " << i  << std::endl;
+   //std::cout << "250" << "     " << x[i-1] << "    " << i  << std::endl;
    xl = x[i-1];
    yl = y[i-1];
    i = i - 1;
@@ -299,6 +296,7 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
    if (y[2] > ymax) ymax=y[2];
    if (ymax < eps) ymax=eps;
    
+   int counter = 0;
    while (true){
      while (true){
        //150 continue
@@ -306,24 +304,29 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
        if (i == imax) { std::cout << "go to 160!!!" << std::endl; break; }
        else {
          //if (i == imax) go to 160
-         xm=0.5*(x[i]+x[i-1]);
-         ym=0.5*(y[i]+y[i-1]);
+         xm=0.5*(x[i-1]+x[i-2]);
+         ym=0.5*(y[i-1]+y[i-2]);
+         //std::cout << "----------------- " << i << "   " << xm << "    " << ym  << std::endl;
          yt=sig(e,ep,xm,tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
+     //std::cout << x[i-2]  << "   " << x[i-1] << std::endl;
          test=tol*std::abs(yt)+tol*ymax/50;
          test2=ym+ymax/100;
          if (abs(yt-ym) <= test and 
-             std::abs(y[i]-y[i-1]) <= test2 and 
-            (x[i]-x[i-1]) < 0.5) {
+             std::abs(y[i-1]-y[i-2]) <= test2 and 
+            (x[i-2]-x[i-1]) < 0.5) {
             break; 
          }
-         if (x[i]-x[i-1] < xtol){
+         if (x[i-2]-x[i-1] < xtol){
             break; 
          }
          i=i+1;
-         x[i-1]=x[i];
-         y[i-1]=y[i];
-         x[i]=xm;
-         y[i]=yt;
+         x[i-1]=x[i-2];
+         y[i-1]=y[i-2];
+         x[i-2]=xm;
+         y[i-2]=yt;
+      //std::cout << "    " << x[0] << "     " << x[1] << "      " << x[2] << "    " << i << "   " << j << std::endl;
+      counter +=1 ;
+      if (counter > 3 ){return;}
          //go to 150
        }
      }
@@ -334,7 +337,6 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
     int whatToDo; 
      do {
       std::cout << "160" << std::endl;
-      std::cout << "" << std::endl;
 
        whatToDo = do160( sum, xl, yl, x, y, i, j, gral, fract, s, p, nl,  
           nlin, nbin, shade, sigmin, ytol);
