@@ -1,23 +1,17 @@
 
-auto legndr( const double& x, std::vector<double>& p ){
+void legndr( const double& x, std::vector<double>& p ){
   /*--------------------------------------------------------------------
    * Generate Legendre polynomials at x by recursion.
    * Place p(subl) in p(l+1).
    *--------------------------------------------------------------------
    */
-   int m1,i;
-   double g,h;
 
-   p[0]=1;
-   p[1]=x;
+   p[0] = 1;
+   p[1] = x;
    if (p.size() < 2) return;
-   m1 = p.size() - 1;
-   for ( int i = 0; i < m1; ++i ){
-      g=x*p[i+1];
-      h=g-p[i];
-      p[i+2]=h+g-h/(i+1+1);
+   for ( int i = 0; i < p.size()-1; ++i ){
+      p[i+2] = x*p[i+1] + (x*p[i+1] - p[i]) * ( 1 - 1.0 / (i+2) );
    }
-   return;
 }
 
 

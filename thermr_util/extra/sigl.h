@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "sig.h"
+#include "legndr.h"
 
 auto do190( double& yl, std::vector<double>& y, std::vector<double>& x,
   double& gral, int nlin, double& xl, double& fract,
@@ -8,6 +9,7 @@ auto do190( double& yl, std::vector<double>& y, std::vector<double>& x,
   std::vector<double>& p, double& sum, int nl){
 
   std::cout << "190" << std::endl;
+  std::cout << gral << std::endl;
   // 190 continue
   double yn = yl + (y[i-1]-yl) * (xn-xl) * xil;
   gral += (xn-xl) * ( yl * 0.5* (xn+xl) + (y[i-1]-yl) * 
@@ -16,8 +18,8 @@ auto do190( double& yl, std::vector<double>& y, std::vector<double>& x,
 
   // compute legendre components
   if (nlin >= 0){
-    // call legndr(xbar,p,nl);
-    p[1] = 0.35877896342476573;
+    xbar = 0.35877896342476573;
+    legndr(xbar,p);
     for ( int il = 1; il < nl; ++il ){
       s[il]=s[il]+p[il]/nbin;
     }
@@ -140,7 +142,7 @@ auto do160( double& sum, double& xl, double& yl, std::vector<double>& x,
    double xil, xn;
 
    if ( x[i-1] != xl ){
-     xil =1 / (x[i-1]-xl);
+     xil = 1 / (x[i-1]-xl);
      if (i == 1 and j == nbin-1){
        // 165 continue
        std::cout << "165" << std::endl;
@@ -157,12 +159,13 @@ auto do160( double& sum, double& xl, double& yl, std::vector<double>& x,
 
      }
      sum += add;
+     std::cout << "HERE" << std::endl;
      gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
        +(1/3)*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
    }
 
    // 250 continue
-   std::cout << "250" << std::endl;
+   std::cout << "250" << "     " << x[i-1] << "    " << i  << std::endl;
    xl = x[i-1];
    yl = y[i-1];
    i = i - 1;
@@ -231,23 +234,23 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
    while (true){ 
      while ( true ){
      std::cout << "110" << std::endl;
-     xm=0.5*(x[i]+x[i-1]);
-     ym=0.5*(y[i]+y[i-1]);
+     xm=0.5*(x[i-1]+x[i-2]);
+     ym=0.5*(y[i-1]+y[i-2]);
      yt=sig(e,ep,xm,tev,tevz,alpha,beta,sab,az,az2,lat,iinc,lasym,cliq,sb,sb2,teff,teff2);
      test=tol*std::abs(yt)+tol*ymax/50;
      test2=ym+ymax/100;
-     if (std::abs(yt-ym) <= test and std::abs(y[i]-y[i-1]) <= test2 and 
-       (x[i]-x[i-1]) < 0.5){
+     if (std::abs(yt-ym) <= test and std::abs(y[i-2]-y[i-1]) <= test2 and 
+       (x[i-2]-x[i-1]) < 0.5){
        break;
      }
-     if (x[i]-x[i-1] < xtol) {
+     if (x[i-2]-x[i-1] < xtol) {
        break;
      }
      i = i + 1;
-     x[i-1]=x[i];
-     y[i-1]=y[i];
-     x[i]=xm;
-     y[i]=yt;
+     x[i-1]=x[i-2];
+     y[i-1]=y[i-2];
+     x[i-2]=xm;
+     y[i-2]=yt;
    }
    while (true) {
      std::cout << "120" << std::endl;
