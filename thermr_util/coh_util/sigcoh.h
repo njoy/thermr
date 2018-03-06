@@ -3,11 +3,14 @@
 #include "sigcoh_util/form.h"
 #include "sigcoh_util/terp.h"
 #include "sigcoh_util/200.h"
+#include "sigcoh_util/160.h"
 
 
+/*
 auto tausq( int m1, int m2, int m3, double c1, double c2 ){
   return (c1*(m1*m1+m2*m2+m1*m2)+(m3*m3*c2))*4*M_PI*M_PI;
 }
+*/
 
 
 auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat, 
@@ -70,7 +73,6 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
       c = gr2;
       amsc = gr3;
       scoh = gr4 / natom;
-      std::cout << temp << "  " << nord << std::endl;
       wal2 = terp(tmp,dwf1,nd,temp,nord);
    }
    else if (lat == 2) {
@@ -108,7 +110,6 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
    i1m = a * std::pow(phi,0.5);
    i1m = i1m + 1;
    k = 0;
-   std::cout << t2 << "    " <<   std::endl;
 
   for ( int i1 = 1; i1 <= i1m; ++i1 ){
      // do 185 i1=1,i1m
@@ -116,7 +117,6 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
      i2m = half * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) );
      i2m = i2m + 1;
      for ( int i2 = i1; i2 <= i2m; ++i2 ){
-       std::cout << i2 << std::endl;
        // do 180 i2=i1,i2m
        l2 = i2 - 1;
        x = phi - c1 * ( l1 * l1 + l2 * l2 - l1 * l2 );
@@ -125,6 +125,8 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
        i3m = i3m + 1;
        for ( int i3 = 1; i3 <= i3m; ++i3 ){
          // do 175 i3=1,i3m
+         if ( i3 == 13 ){ return; }
+         std::cout << "i3:  " << i3 << std::endl;
          l3 = i3 - 1;
          w1 = 2;
          if (l1 == l2) w1 = 1;
@@ -136,25 +138,51 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
 
          tsq = tausq(l1,l2,l3,c1,c2);
          //if (tsq.le.zero.or.tsq.gt.ulim) go to 160
+         if (tsq <= 0 or tsq > ulim ){
+           int indicator = do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw, ulim, recon );
+           if (indicator == 1){ continue; }
+         }
          tau=std::pow(tsq,0.5);
          w=exp(-tsq*t2*wint)*w1*w2*w3/tau;
          f = w * form( lat, l1, l2, l3 );
          //std::cout << f << std::endl;
+         if (k > 0 and tsq > tsqx) {
+           std::cout << "150" << std::endl;
+           for ( int i = 1; i <= k; ++i ){
+             //do 155 i=1,k
+             if (tsq < wrk[2*i-1-1] or tsq >= (1+eps)*wrk[2*i-1-1]) { 
+               if ( i == k ){ 
+                 std::cout << "go to 155" << std::endl;
+                 break;
+               }
+               else {
+                 continue; 
+               }
+             }
+             wrk[2*i-1]=wrk[2*i-1]+f;
+             //go to 160
+            }
+         }
          //if (k.gt.0.and.tsq.gt.tsqx) go to 150
          k=k+1;
          if ((2*k) > nw){
            std::cout << "storage exceeded oh no!" << std::endl;
            //call error('sigcoh','storage exceeded.',' ')
          } 
-         wrk[2*k-1] = tsq;
-         wrk[2*k] = f;
+         wrk[2*k-2] = tsq;
+         wrk[2*k-1] = f;
 
+         std::cout << wrk[2*k-2] << "     " << wrk[2*k-1]<< std::endl;
+
+         int indicator = do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw, ulim, recon );
+         if (indicator == 1){ continue; }
 
         // go to 160
         //150 continue
         for ( int i = 1; i < k; ++i ){
+          std::cout << "-------  " << i << std::endl;
          //do 155 i=1,k
-         //if (tsq < wrk[2*i-1-1] or tsq >= (1+eps)*wrk[2*i-1-1]) go to 155
+         if (tsq < wrk[2*i-1-1] or tsq >= (1+eps)*wrk[2*i-1-1]) continue;
          wrk[2*i-1]=wrk[2*i-1]+f;
          //go to 160
         }
@@ -190,7 +218,6 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
        }
     //  175 continue
     }
-     return 0;
     //180 continue
   } // 185 Loop
    /*
@@ -282,5 +309,6 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
    end subroutine sigcoh
 
    */
+   return; 
 }
 

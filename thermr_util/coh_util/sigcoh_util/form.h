@@ -1,3 +1,5 @@
+#ifndef COH_SIGCOH_FORM
+#define COH_SIGCOH_FORM
 #include <iostream>
 #include <vector>
 
@@ -30,3 +32,4 @@ double form( int lat, int l1, int l2, int l3 ){
    return 0;
 }
 
+#endif

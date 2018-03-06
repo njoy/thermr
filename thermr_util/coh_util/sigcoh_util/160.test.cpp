@@ -24,6 +24,7 @@ TEST_CASE( "tausq" ){
 
 
 TEST_CASE( "computeCrossSections" ){
+  double ulim = 1e5, recon = 1.5;
   int l1, l2, l3, k, lat, nw;
   double c1, c2, w1, w2, w3, t2, wint;
   std::vector<double> wrk(10);
@@ -36,7 +37,7 @@ TEST_CASE( "computeCrossSections" ){
     t2 = 5;
     wint = 0;
     nw = 10;
-    do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw );
+    do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw, ulim, recon );
     THEN( "" ){
       REQUIRE( 78.95683520871 == Approx( wrk[0] ).epsilon(1e-6) );
       REQUIRE( 0.168809309279 == Approx( wrk[1] ).epsilon(1e-6) );
@@ -47,7 +48,7 @@ TEST_CASE( "computeCrossSections" ){
     } // WHEN
     WHEN( "wint value is significantly small to suppress exponential term" ){
       wint = 0.01;
-      do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw );
+      do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw, ulim, recon );
     THEN( "" ){
       REQUIRE( 78.95683520871 == Approx( wrk[0] ).epsilon(1e-6) );
       REQUIRE( 3.257395853E-3 == Approx( wrk[1] ).epsilon(1e-6) );
@@ -67,7 +68,7 @@ TEST_CASE( "computeCrossSections" ){
     t2 = 5;
     wint = 0.01;
     nw = 10;
-    do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw );
+    do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw, ulim, recon );
     THEN( "" ){
       REQUIRE(  1658.0935393830089 == Approx( wrk[0] ).epsilon(1e-6) );
       REQUIRE(  1.5205534520116722E-66 == Approx( wrk[1] ).epsilon(1e-6) );
@@ -86,7 +87,7 @@ TEST_CASE( "computeCrossSections" ){
     t2 = 5;
     wint = 0.01;
     nw = 10;
-    do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw );
+    do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw, ulim, recon );
     THEN( "" ){
       REQUIRE(  1658.0935393830089 == Approx( wrk[0] ).epsilon(1e-6) );
       for ( size_t i = 1; i < wrk.size(); ++i ){ 
