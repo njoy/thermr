@@ -2,6 +2,7 @@
 #include <vector>
 #include "sigcoh_util/form.h"
 #include "sigcoh_util/terp.h"
+#include "sigcoh_util/200.h"
 
 
 auto tausq( int m1, int m2, int m3, double c1, double c2 ){
@@ -34,9 +35,11 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   int nd = 10;
   std::vector<double> dwf1 { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 
     6.1624, 7.3387, 9.6287, 11.992 },
-    dwf2 { 3.16663, 3.88842, 4.62944, 5.40517, 6.19880, 7.0042, 8.63665, 10.2865, 0, 0 },
-    dwf3 {  2.153, 2.6374, 3.1348, 3.6513, 4.1798, 4.7164, 5.8052, 6.9068, 0, 0 },
-    tmp { 29, 40, 50, 600, 700, 800, 1000, 1200, 1600, 2000 };
+    dwf2 { 3.16663, 3.88842, 4.62944, 5.40517, 6.19880, 7.0042, 8.63665, 
+      10.2865, 0, 0 },
+    dwf3 {  2.153, 2.6374, 3.1348, 3.6513, 4.1798, 4.7164, 5.8052, 6.9068, 
+      0, 0 },
+    tmp { 296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000 };
 
   
    double gr1 = 2.4573e-8, gr2 = 6.700e-8, gr3 = 12.011e0, gr4 = 5.50e0, 
@@ -50,20 +53,24 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
 
 
    // initialize.
-   // if (e > 0) go to 210
+   // if (e > 0) go to 210 
    twopis = (4*M_PI*M_PI);
    amne = amassn * amu;
    econ = ev * 8 * ( amne / hbar ) / hbar;
    recon = 1 / econ;
    tsqx = econ / 20;
    nord = 2;
-   // if (lat == 10) go to 200
+   // If lat == 10 go to 200
+   // if (lat == 10) { readBraggParameters( fl, l, econ ); }
+   // This really shouldn't be invoked because fl is not initialized yet, this
+   // is really weird
    if (lat == 1){
       // graphite constants
       a = gr1;
       c = gr2;
       amsc = gr3;
       scoh = gr4 / natom;
+      std::cout << temp << "  " << nord << std::endl;
       wal2 = terp(tmp,dwf1,nd,temp,nord);
    }
    else if (lat == 2) {
@@ -90,7 +97,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
    c2 = 1 / ( c * c );
    scon = scoh * ( 16 * M_PI*M_PI )/( 2 * a * a * c * sqrt3 * econ );
    wint = cw * amsc * wal2;
-   t2 = hbar / ( 2 *amu * amsc );
+   t2 = hbar / ( 2.0 * amu * amsc );
    ulim = econ * emax;
    nw = 10000;
    std::vector<double> wrk(nw);
@@ -101,79 +108,92 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
    i1m = a * std::pow(phi,0.5);
    i1m = i1m + 1;
    k = 0;
+   std::cout << t2 << "    " <<   std::endl;
 
-  // do 185 i1=1,i1m
-   l1 = i1 - 1;
-   i2m = half * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) );
-   i2m = i2m + 1;
-  // do 180 i2=i1,i2m
-   l2 = i2 - 1;
-   x = phi - c1 * ( l1 * l1 + l2 * l2 - l1 * l2 );
-   i3m = 0;
-   if (x > 0) { i3m = c * std::pow(x,0.5); }
-   i3m = i3m + 1;
-  // do 175 i3=1,i3m
-   l3 = i3 - 1;
-   w1 = 2;
-   if (l1 == l2) w1 = 1;
-   w2 = 2;
-   if (l1 == 0 or l2 == 0) w2 = 1;
-   if (l1 == 0 and l2 == 0) w2 = half;
-   w3 = 2;
-   if (l3 == 0) w3 = 1;
+  for ( int i1 = 1; i1 <= i1m; ++i1 ){
+     // do 185 i1=1,i1m
+     l1 = i1 - 1;
+     i2m = half * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) );
+     i2m = i2m + 1;
+     for ( int i2 = i1; i2 <= i2m; ++i2 ){
+       std::cout << i2 << std::endl;
+       // do 180 i2=i1,i2m
+       l2 = i2 - 1;
+       x = phi - c1 * ( l1 * l1 + l2 * l2 - l1 * l2 );
+       i3m = 0;
+       if (x > 0) { i3m = c * std::pow(x,0.5); }
+       i3m = i3m + 1;
+       for ( int i3 = 1; i3 <= i3m; ++i3 ){
+         // do 175 i3=1,i3m
+         l3 = i3 - 1;
+         w1 = 2;
+         if (l1 == l2) w1 = 1;
+         w2 = 2;
+         if (l1 == 0 or l2 == 0) w2 = 1;
+         if (l1 == 0 and l2 == 0) w2 = half;
+         w3 = 2;
+         if (l3 == 0) w3 = 1;
 
-   tsq = tausq(l1,l2,l3,c1,c2);
-   //if (tsq.le.zero.or.tsq.gt.ulim) go to 160
-   tau=std::pow(tsq,0.5);
-   w=exp(-tsq*t2*wint)*w1*w2*w3/tau;
-   f = w * form( lat, l1, l2, l3 );
-   std::cout << f << std::endl;
-   //if (k.gt.0.and.tsq.gt.tsqx) go to 150
-   k=k+1;
-   if ((2*k) > nw){
-     std::cout << "storage exceeded oh no!" << std::endl;
-     //call error('sigcoh','storage exceeded.',' ')
-   } 
-   wrk[2*k-1] = tsq;
-   wrk[2*k] = f;
+         tsq = tausq(l1,l2,l3,c1,c2);
+         //if (tsq.le.zero.or.tsq.gt.ulim) go to 160
+         tau=std::pow(tsq,0.5);
+         w=exp(-tsq*t2*wint)*w1*w2*w3/tau;
+         f = w * form( lat, l1, l2, l3 );
+         //std::cout << f << std::endl;
+         //if (k.gt.0.and.tsq.gt.tsqx) go to 150
+         k=k+1;
+         if ((2*k) > nw){
+           std::cout << "storage exceeded oh no!" << std::endl;
+           //call error('sigcoh','storage exceeded.',' ')
+         } 
+         wrk[2*k-1] = tsq;
+         wrk[2*k] = f;
 
 
+        // go to 160
+        //150 continue
+        for ( int i = 1; i < k; ++i ){
+         //do 155 i=1,k
+         //if (tsq < wrk[2*i-1-1] or tsq >= (1+eps)*wrk[2*i-1-1]) go to 155
+         wrk[2*i-1]=wrk[2*i-1]+f;
+         //go to 160
+        }
+        //155 continue
+         k=k+1;
+         //if ((2*k).gt.nw) call error('sigcoh','storage exceeded.',' ')
+         wrk[2*k-1-1]=tsq;
+         wrk[2*k-1]=f;
+         /*
+        160 continue
+         tsq=tausq(l1,-l2,l3,c1,c2,twopis)
+         if (tsq.le.zero.or.tsq.gt.ulim) go to 175
+         tau=sqrt(tsq)
+         w=exp(-tsq*t2*wint)*w1*w2*w3/tau
+         f=w*form(lat,l1,-l2,l3)
+         if (k.gt.0.and.tsq.gt.tsqx) go to 165
+         k=k+1
+         if ((2*k).gt.nw) call error('sigcoh','storage exceeded.',' ')
+         wrk(2*k-1)=tsq
+         wrk(2*k)=f
+         go to 175
+         165 continue
+         do 170 i=1,k
+         if (tsq.lt.wrk(2*i-1).or.tsq.ge.(1+eps)*wrk(2*i-1)) go to 170
+         wrk(2*i)=wrk(2*i)+f
+         go to 175
+        170 continue
+         k=k+1
+         if ((2*k).gt.nw) call error('sigcoh','storage exceeded.',' ')
+         wrk(2*k-1)=tsq
+         wrk(2*k)=f
+    */
+       }
+    //  175 continue
+    }
+     return 0;
+    //180 continue
+  } // 185 Loop
    /*
-   go to 160
-  150 continue
-   do 155 i=1,k
-   if (tsq.lt.wrk(2*i-1).or.tsq.ge.(1+eps)*wrk(2*i-1)) go to 155
-   wrk(2*i)=wrk(2*i)+f
-   go to 160
-  155 continue
-   k=k+1
-   if ((2*k).gt.nw) call error('sigcoh','storage exceeded.',' ')
-   wrk(2*k-1)=tsq
-   wrk(2*k)=f
-  160 continue
-   tsq=tausq(l1,-l2,l3,c1,c2,twopis)
-   if (tsq.le.zero.or.tsq.gt.ulim) go to 175
-   tau=sqrt(tsq)
-   w=exp(-tsq*t2*wint)*w1*w2*w3/tau
-   f=w*form(lat,l1,-l2,l3)
-   if (k.gt.0.and.tsq.gt.tsqx) go to 165
-   k=k+1
-   if ((2*k).gt.nw) call error('sigcoh','storage exceeded.',' ')
-   wrk(2*k-1)=tsq
-   wrk(2*k)=f
-   go to 175
-  165 continue
-   do 170 i=1,k
-   if (tsq.lt.wrk(2*i-1).or.tsq.ge.(1+eps)*wrk(2*i-1)) go to 170
-   wrk(2*i)=wrk(2*i)+f
-   go to 175
-  170 continue
-   k=k+1
-   if ((2*k).gt.nw) call error('sigcoh','storage exceeded.',' ')
-   wrk(2*k-1)=tsq
-   wrk(2*k)=f
-  175 continue
-  180 continue
   185 continue
    imax=k-1
    do i=1,imax
