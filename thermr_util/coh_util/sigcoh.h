@@ -4,6 +4,7 @@
 #include "sigcoh_util/terp.h"
 #include "sigcoh_util/200.h"
 #include "sigcoh_util/160.h"
+#include "sigcoh_util/150.h"
 
 
 /*
@@ -139,7 +140,8 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
          tsq = tausq(l1,l2,l3,c1,c2);
          //if (tsq.le.zero.or.tsq.gt.ulim) go to 160
          if (tsq <= 0 or tsq > ulim ){
-           int indicator = do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw, ulim, recon );
+           int indicator = do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, 
+               wrk, wint, nw, ulim, recon, tsqx, eps );
            if (indicator == 1){ continue; }
          }
          tau=std::pow(tsq,0.5);
@@ -147,21 +149,10 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
          f = w * form( lat, l1, l2, l3 );
          //std::cout << f << std::endl;
          if (k > 0 and tsq > tsqx) {
-           std::cout << "150" << std::endl;
-           for ( int i = 1; i <= k; ++i ){
-             //do 155 i=1,k
-             if (tsq < wrk[2*i-1-1] or tsq >= (1+eps)*wrk[2*i-1-1]) { 
-               if ( i == k ){ 
-                 std::cout << "go to 155" << std::endl;
-                 break;
-               }
-               else {
-                 continue; 
-               }
-             }
-             wrk[2*i-1]=wrk[2*i-1]+f;
-             //go to 160
-            }
+           do150( k, tsq, wrk, eps, f, nw );
+           int indicator = do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, 
+               wrk, wint, nw, ulim, recon, tsqx, eps );
+           if (indicator == 1){ continue; }
          }
          //if (k.gt.0.and.tsq.gt.tsqx) go to 150
          k=k+1;
@@ -174,9 +165,11 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
 
          std::cout << wrk[2*k-2] << "     " << wrk[2*k-1]<< std::endl;
 
-         int indicator = do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, wrk, wint, nw, ulim, recon );
+         int indicator = do160( lat, w1, w2, w3, l1, l2, l3, k, c1, c2, t2, 
+             wrk, wint, nw, ulim, recon, tsqx, eps );
          if (indicator == 1){ continue; }
 
+         /*
         // go to 160
         //150 continue
         for ( int i = 1; i < k; ++i ){
@@ -191,6 +184,8 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
          //if ((2*k).gt.nw) call error('sigcoh','storage exceeded.',' ')
          wrk[2*k-1-1]=tsq;
          wrk[2*k-1]=f;
+         */
+
          /*
         160 continue
          tsq=tausq(l1,-l2,l3,c1,c2,twopis)
