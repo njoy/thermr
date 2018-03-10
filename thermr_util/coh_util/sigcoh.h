@@ -25,7 +25,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   * nl returns no. of Bragg edges on initialization call.
   *-------------------------------------------------------------------
   */
-  int nord, nw, k, i1m, i1, l1, i2m, i2, l2, i3m, i3, l3, l, i, imax, jmin, j,
+  int nw, k, i1m, i1, l1, i2m, i2, l2, i3m, i3, l3, l, i, j,
     il, lmax, last;
   double amne, econ, tsqx, a, c, amsc, scoh, wal2, wint, x, w1, w2, w3, tsq, 
     tau, w, f, st, sf, blast, re, t2, ulim, phi, elim, u, twopis, c1, c2, 
@@ -44,12 +44,11 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   double gr1 = 2.4573e-8, gr2 = 6.700e-8, gr3 = 12.011e0, gr4 = 5.50e0, 
     be1 = 2.2856e-8, be2 = 3.5832e-8, be3 = 9.01e0, be4 = 7.53e0, 
     beo1 = 2.695e-8, beo2 = 4.39e-8, beo3 = 12.5e0, beo4 = 1.e0, 
-    sqrt3 = 1.732050808e0, cw = 0.658173e-15, half = 0.5e0, eps = 0.05e0, 
+    sqrt3 = 1.732050808e0, cw = 0.658173e-15, eps = 0.05e0, 
     zero = 0, hbar = 1.05457266e-27, amu = 1.6605402e-24, amassn = 1.008664904,
     ev = 1.60217733e-12;
 
   // save k,recon,scon
-
 
   // initialize.
   // go to 210 
@@ -62,31 +61,21 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   econ = ev * 8 * ( amne / hbar ) / hbar;
   recon = 1 / econ;
   tsqx = econ / 20;
-  nord = 2;
 
   if (lat == 1){
     // graphite constants
-    a = gr1;
-    c = gr2;
-    amsc = gr3;
-    scoh = gr4 / natom;
-    wal2 = terp(tmp,dwf1,nd,temp,nord);
+    a = gr1; c = gr2; amsc = gr3; scoh = gr4 / natom; 
+    wal2 = terp(tmp,dwf1,nd,temp,2);
   }
   else if (lat == 2) {
     // beryllium constants
-    a = be1;
-    c = be2;
-    amsc = be3;
-    scoh = be4/natom;
-    wal2 = terp(tmp,dwf2,nd,temp,nord);
+    a = be1; c = be2; amsc = be3; scoh = be4/natom;
+    wal2 = terp(tmp,dwf2,nd,temp,2);
   }
   else if (lat == 3){
     // beryllium oxide constants
-    a = beo1;
-    c = beo2;
-    amsc = beo3;
-    scoh = beo4/natom;
-    wal2 = terp(tmp,dwf3,nd,temp,nord);
+    a = beo1; c = beo2; amsc = beo3; scoh = beo4/natom;
+    wal2 = terp(tmp,dwf3,nd,temp,2);
   } 
   else {
     std::cout << "OH NO! Error over here. Illegal lat value" << std::endl;
@@ -109,7 +98,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
 
   for ( int i1 = 1; i1 <= i1m; ++i1 ){
     l1 = i1 - 1;
-    i2m = half * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) ) + 1;;
+    i2m = 0.5 * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) ) + 1;;
     for ( int i2 = i1; i2 <= i2m; ++i2 ){
       l2 = i2 - 1;
       x = phi - c1 * ( l1 * l1 + l2 * l2 - l1 * l2 );
@@ -160,7 +149,43 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
       }
     } 
   }
+
+  for ( int i = 1; i <= k - 1; ++i ){
+    for ( int j = i + 1; j <= k; ++j ){
+      if (wrk[2*j-1-1] < wrk[2*i-1-1]) {
+        st=wrk[2*i-1-1];
+        sf=wrk[2*i-1];
+        wrk[2*i-1-1]=wrk[2*j-1-1];
+        wrk[2*i-1]=wrk[2*j-1];
+        wrk[2*j-1-1]=st;
+        wrk[2*j-1]=sf;
+      } 
+    }
+  }
+  k=k+1;
+  wrk[2*k-1-1]=ulim;
+  wrk[2*k-1]=wrk[2*k-2-1];
+  nw=2*k;
+  enext=recon*wrk[1-1];
+  nl=k;
   return wrk;
+  // return wrk as fl
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
