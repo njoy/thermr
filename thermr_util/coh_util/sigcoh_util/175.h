@@ -8,6 +8,7 @@ void swap( double& a, double& b ){
 }
 
 auto end_175_180_185(std::vector<double>& wrk, int k, double recon, double ulim ){
+  std::cout << "175" << std::endl;
   int imax = k - 1;
   for ( int i = 0; i < imax; ++i ){
     int jmin = i + 1;
