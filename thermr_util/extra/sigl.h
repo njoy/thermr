@@ -23,9 +23,7 @@ auto do190( double& yl, std::vector<double>& y, std::vector<double>& x,
     }
   } 
   // output equally probable angles
-  else{
-     s[j] = xbar;
-  }
+  else{ s[j] = xbar; }
 
   // continue bin loop and linearization loop
   xl = xn;
@@ -40,7 +38,15 @@ auto do190( double& yl, std::vector<double>& y, std::vector<double>& x,
     //    std::cout << "go to 160" << std::endl;
     return 160;
   }
-  return 250;
+//  return 250;
+   xl = x[i-1];
+   yl = y[i-1];
+   i = i - 1;
+   if (i  > 1) { return 150; }
+   if (i == 1) { return 160; }
+   return 0;
+
+
 }
 
 
@@ -76,15 +82,14 @@ auto do170( double& xn, double& xl, int& j, double& yl, double& sigmin, double& 
   //175 continue
    std::cout << "175" << std::endl;
    double f=(y[i-1]-yl)*xil;
-   double rf=1/f;
-   double disc=(yl*rf)*(yl*rf)+2*(fract-sum)*rf;
+   double disc=(yl/f)*(yl/f)+2*(fract-sum)/f;
    if (disc < 0) {
      std::cout << " write(strng,'(''disc='',1p,e12.4)') disc" << std::endl;
      std::cout << "call mess('sigl',strng,'set to abs value and continue')" << std::endl;
       disc=std::abs(disc);
    }
-   if (f > 0 ) xn=xl-(yl*rf)+sqrt(disc);
-   if (f < 0 ) xn=xl-(yl*rf)-sqrt(disc);
+   if (f > 0 ) xn=xl-(yl/f)+sqrt(disc);
+   if (f < 0 ) xn=xl-(yl/f)-sqrt(disc);
    if (xn > xl and xn <= x[i-1]){
      return do190( yl, y, x, gral, nlin, xl, fract, s, xn, i, xil, j, 
          nbin, p, sum, nl);
@@ -206,8 +211,9 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
   *-------------------------------------------------------------------
   */
   
+  int whatToDo; 
   int nl,i,j,il,nbeta = beta.size(), nalpha = alpha.size(), imax = 20;
-  double b,sum,xl,yl,ymax,xm,ym,test,test2,fract,gral,add,xil,xn,f,rf,
+  double b,sum,xl,yl,ymax,xm,ym,test,test2,fract,gral,add,xil,xn,f,
          disc,yn,xbar,yt,xtol=1e-5, ytol=1e-3, sigmin=1.e-32, 
          eps=1.e-3, shade=.99999999e0;
   std::vector<double> x(imax), y(imax),p(nlin);
@@ -331,7 +337,6 @@ auto sigl( double e, double ep, double tev, std::vector<double> alpha,
     // check bins for this panel
     //160 continue
     //while (true ){
-    int whatToDo; 
      do {
       std::cout << "160" << std::endl;
 
