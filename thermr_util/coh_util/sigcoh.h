@@ -2,17 +2,11 @@
 #include <vector>
 #include "sigcoh_util/form.h"
 #include "sigcoh_util/terp.h"
-#include "sigcoh_util/210.h"
-#include "sigcoh_util/200.h"
-#include "sigcoh_util/160.h"
-#include "sigcoh_util/150.h"
 
 
-/*
 auto tausq( int m1, int m2, int m3, double c1, double c2 ){
   return (c1*(m1*m1+m2*m2+m1*m2)+(m3*m3*c2))*4*M_PI*M_PI;
 }
-*/
 
 
 auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat, 
@@ -110,77 +104,58 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
 
   // compute and sort lattice factors.
   phi = ulim / twopis;
-  i1m = a * std::pow(phi,0.5);
-  i1m = i1m + 1;
+  i1m = a * std::pow(phi,0.5) + 1;
   k = 0;
 
   for ( int i1 = 1; i1 <= i1m; ++i1 ){
     l1 = i1 - 1;
-    i2m = half * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) );
-    i2m = i2m + 1;
+    i2m = half * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) ) + 1;;
     for ( int i2 = i1; i2 <= i2m; ++i2 ){
       l2 = i2 - 1;
       x = phi - c1 * ( l1 * l1 + l2 * l2 - l1 * l2 );
-      i3m = 0;
-      if (x > 0) { i3m = c * std::pow(x,0.5); }
-      i3m = i3m + 1;
+      i3m = c * std::pow(x,0.5) + 1;
       for ( int i3 = 1; i3 <= i3m; ++i3 ){
-        std::cout << "--------- " << i1 << "    " << i2 << "     " <<  i3  << "    " << wrk[95] << std::endl;
         l3 = i3 - 1;
-        w1 = 2;
-        if (l1 == l2) w1 = 1;
-        w2 = 2;
-        if (l1 == 0 or l2 == 0) w2 = 1;
-        if (l1 == 0 and l2 == 0) w2 = half;
-        w3 = 2;
-        if (l3 == 0) w3 = 1;
+        w1 = (l1 == l2) ? 1 : 2;
 
-        tsq = tausq(l1,l2,l3,c1,c2);
+        if      (l1 == 0 and l2 == 0) { w2 = 0.5; }
+        else if (l1 == 0 or  l2 == 0) { w2 = 1;   }
+        else                          { w2 = 2;   } 
+        
+        w3 = (l3 == 0) ? 1 : 2;
+         
+        for ( double&& l2: { l2, -l2 } ){
+          tsq = tausq(l1,l2,l3,c1,c2);
+          if (tsq > 0 and tsq <= ulim ){
+            tau = std::pow(tsq,0.5);
+            w = exp(-tsq*t2*wint)*w1*w2*w3/tau;
+            f = w * form( lat, l1, l2, l3 );
 
-        if (tsq > 0 and tsq <= ulim ){
-          tau=std::pow(tsq,0.5);
-          w=exp(-tsq*t2*wint)*w1*w2*w3/tau;
-          f = w * form( lat, l1, l2, l3 );
-
-          if (k > 0 and tsq > tsqx) {
-            do150( k, tsq, wrk, eps, f, nw );
-          }
-          else {
-            k = k + 1;
-            if ((2*k) > nw) { std::cout << "oh no, sigcoh! Storage exceeded" << std::endl; } 
-            if ((2*k) > nw) { return wrk; } 
-            wrk[2*k-2] = tsq;
-            wrk[2*k-1] = f;
-          }
-
-        } 
-        std::cout << "160" << std::endl;
-        tsq = tausq( l1, -l2, l3, c1, c2 );
-        if ( tsq > 0 and tsq <= ulim ){
-          tau = sqrt(tsq);
-          w = exp(-tsq*t2*wint)*w1*w2*w3/tau;
-          f = w * form(lat,l1,-l2,l3);
-          bool continueLoop;
-          if (k > 0 and tsq > tsqx) { 
-            continueLoop = do165( k, wrk, recon, ulim, f, tsq, eps, nw );
-            if ( not continueLoop ){
-              std::cout << "maybe 170?" << std::endl;
+            if (k > 0 and tsq > tsqx) {
+              for ( int i = 1; i <= k; ++i ){
+                if (tsq < wrk[2*i-1-1] or tsq >= (1+eps)*wrk[2*i-1-1]){
+                  if ( i == k ){ 
+                    k = k + 1;
+                    if ((2*k) > nw) std::cout << "call error('sigcoh','storage exceeded.',' ')" << std::endl;
+                    wrk[2*k-1-1] = tsq;
+                    wrk[2*k-1] = f;
+                    break;
+                  }
+                  continue; 
+                }
+                wrk[2*i-1]=wrk[2*i-1]+f;
+                break;
+              }
+            }
+            else {
               k = k + 1;
               if ((2*k) > nw) { std::cout << "oh no, sigcoh! Storage exceeded" << std::endl; } 
-              if ((2*k) > nw) { std::cout << tsq<< "    " << tsqx << "    " << k<< std::endl; } 
               if ((2*k) > nw) { return wrk; } 
               wrk[2*k-2] = tsq;
               wrk[2*k-1] = f;
             }
 
-          }
-          else {
-            k = k + 1;
-            if ( 2*k > nw ){ std::cout << "call error('sigcoh','storge exceeded.',' '" << std::endl;}
-              if ((2*k) > nw) { return wrk; } 
-            wrk[2*k-1-1] = tsq;
-            wrk[2*k-1] = f;
-          }
+          } 
         }
       }
     } 
