@@ -9,7 +9,8 @@ TEST_CASE( "compute differential scattering ccross sections" ){
     std::vector<double> alpha { 2.25, 2.30, 2.35, 2.40 }, beta { 0.02, 0.2, 1.2 };
     int lat = 0, iinc = 2, lasym = 0;
     double cliq = 0, sb = 0, sb2 = 0, teff = 0, teff2 = 0;
-    std::vector<std::vector<double>> sab { {0.1, 0.2, 0.3}, {1.4, 1.5, 1.6}, {2.1, 2.2, 2.3}, {3.4, 3.5, 3.6} };
+    std::vector<std::vector<double>> sab { {0.1, 0.2, 0.3}, {1.4, 1.5, 1.6}, 
+      {2.1, 2.2, 2.3}, {3.4, 3.5, 3.6} };
 
   GIVEN( "lat = 0" ){
 

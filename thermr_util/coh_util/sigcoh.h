@@ -8,6 +8,11 @@ auto tausq( int m1, int m2, int m3, double c1, double c2 ){
   return (c1*(m1*m1+m2*m2+m1*m2)+(m3*m3*c2))*4*M_PI*M_PI;
 }
 
+void swapVals( double& a, double& b ){
+  double c = a; a = b; b = c;
+}
+  
+
 
 auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat, 
   double temp, double emax, int natom ){
@@ -28,8 +33,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   int nw, k, i1m, i1, l1, i2m, i2, l2, i3m, i3, l3, l, i, j,
     il, lmax, last;
   double amne, econ, tsqx, a, c, amsc, scoh, wal2, wint, x, w1, w2, w3, tsq, 
-    tau, w, f, st, sf, blast, re, t2, ulim, phi, elim, u, twopis, c1, c2, 
-    recon, scon;
+    tau, w, f, st, sf, blast, re, t2, ulim, phi, elim, u, twopis, c1, c2, scon;
   std::vector<double> p(6,0);
   int nd = 10;
   std::vector<double> dwf1 { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 
@@ -59,7 +63,6 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   twopis = (4*M_PI*M_PI);
   amne = amassn * amu;
   econ = ev * 8 * ( amne / hbar ) / hbar;
-  recon = 1 / econ;
   tsqx = econ / 20;
 
   if (lat == 1){
@@ -126,7 +129,8 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
                   if ( i == k ){ 
                     k = k + 1;
                     if ((2*k) > nw) std::cout << "call error('sigcoh','storage exceeded.',' ')" << std::endl;
-                    wrk[2*k-1-1] = tsq;
+                    if ((2*k) > nw) { return wrk; } 
+                    wrk[2*k-2] = tsq;
                     wrk[2*k-1] = f;
                     break;
                   }
@@ -153,20 +157,16 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   for ( int i = 1; i <= k - 1; ++i ){
     for ( int j = i + 1; j <= k; ++j ){
       if (wrk[2*j-1-1] < wrk[2*i-1-1]) {
-        st=wrk[2*i-1-1];
-        sf=wrk[2*i-1];
-        wrk[2*i-1-1]=wrk[2*j-1-1];
-        wrk[2*i-1]=wrk[2*j-1];
-        wrk[2*j-1-1]=st;
-        wrk[2*j-1]=sf;
+        swapVals( wrk[2*j-2], wrk[2*i-2] );
+        swapVals( wrk[2*j-1], wrk[2*i-1] );
       } 
     }
   }
-  k=k+1;
-  wrk[2*k-1-1]=ulim;
+  k += 1;
+  wrk[2*k-2]=ulim;
   wrk[2*k-1]=wrk[2*k-2-1];
   nw=2*k;
-  enext=recon*wrk[1-1];
+  enext=wrk[1-1]/econ;
   nl=k;
   return wrk;
   // return wrk as fl

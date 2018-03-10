@@ -48,26 +48,33 @@ auto do170( double& xn, double& xl, int& j, double& yl, double& sigmin, double& 
   double& sum, double& ytol, std::vector<double>& x, std::vector<double>& y,
   double& xil, std::vector<double>& s, int& nl, int& nlin, 
   double& gral, int& nbin, int& i, std::vector<double>& p){
+  std::cout << "170" << std::endl;
 
   // 170 continue
    j += 1;
-   if (yl < sigmin) {
-     std::cout << "go to 175" << std::endl;
-   }
    double test=(fract-sum)*(y[i-1]-yl)/((x[i-1]-xl)*yl*yl);
-   if (std::abs(test) > ytol){
-     std::cout << "go to 175" << std::endl;
+   //if (yl < sigmin or std::abs(test) > ytol){
+   //  std::cout << "go to 175" << std::endl;
+   //}
+   if ( yl >= sigmin and std::abs(test) <= ytol ){
+     xn=xl+(fract-sum)/yl;
+     if (xn > x[i-1]) { 
+       std::cout << "180" << std::endl;
+       xn = x[i];
+       return do190( yl, y, x, gral, nlin, xl, fract, s, xn, i, xil, j, 
+           nbin, p, sum, nl);
+     }
+     if (xn >= xl and xn <=  x[i-1]){
+       std::cout << "go to 190" << std::endl;
+       return do190( yl, y, x, gral, nlin, xl, fract, s, xn, i, xil, j, 
+           nbin, p, sum, nl);
+
+     }
+     std::cout << "call error('sigl','no legal solution.',' ')" << std::endl;
    }
-   xn=xl+(fract-sum)/yl;
-   if (xn > x[i-1]) { 
-     std::cout << "go to 180" << std::endl;
-   }
-   if (xn >= xl and xn <=  x[i-1]){
-     std::cout << "go to 190" << std::endl;
-   }
-   std::cout << "call error('sigl','no legal solution.',' ')" << std::endl;
 
   //175 continue
+   std::cout << "175" << std::endl;
    double f=(y[i-1]-yl)*xil;
    double rf=1/f;
    double disc=(yl*rf)*(yl*rf)+2*(fract-sum)*rf;
@@ -79,10 +86,17 @@ auto do170( double& xn, double& xl, int& j, double& yl, double& sigmin, double& 
    if (f > 0 ) xn=xl-(yl*rf)+sqrt(disc);
    if (f < 0 ) xn=xl-(yl*rf)-sqrt(disc);
    if (xn > xl and xn <= x[i-1]){
-     std::cout << "go to 190" << std::endl;
+     return do190( yl, y, x, gral, nlin, xl, fract, s, xn, i, xil, j, 
+         nbin, p, sum, nl);
+
    }
    if (xn > xl and xn < (x[i-1]+ytol*(x[i-1]-xl))){
-     std::cout << "go to 180" << std::endl;
+     std::cout << "180" << std::endl;
+     xn = x[i];
+     return do190( yl, y, x, gral, nlin, xl, fract, s, xn, i, xil, j, 
+         nbin, p, sum, nl);
+
+
    }
    std::cout << "call error('sigl','no legal solution (quadratic path).',' ')" << std::endl;
   // 180 continue
@@ -151,7 +165,6 @@ auto do160( double& sum, double& xl, double& yl, std::vector<double>& x,
 
       }
       if (sum+add >= fract*shade and j < nbin-1) {
-        std::cout << "go to 170" << std::endl;
         return do170( xn, xl, j, yl, sigmin, fract, sum, ytol, x, y, xil, s, 
             nl, nlin, gral, nbin, i, p);
 
@@ -162,6 +175,7 @@ auto do160( double& sum, double& xl, double& yl, std::vector<double>& x,
    }
 
    // 250 continue
+   std::cout << "250" << std::endl;
    xl = x[i-1];
    yl = y[i-1];
    i = i - 1;
