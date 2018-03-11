@@ -22,14 +22,72 @@ auto terpa(double y, double x, double xnext, int idis,
    jp=5+2*nr+2*ip;
    idis=0;
 
-   // locate interpolation interval and law for x
-   //110 continue
-   if (x < a(jp)) go to 120
+   int counter = 0;
+   while (true) {
+     ++counter;
+     // locate interpolation interval and law for x
+     // 110 continue
+     std::cout << "110  " << ip << "    " << np << std::endl;
+     if (x < a[jp-1]){
+       std::cout << "120" << std::endl;
+       //go to 120
+       //120 continue
+       if (x > a[jp-2-1]){
+         std::cout << "130" << std::endl;
+         // go to 130
+         // interpolate for y in this interval
+         // 130 continue
+         intVar=round(a[jr+1-1]);
+         // call terp1(a(jp-2),a(jp-1),a(jp),a(jp+1),x,y,intVar);
+         xnext=a[jp-1];
+         if (intVar == 1) idis=1;
+         if (ip == np) return;
+         if (a[jp+2-1] == xnext) idis=1;
+         return;
+       }
+       // go to 140
+       std::cout << "140" << std::endl;
+       if (x == a[jp-2-1]) {
+         // 140 continue
+         y=a[jp-1-1];
+         intVar=round(a[jr+1-1]);
+         xnext=a[jp-1];
+         if (intVar == 1) idis=1;
+         if (ip == np) return;
+         if (a[jp+2-1] == xnext) idis=1;
+         return;
+       }
+       // go to 170
+       if (ip == 2) {
+         // special branch for x below first point
+         // 170 continue
+         std::cout << "170" << std::endl;
+         y=0;
+         xnext=a[jp-2-1];
+         idis=1;
+         return;
+       }
+       // move down
+       jp=jp-2;
+       ip=ip-1;
+       if ( ir != 1 ){
+         it=round(a[jr-2-1]);
+         if ( ip <= it ){
+           jr=jr-2;
+           ir=ir-1;
+         }
+       }
+       //go to 110
+     }
+     if (counter > 15 ){ return; }
+
    if (ip == np) {
+    std::cout << "150" << std::endl;
     // go to 150
     // special branch for last point and above
     // 150 continue
-    if (x < shade*a(jp)) {
+    if (x < shade*a[jp-1]) {
+       std::cout << "160" << std::endl;
        // go to 160
        // 160 continue
        y=a[jp+1-1];
@@ -40,65 +98,18 @@ auto terpa(double y, double x, double xnext, int idis,
      y=0;
      xnext=xbig;
      return;
-
    }
-
 
    // move up
    jp=jp+2;
    ip=ip+1;
-   it=round(a(jr))
-   if (ip <= it) go to 110
-   jr=jr+2;
-   ir=ir+1;
+   it=round(a[jr-1]);
+   if ( ip < it ){
+     jr=jr+2;
+     ir=ir+1;
+   }
    //go to 110
-   //120 continue
-   if (x > a[jp-2-1]){
-     // go to 130
-     // interpolate for y in this interval
-     // 130 continue
-     intVar=round(a[jr+1-1]);
-     // call terp1(a(jp-2),a(jp-1),a(jp),a(jp+1),x,y,intVar);
-     xnext=a[jp-1];
-     if (intVar == 1) idis=1;
-     if (ip == np) return;
-     if (a[jp+2-1] == xnext) idis=1;
-     return;
-   }
-
-   if (x == a[jp-2-1]) {
-     // go to 140
-     // 140 continue
-     y=a[jp-1-1];
-     intVar=round(a[jr+1-1]);
-     xnext=a[jp-1];
-     if (intVar == 1) idis=1;
-     if (ip == np) return;
-     if (a[jp+2-1] == xnext) idis=1;
-     return;
-   }
-
-
-   if (ip == 2) {
-     // go to 170
-     // special branch for x below first point
-     // 170 continue
-     y=0;
-     xnext=a[jp-2-1];
-     idis=1;
-     return;
-   }
-
-   //! move down
-   jp=jp-2;
-   ip=ip-1;
-   if (ir == 1) go to 110
-   it=round(a[jr-2-1]);
-   if (ip > it) go to 110
-   jr=jr-2;
-   ir=ir-1;
-   go to 110
-
-   end subroutine terpa
+ }
+}
 
 
