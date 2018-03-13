@@ -1,5 +1,6 @@
+#include "../extra/terp1.h"
 
-auto terpa(double y, double x, int idis,
+auto terpa(double y, double x,
     std::vector<double> a, int ip, int ir){
  /*--------------------------------------------------------------------
   * Interpolate for y(x) in the TAB1 record packed in a.  Return  0 
@@ -10,17 +11,16 @@ auto terpa(double y, double x, int idis,
   * before first call to routine.
   *--------------------------------------------------------------------
   */
-  int nr,np,jr,jp,intVar,it;
+  int jr, jp, intVar, it, idis;
   double shade=1.00001, xbig = 1.0e12, xnext;
+  std::tuple<double,int> out;
 
   // set up limits and pointers
-  nr=round(a[4]);
-  np=round(a[5]);
-  if (ir > nr) ir=nr;
-  if (ip > np) ip=np;
-  jr=5+2*ir;
-  jp=5+2*nr+2*ip;
-  idis=0;
+  ir = std::min(ir, int(round(a[4])) );
+  ip = std::min(ip, int(round(a[5])) );
+  jr = 5 + 2 * ir;
+  jp = 5 + 2 * ( round(a[4]) + ip );
+  idis = 0;
 
   while (true) {
     // locate interpolation interval and law for x
@@ -30,34 +30,29 @@ auto terpa(double y, double x, int idis,
       if (x > a[jp-3]){
         std::cout << "130" << std::endl;
         // interpolate for y in this interval
-        intVar=round(a[jr+1-1]);
-        // call terp1(a(jp-2),a(jp-1),a(jp),a(jp+1),x,y,intVar);
-        xnext=a[jp-1];
-        if (intVar == 1) idis=1;
-        if (ip == np) return xnext;
-        if (a[jp+1] == xnext) idis=1;
-        return xnext;
+        intVar=round(a[jr]);
+        y = terp1(a[jp-3],a[jp-2],a[jp-1],a[jp],x,intVar);
+        if ( intVar == 1 or ( ip != round(a[5]) and a[jp+1] == a[jp-1]) ) {idis=1;}
+        out = {a[jp-1],idis};
+        return std::tuple<double,int> { a[jp-1], idis };
       }
       if (x == a[jp-3]) {
         std::cout << "140" << std::endl;
-        y=a[jp-1-1];
-        intVar=round(a[jr+1-1]);
-        xnext=a[jp-1];
-        if (intVar == 1) idis=1;
-        if (ip == np) return xnext;
-        if (a[jp+1] == xnext) idis=1;
-        return xnext;
+        y = a[jp-2];
+        intVar = round(a[jr]);
+        xnext = a[jp-1];
+        if ( intVar == 1 or ( ip != round(a[5]) and a[jp+1] == xnext ) ) {idis=1;}
+        return std::tuple<double,int> { xnext, idis };
       }
       if (ip == 2) {
         // special branch for x below first point
         std::cout << "170" << std::endl;
         y = 0;
-        idis = 1;
-        return a[jp-3];
+        return std::tuple<double,int> { a[jp-3], 1 };
       }
       // move down
-      jp=jp-2;
-      ip=ip-1;
+      jp = jp - 2;
+      ip = ip - 1;
       if ( ir != 1 ){
         it=round(a[jr-3]);
         if ( ip <= it ){
@@ -68,25 +63,26 @@ auto terpa(double y, double x, int idis,
       //go to 110
     }
 
-    if (ip == np) {
+    if (ip ==  round(a[5]) ) {
       std::cout << "150" << std::endl;
       // special branch for last point and above
       if (x < shade*a[jp-1]) {
          std::cout << "160" << std::endl;
          y = a[jp];
-         return ( y > 0 ) ? shade * shade * a[jp-1] : xbig;
+         xnext = ( y > 0 ) ? shade * shade * a[jp-1] : xbig;
+         return std::tuple<double,int> { xnext, idis };
       }
-      y=0;
-      return xbig;
+      y = 0;
+      return std::tuple<double,int> { xbig, idis };
     }
 
     // move up
-    jp=jp+2;
-    ip=ip+1;
-    it=round(a[jr-1]);
+    jp += 2;
+    ip += 1;
+    it = round(a[jr-1]);
     if ( ip < it ){
-      jr=jr+2;
-      ir=ir+1;
+      jr += 2;
+      ir += 1;
     }
     //go to 110
   }
