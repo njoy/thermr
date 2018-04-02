@@ -99,6 +99,7 @@ languages['c']['compiler']['gcc']['linux']['flags']['profile use'] = ["-fprofile
 languages['fortran']['compiler']['gfortran']['linux']['flags']['profile use'] = languages['c']['compiler']['gcc']['linux']['flags']['profile use']
 
 languages['c++']['compiler']['g++']['linux']['flags'] = copy.deepcopy( languages['c']['compiler']['gcc']['linux']['flags'] )
+languages['c++']['compiler']['g++']['linux']['flags']['common'].append('-Wno-subobject-linkage')
 languages['c++']['compiler']['g++']['osx'] = copy.deepcopy( languages['c++']['compiler']['g++']['linux'] )
 languages['c++']['compiler']['g++']['cygwin'] = copy.deepcopy( languages['c++']['compiler']['g++']['linux'] )
 languages['c++']['compiler']['g++']['mingw'] = copy.deepcopy( languages['c++']['compiler']['g++']['linux'] )
