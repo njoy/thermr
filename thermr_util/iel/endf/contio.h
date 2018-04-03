@@ -1,3 +1,5 @@
+#include <fstream>
+
 
 auto contio( int nin, int nout, int nscr, int nb, int nw ){
   /*--------------------------------------------------------------------
@@ -9,11 +11,33 @@ auto contio( int nin, int nout, int nscr, int nb, int nw ){
    */
    std::vector<double> a(7);
    int inin,inout,inscr,i;
-   std::string field;
+   std::string field, f2;
 
    int l1h, l2h, n1h, n2h;
    double c1h, c2h;
 
+   std::ifstream ninFile( "tape26" );
+   std::string firstline;
+   std::getline( ninFile, firstline );
+
+   double zero;
+   int one;
+   std::string pn;
+   ninFile >> a[0] >> a[1] >> a[2] >> a[3] >> a[4] >> a[5];;
+   //ninFile >> field >> a[0] >> a[1] >> a[2];
+
+   //a[0] = zero*std::pow(10.0,one);
+   //std::cout << field << std::endl;
+   //std::cout << zero << std::endl;
+   //std::cout << pn << std::endl;
+   //std::cout << f2 << std::endl;
+   //std::cout << one << std::endl;
+   std::cout << a[0] << std::endl;
+   std::cout << a[1] << std::endl;
+   std::cout << a[2] << std::endl;
+   std::cout << a[3] << std::endl;
+   std::cout << a[4] << std::endl;
+   std::cout << a[5] << std::endl;
    // input
    if (nin < 0) {
       inin = abs(nin);

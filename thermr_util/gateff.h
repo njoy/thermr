@@ -17,6 +17,12 @@ auto gateff( std::vector<double>& temp, std::vector<double>& eftemp,
   *       1099      beo
   *       1114      h(ch2)
   *-------------------------------------------------------------------
+  * 
+  * All of these values can be found in 
+  *     Reference Manual for ENDF Thermal Neutron Scattering Data
+  *     by Koppel and Houton (December 16, 1968)
+  *     [ https://www.osti.gov/servlets/purl/4075168 ]
+  *
   */
   int i, j, jmat, ntabl = 67;
   std::vector<double> tabl1, tabl2, tabl3;
@@ -43,11 +49,31 @@ auto gateff( std::vector<double>& temp, std::vector<double>& eftemp,
     920.08, 981.82, 1051.1, 1205.4, 1373.4, 596.4, 643.9, 704.6, 775.3, 935.4, 
     1109.8, 1292.3, 1222, 1239 };
 
+  std::map<int, std::vector<double>> c
+    { { 1002, { 0.00000000000, 2.41381863e-4, 1.49459297e-1, 1.32985608e3 } },
+      { 1004, { 0.00000000000, 2.65303201e-4, 2.40418931e-1, 8.45103665e2 } },
+      { 1064, { 0.00000000000, 6.47773326e-5, 8.06292092e-1, 1.54527305e2 } },
+      { 1065, {-1.06322465e-7, 5.04305090e-4, 1.49928202e-1, 6.22845033e2 } },
+      { 1095, { 0.00000000000, 3.30122003e-4, 4.84314530e-2, 1.12048596e3 } },
+      { 1096, { 0.00000000000, 2.26006969e-5, 9.50491158e-1, 3.30579237e1 } },
+      { 1097, { 0.00000000000, 3.78501900e-4, 7.56488342e-2, 7.43172868e2 } },
+      { 1099, { 0.00000000000, 2.63979802e-4, 3.88515894e-1, 4.50703811e2 } },
+      { 1114, { 0.00000000000, 0.00000000000, 1.98148148e-1, 1.14574815e3 } }
+    };
+
   for ( size_t i = 0; i < temp.size(); ++i ){
     if (eftemp[i] == 0) {
       for ( size_t j = 0; j < ntabl; ++j ){
         if (tabl1[j] == mat and std::abs( tabl2[j] - temp[i] ) <= 5 ) {
-          eftemp[i]=tabl3[j];
+
+          double coeffVal = c[mat][0]*std::pow(temp[i],3) + 
+                            c[mat][1]*std::pow(temp[i],2) + 
+                            c[mat][2]*temp[i] + 
+                            c[mat][3];
+
+          // eftemp[i] = coeffVal;
+
+          eftemp[i] = tabl3[j];
         } // end if 
       } // end for 
       if (eftemp[i] == 0) { eftemp[i] = temp[i]; }
