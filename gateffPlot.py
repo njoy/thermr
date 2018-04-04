@@ -2,11 +2,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 colors = ['magenta', 'red','orange','yellow','green','blue', 'cyan','violet','black']
+fig, ax = plt.subplots()
 
+
+"""
 h2o_x = np.asarray([296.0, 350.0, 400.0, 450.0, 500.0, 600.0, 800.0, 1000.0])
 h2o_y = np.asarray([1396.8, 1411.6, 1427.4, 1444.9, 1464.1, 1506.8, 1605.8, 1719.8])
 
-fig, ax = plt.subplots()
 fit = np.polyfit(h2o_x, h2o_y, deg=2)
 ax.plot(h2o_x, fit[0]*h2o_x**2 + fit[1]*h2o_x + fit[2], color=colors[0])
 ax.scatter(h2o_x, h2o_y,color=colors[0],label='h2o')
@@ -21,7 +23,7 @@ ax.plot(d2o_x, fit[0]*d2o_x**2 + fit[1]*d2o_x + fit[2], color=colors[1])
 ax.scatter(d2o_x, d2o_y,color=colors[1],label='d2o')
 
 
-be_x = np.asarray([296, 400, 500, 600, 700, 800, 1000, 1220])
+be_x = np.asarray([296, 400, 500, 600, 700, 800, 1000, 1200])
 be_y = np.asarray([405.64, 484.22, 568.53, 657.66, 749.69, 843.63, 1035., 1229.3])
 
 fit = np.polyfit(be_x, be_y, deg=2)
@@ -77,6 +79,25 @@ h_ch2_y = np.asarray([1204.4, 1215.1]) # Values in the osti.gove report
 fit = np.polyfit(h_ch2_x, h_ch2_y, deg=1)
 ax.plot(h_ch2_x, fit[0]*h_ch2_x + fit[1], color=colors[8])
 ax.scatter(h_ch2_x, h_ch2_y,color=colors[8],label='h_ch2')
+
+"""
+
+
+c_benzene_x = np.asarray([296, 350, 400, 450, 500, 600, 800, 1000])
+c_benzene_y = np.asarray([685.54, 712.02, 738.97, 768.10, 799.22, 866.63, 1017.3, 1182.3])
+fit = np.polyfit(c_benzene_x, c_benzene_y, deg=2)
+print(fit)
+ax.plot(c_benzene_x, fit[0]*c_benzene_x**2 + fit[1]*c_benzene_x + fit[2], color=colors[0])
+ax.scatter(c_benzene_x, c_benzene_y,color=colors[0],label='c_benzene')
+
+
+o_beo_x = np.asarray([296, 400, 500, 600, 700, 800, 1000, 1200])
+o_beo_y = np.asarray([427.8, 502.8, 584.3, 671.3, 761.6, 854.2, 1043.7, 1236.6])
+fit = np.polyfit(o_beo_x, o_beo_y, deg=2)
+print(fit)
+ax.plot(o_beo_x, fit[0]*o_beo_x**2 + fit[1]*o_beo_x + fit[2], color=colors[1])
+ax.scatter(o_beo_x, o_beo_y,color=colors[1],label='o_beo')
+
 
 
 

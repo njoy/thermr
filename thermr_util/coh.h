@@ -4,9 +4,13 @@
 auto coh( int lat, int inew, int ne, int nex, double temp ){
  /*-------------------------------------------------------------------
   * Compute the coherent scattering cross sections for a crystalline
-  * material.  The cross section is computed on an energy grid
+  * material. The cross section is computed on an energy grid
   * chosen adaptively to represent the actual function within a
   * given tolerance with linear-linear interpolation.
+  *
+  * The energy grid is stored on loada/finda scratch files that were 
+  * used for the elastic cross section. The elastic cross section is 
+  * converted to the coherent grid using Lagrangian interpolation (terp).
   *-------------------------------------------------------------------
   */
   int nl, imax, nx, nj, i, nlt, nlt1, nb, nw, nbragg, ix, j, iex, il, isave, ltt;
