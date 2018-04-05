@@ -23,6 +23,7 @@ auto computeCrossSections( double e, std::vector<double>& fl,
       s[il]=0;
    }
    int last=0;
+
    for ( int i = 1; i <= k; ++i ){
       double tsq=fl[2*i-1-1];
       elim=tsq*recon;
@@ -42,6 +43,7 @@ auto computeCrossSections( double e, std::vector<double>& fl,
    }
    if (last == 1) elim=emax;
    if (elim > emax) elim=emax;
+   std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
 
    return;
 
@@ -51,7 +53,8 @@ auto computeCrossSections( double e, std::vector<double>& fl,
 
 
 auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat, 
-  double temp, double emax, int natom ){
+  double temp, double emax, int natom, std::vector<double>& fl, 
+  std::vector<double>& p, int k, double scon ){
  /*-------------------------------------------------------------------
   * Compute the first nl Legendre components of the coherent scatter-
   * ing at energy e from lattice type lat.  Here enext is the next
@@ -66,11 +69,10 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   * nl returns no. of Bragg edges on initialization call.
   *-------------------------------------------------------------------
   */
-  int nw, k, i1m, i1, l1, i2m, i2, l2, i3m, i3, l3, l, i, j,
+  int nw, i1m, i1, l1, i2m, i2, l2, i3m, i3, l3, l, i, j,
     il, lmax, last;
   double amne, econ, tsqx, a, c, amsc, scoh, wal2, wint, x, w1, w2, w3, tsq, 
-    tau, w, f, st, sf, blast, re, t2, ulim, phi, elim, u, twopis, c1, c2, scon;
-  std::vector<double> p(6,0);
+    tau, w, f, st, sf, blast, re, t2, ulim, phi, elim, u, twopis, c1, c2;
   int nd = 10;
   std::vector<double> dwf1 { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 
     6.1624, 7.3387, 9.6287, 11.992 },
@@ -93,7 +95,8 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   // initialize.
   // go to 210 
   if (e > 0) {
-//  computeCrossSections( e, fl, s, emax, scon, recon, nl, p, k );
+    double recon = 1.0/econ;
+    computeCrossSections( e, fl, s, emax, scon, recon, nl, p, k );
   }
  
   twopis = (4*M_PI*M_PI);
