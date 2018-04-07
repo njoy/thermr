@@ -26,7 +26,7 @@ auto do260( std::vector<double> x, std::vector<double> y, double arg, int l,
 
 
 
-auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg, 
+auto terp( std::vector<double> x, std::vector<double> y, double arg, 
   int il1 ){
 
   /*-------------------------------------------------------------------
@@ -46,6 +46,7 @@ auto terp( std::vector<double> x, std::vector<double> y, int nl, double arg,
   double sum, p, pk;
 
   il = il1;
+  int nl = x.size();
 
   // 110
   // If order of interpolation is too large, make it equal to the size of the

@@ -42,7 +42,6 @@ auto computeCrossSections( double e, std::vector<double>& fl,
    }
    if (last == 1) elim=emax;
    if (elim > emax) elim=emax;
-   // std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
 }
 
 
@@ -70,41 +69,31 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   double amne, econ, tsqx, a, c, amsc, scoh, wal2, wint, x, w1, w2, w3, tsq, 
     tau, w, f, st, sf, blast, re, t2, ulim, phi, elim, u, c1, c2;
   int nd = 10;
-  std::vector<double> 
-    // Debye Waller Coefficients. Interpolated over given the material.
-    dwf1 { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 6.1624, 7.3387, 
-      9.6287, 11.992 },
-    dwf2 { 3.16663, 3.88842, 4.62944, 5.40517, 6.19880, 7.0042, 8.63665, 
-      10.2865, 0, 0 },
-    dwf3 {  2.153, 2.6374, 3.1348, 3.6513, 4.1798, 4.7164, 5.8052, 6.9068, 
-      0, 0 },
-    // Temperatures interpolated over when trying to get correct Debye-Waller
-    // Coefficient.
-    tmp { 296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000 };
-
   
   // These are lattice factors. Apparently they were borrowed directly from
   // HEXSCAT code. 
   double gr1 = 2.4573e-8, // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf
          gr2 = 6.700e-8,  // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf 
-         gr4 = 5.50e0, 
          be1 = 2.2856e-8, // http://periodictable.com/Properties/A/LatticeConstants.html
          be2 = 3.5832e-8, // http://periodictable.com/Properties/A/LatticeConstants.html 
-         be4 = 7.53e0, 
          beo1 = 2.695e-8, // https://link.springer.com/chapter/10.1007%2F10681719_737
          beo2 = 4.39e-8,  // https://link.springer.com/chapter/10.1007%2F10681719_737
                           // II-VI and I-VII Compounds; Semimagnetic Compounds
-         beo4 = 1.e0;
 
   // These are masses
   double gr3 = 12.011e0, 
          be3 = 9.01e0, 
-         beo3 = 12.5e0,  // Mass of BeO is actually 25, but apparently we 
+         beo3 = 12.5e0;  // Mass of BeO is actually 25, but apparently we 
                          // divide by 2 because I suppose avg mass per atom
+                         
+  // These are the characteristic coherent cross sections for hte material.
+  // These first appear in Eq. 222 on pg. 166.
+  double gr4 = 5.50, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
+         be4 = 7.53, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
+         beo4 = 1.0;
 
-  double sqrt3 = 1.732050808e0, cw = 0.658173e-15, eps = 0.05e0, 
-    zero = 0, hbar = 1.05457266e-27, amu = 1.6605402e-24, amassn = 1.008664904,
-    ev = 1.60217733e-12;
+  double cw = 0.658173e-15, eps = 0.05, hbar = 1.05457266e-27, 
+         amu = 1.6605402e-24, amassn = 1.008664904, ev = 1.60217733e-12;
 
   // save k,recon,scon
 
@@ -129,28 +118,34 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   econ = ev * 8 * ( amne / hbar ) / hbar;
   tsqx = econ / 20;
 
-  if (lat == 1){
-    // graphite constants
-    a = gr1; c = gr2; amsc = gr3; scoh = gr4 / natom; 
-    wal2 = terp(tmp,dwf1,nd,temp,2);
+  // Temperatures interpolated over when trying to get correct Debye-Waller
+  // Coefficient.
+  std::vector<double> tmp {296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000};
+
+  if (lat == 1){       // GRAPHITE
+    a = gr1; c = gr2; amsc = gr3; scoh = gr4/natom; 
+    std::vector<double> dwf1 { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 
+      6.1624, 7.3387, 9.6287, 11.992 };  // Debye Waller to interpolate over
+    wal2 = terp(tmp,dwf1,temp,2);
   }
-  else if (lat == 2) {
-    // beryllium constants
+  else if (lat == 2) { // BERYLLIUM
     a = be1; c = be2; amsc = be3; scoh = be4/natom;
-    wal2 = terp(tmp,dwf2,nd,temp,2);
+    std::vector<double> dwf2 { 3.16663, 3.88842, 4.62944, 5.40517, 6.19880, 
+      7.0042, 8.63665, 10.2865, 0, 0 };  // Debye Waller to interpolate over
+    wal2 = terp(tmp,dwf2,temp,2);
   }
-  else if (lat == 3){
-    // beryllium oxide constants
+  else if (lat == 3){  // BERYLLIUM OXIDE
     a = beo1; c = beo2; amsc = beo3; scoh = beo4/natom;
-    wal2 = terp(tmp,dwf3,nd,temp,2);
+    std::vector<double> dwf3 {  2.153, 2.6374, 3.1348, 3.6513, 4.1798, 4.7164, 
+      5.8052, 6.9068, 0, 0 };           // Debye Waller to interpolate over
+    wal2 = terp(tmp,dwf3,temp,2);
   } 
   else {
     std::cout << "OH NO! Error over here. Illegal lat value" << std::endl;
-    // call error('sigcoh','illegal lat.',' ')
   }
-  c1 = 4 / ( 3 * a * a );
-  c2 = 1 / ( c * c );
-  scon = scoh * ( 16 * M_PI*M_PI )/( 2 * a * a * c * sqrt3 * econ );
+  c1 = 4.0 / ( 3.0 * a * a );
+  c2 = 1.0 / ( c * c );
+  scon = scoh * ( 16.0 * M_PI*M_PI )/( 2.0 * a * a * c * sqrt(3) * econ );
   wint = cw * amsc * wal2;
   t2 = hbar / ( 2.0 * amu * amsc );
   ulim = econ * emax;

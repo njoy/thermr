@@ -56,7 +56,7 @@ TEST_CASE( "do260" ){
 
 TEST_CASE( "terp" ){
   std::vector<double> x, y, out, argVal, outVal;
-  int nl = 10, il1 = 2;
+  int il1 = 2;
   double arg;
 
   GIVEN( "vector is in increasing order" ){
@@ -74,7 +74,7 @@ TEST_CASE( "terp" ){
         il1 = 10;
         THEN( "order of interpolation is kept same" ){
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
         } // THEN
       } // AND WHEN
@@ -83,11 +83,11 @@ TEST_CASE( "terp" ){
         THEN( "order of interpolation is changed to be sizez of x, y and answer same as above" ){
           il1 = 11;
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
           il1 = 18;
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
         } // THEN
       } // AND WHEN
@@ -101,7 +101,7 @@ TEST_CASE( "terp" ){
         outVal = { 0.910328, 1.17239615, 1.69653076, 2.2206653 };
 
         for ( size_t i = 0; i < argVal.size(); ++i ){ 
-          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
         }
 
       } // AND WHEN
@@ -111,7 +111,7 @@ TEST_CASE( "terp" ){
 
         argVal = { 1800, 2800 }; outVal = { 10.81035, 16.7186 };
         for ( size_t i = 0; i < argVal.size(); ++i ){ 
-          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
         }
 
       } // AND WHEN
@@ -124,7 +124,7 @@ TEST_CASE( "terp" ){
           outVal = { 2.7448, 2.7448, 2.7448 };
 
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
         } // THEN
       } // AND WHEN
@@ -136,7 +136,7 @@ TEST_CASE( "terp" ){
           outVal = { 9.6287, 9.6287, 9.6287 };
 
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
         } // THEN
 
@@ -150,7 +150,7 @@ TEST_CASE( "terp" ){
 
           argVal = { 500, 700, 800, 1000 }; outVal = { 3.2912, 4.421, 4.9969, 6.1624 };
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
 
         } // AND WHEN
@@ -160,7 +160,7 @@ TEST_CASE( "terp" ){
 
           argVal = { 1300, 1325, 1500 }; outVal = { 7.9112, 8.054325, 9.0562 };
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
 
         } // AND WHEN
@@ -171,7 +171,7 @@ TEST_CASE( "terp" ){
           outVal = { 3.34718, 3.73904, 5.2008625 };
 
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
 
         } // AND WHEN
@@ -198,7 +198,7 @@ TEST_CASE( "terp" ){
         il1 = 10;
         THEN( "order of interpolation is kept same" ){
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
         } // THEN
       } // AND WHEN
@@ -207,11 +207,11 @@ TEST_CASE( "terp" ){
         THEN( "order of interpolation is changed to be sizez of x, y and answer same as above" ){
           il1 = 11;
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
           il1 = 18;
           for ( size_t i = 0; i < argVal.size(); ++i ){ 
-            REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+            REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
           }
         } // THEN
       } // AND WHEN
@@ -224,7 +224,7 @@ TEST_CASE( "terp" ){
       AND_WHEN( "argument is too low for good interpolation" ){
         argVal = { 40, 80, 120, 190 }; outVal = { 17.80935384, 16.90039230, 15.99143076, 14.40074807 };
         for ( size_t i = 0; i < argVal.size(); ++i ){ 
-          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
         }
 
       } // AND WHEN
@@ -233,7 +233,7 @@ TEST_CASE( "terp" ){
       AND_WHEN( "arg is approximately equal to x(ilow)" ){
         argVal = { 399.99999999, 400, 400.00000001 }; outVal = { 9.6287, 9.6287, 9.6287 };
         for ( size_t i = 0; i < argVal.size(); ++i ){ 
-          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
         }
 
       } // AND WHEN
@@ -242,7 +242,7 @@ TEST_CASE( "terp" ){
       AND_WHEN( "argument is too high for good interpolation" ){
         argVal = { 2400, 3400 }; outVal = { 1.6546, 0.29185 };
         for ( size_t i = 0; i < argVal.size(); ++i ){ 
-          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
         }
 
       } // AND WHEN
@@ -251,7 +251,7 @@ TEST_CASE( "terp" ){
       AND_WHEN( "Interpolation has to accoutn for deceasing sequence" ){
         argVal = { 500, 800, 1100, 1300 }; outVal = { 7.3387, 4.421, 3.5711, 3.1546 };
         for ( size_t i = 0; i < argVal.size(); ++i ){ 
-          REQUIRE( outVal[i] == Approx( terp( x, y, nl, argVal[i], il1 ) ).epsilon(1e-6) );
+          REQUIRE( outVal[i] == Approx( terp( x, y, argVal[i], il1 ) ).epsilon(1e-6) );
         }
 
       } // AND WHEN
