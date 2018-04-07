@@ -7,7 +7,6 @@ TEST_CASE( "sigcoh" ){
   int k = 0;
   std::vector<double> p(6);
   double scon;
-  /*
   GIVEN( "input energy is 0" ){
     std::vector<double> wrk_1_100 (100), s (6, 0.0), fl {};
     double e = 0, enext = 0, temp = 296, emax;
@@ -177,7 +176,6 @@ TEST_CASE( "sigcoh" ){
       } // THEN 
     } // WHEN
   } // GIVEN
-*/
 
   GIVEN( "input energy is greater than 0" ){
     double e = 1.822326e-3, enext = 1.822326e-3, temp = 296.0, emax = 1.2;

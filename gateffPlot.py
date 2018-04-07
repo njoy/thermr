@@ -5,7 +5,6 @@ colors = ['magenta', 'red','orange','yellow','green','blue', 'cyan','violet','bl
 fig, ax = plt.subplots()
 
 
-"""
 h2o_x = np.asarray([296.0, 350.0, 400.0, 450.0, 500.0, 600.0, 800.0, 1000.0])
 h2o_y = np.asarray([1396.8, 1411.6, 1427.4, 1444.9, 1464.1, 1506.8, 1605.8, 1719.8])
 
@@ -98,6 +97,7 @@ print(fit)
 ax.plot(o_beo_x, fit[0]*o_beo_x**2 + fit[1]*o_beo_x + fit[2], color=colors[1])
 ax.scatter(o_beo_x, o_beo_y,color=colors[1],label='o_beo')
 
+"""
 
 
 

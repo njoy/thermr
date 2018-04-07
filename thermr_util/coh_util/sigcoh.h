@@ -2,6 +2,7 @@
 #include <vector>
 #include "sigcoh_util/form.h"
 #include "sigcoh_util/terp.h"
+#include "sigcoh_util/legndr.h"
 
 
 auto tausq( int m1, int m2, int m3, double c1, double c2 ){
@@ -16,8 +17,6 @@ auto computeCrossSections( double e, std::vector<double>& fl,
     std::vector<double>& s, double emax, double scon, double recon, int nl, 
     std::vector<double> p, int k ){
   // compute cross sections at this energy
-  // 210 continue
-   double re = 1.0/e;
    double elim;
    for ( int il = 0; il < nl; ++il ){
       s[il]=0;
@@ -25,28 +24,25 @@ auto computeCrossSections( double e, std::vector<double>& fl,
    int last=0;
 
    for ( int i = 1; i <= k; ++i ){
-      double tsq=fl[2*i-1-1];
+      double tsq=fl[2*i-2];
       elim=tsq*recon;
       // if (elim >= e) exit
       double f=fl[2*i-1];
       if (e > emax) f=0;
-      double u=1-2*elim*re;
+      double u=1-2*elim/e;
       int lmax=nl-1;
-      // call legndr(u,p,lmax)
+      legndr(u,p,lmax);
       for ( int il = 0; il < nl; ++il ){
          s[il]=s[il]+f*p[il];
       }
       if (i == k) last=1;
    }
    for ( int il = 0; il < nl; ++il ){
-      s[il]=s[il]*scon*re;
+      s[il]=s[il]*scon/e;
    }
    if (last == 1) elim=emax;
    if (elim > emax) elim=emax;
-   std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
-
-   return;
-
+   // std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
 }
 
 
@@ -72,35 +68,64 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   int nw, i1m, i1, l1, i2m, i2, l2, i3m, i3, l3, l, i, j,
     il, lmax, last;
   double amne, econ, tsqx, a, c, amsc, scoh, wal2, wint, x, w1, w2, w3, tsq, 
-    tau, w, f, st, sf, blast, re, t2, ulim, phi, elim, u, twopis, c1, c2;
+    tau, w, f, st, sf, blast, re, t2, ulim, phi, elim, u, c1, c2;
   int nd = 10;
-  std::vector<double> dwf1 { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 
-    6.1624, 7.3387, 9.6287, 11.992 },
+  std::vector<double> 
+    // Debye Waller Coefficients. Interpolated over given the material.
+    dwf1 { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 6.1624, 7.3387, 
+      9.6287, 11.992 },
     dwf2 { 3.16663, 3.88842, 4.62944, 5.40517, 6.19880, 7.0042, 8.63665, 
       10.2865, 0, 0 },
     dwf3 {  2.153, 2.6374, 3.1348, 3.6513, 4.1798, 4.7164, 5.8052, 6.9068, 
       0, 0 },
+    // Temperatures interpolated over when trying to get correct Debye-Waller
+    // Coefficient.
     tmp { 296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000 };
 
   
-  double gr1 = 2.4573e-8, gr2 = 6.700e-8, gr3 = 12.011e0, gr4 = 5.50e0, 
-    be1 = 2.2856e-8, be2 = 3.5832e-8, be3 = 9.01e0, be4 = 7.53e0, 
-    beo1 = 2.695e-8, beo2 = 4.39e-8, beo3 = 12.5e0, beo4 = 1.e0, 
-    sqrt3 = 1.732050808e0, cw = 0.658173e-15, eps = 0.05e0, 
+  // These are lattice factors. Apparently they were borrowed directly from
+  // HEXSCAT code. 
+  double gr1 = 2.4573e-8, // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf
+         gr2 = 6.700e-8,  // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf 
+         gr4 = 5.50e0, 
+         be1 = 2.2856e-8, // http://periodictable.com/Properties/A/LatticeConstants.html
+         be2 = 3.5832e-8, // http://periodictable.com/Properties/A/LatticeConstants.html 
+         be4 = 7.53e0, 
+         beo1 = 2.695e-8, // https://link.springer.com/chapter/10.1007%2F10681719_737
+         beo2 = 4.39e-8,  // https://link.springer.com/chapter/10.1007%2F10681719_737
+                          // II-VI and I-VII Compounds; Semimagnetic Compounds
+         beo4 = 1.e0;
+
+  // These are masses
+  double gr3 = 12.011e0, 
+         be3 = 9.01e0, 
+         beo3 = 12.5e0,  // Mass of BeO is actually 25, but apparently we 
+                         // divide by 2 because I suppose avg mass per atom
+
+  double sqrt3 = 1.732050808e0, cw = 0.658173e-15, eps = 0.05e0, 
     zero = 0, hbar = 1.05457266e-27, amu = 1.6605402e-24, amassn = 1.008664904,
     ev = 1.60217733e-12;
 
   // save k,recon,scon
 
-  // initialize.
-  // go to 210 
+ /* If energy is greater than zero, the stored list is used to compute the 
+  * cross section. For ENDF-6 format materials, the initialization step is 
+  * used to organize the data already read from MF=7/MT=2 by rdelas, and 
+  * subsequent entries are used to compute the cross section.
+  */
   if (e > 0) {
     double recon = 1.0/econ;
     computeCrossSections( e, fl, s, emax, scon, recon, nl, p, k );
+    return std::vector<double> {};
   }
  
-  twopis = (4*M_PI*M_PI);
-  amne = amassn * amu;
+ /* If this is the first entry (E=0) for an ENDF-III type material, the 
+  * appropriate lattice constants are selected and the Debye-Waller coefficient 
+  * is obtained for the desired temperature by interpolation. Then the 
+  * reciprocal lattice wave vectors and structure factors are computed, 
+  * sorted into shells, and stored for later use.
+  */
+  amne = amassn * amu;                        // mass of neutron in grams
   econ = ev * 8 * ( amne / hbar ) / hbar;
   tsqx = econ / 20;
 
@@ -134,13 +159,13 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
 
 
   // compute and sort lattice factors.
-  phi = ulim / twopis;
+  phi = ulim / ( 4 * M_PI * M_PI ); 
   i1m = a * std::pow(phi,0.5) + 1;
   k = 0;
 
   for ( int i1 = 1; i1 <= i1m; ++i1 ){
     l1 = i1 - 1;
-    i2m = 0.5 * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) ) + 1;;
+    i2m = 0.5 * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) ) + 1;
     for ( int i2 = i1; i2 <= i2m; ++i2 ){
       l2 = i2 - 1;
       x = phi - c1 * ( l1 * l1 + l2 * l2 - l1 * l2 );
@@ -164,7 +189,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
 
             if (k > 0 and tsq > tsqx) {
               for ( int i = 1; i <= k; ++i ){
-                if (tsq < wrk[2*i-1-1] or tsq >= (1+eps)*wrk[2*i-1-1]){
+                if (tsq < wrk[2*i-2] or tsq >= (1+eps)*wrk[2*i-2]){
                   if ( i == k ){ 
                     k = k + 1;
                     if ((2*k) > nw) std::cout << "call error('sigcoh','storage exceeded.',' ')" << std::endl;
