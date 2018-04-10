@@ -6,7 +6,7 @@
 
 
 auto tausq( int m1, int m2, int m3, double c1, double c2 ){
-  return (c1*(m1*m1+m2*m2+m1*m2)+(m3*m3*c2))*4*M_PI*M_PI;
+  return (c1*(m1*m1+m2*m2+m1*m2)+c2*(m3*m3))*4*M_PI*M_PI;
 }
 
 void swapVals( double& a, double& b ){
@@ -24,8 +24,8 @@ auto computeCrossSections( double e, std::vector<double>& fl,
    int last=0;
 
    for ( int i = 1; i <= k; ++i ){
-      double tsq=fl[2*i-2];
-      elim=tsq*recon;
+      double tau_sq=fl[2*i-2];
+      elim=tau_sq*recon;
       // if (elim >= e) exit
       double f=fl[2*i-1];
       if (e > emax) f=0;
@@ -66,7 +66,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   */
   int nw, i1m, i1, l1, i2m, i2, l2, i3m, i3, l3, l, i, j,
     il, lmax, last;
-  double amne, econ, tsqx, a, c, amsc, scoh, wal2, wint, x, w1, w2, w3, tsq, 
+  double amne, econ, tsqx, a, c, amsc, scoh, wal2, wint, w1, w2, w3, tau_sq, 
     tau, w, f, st, sf, blast, re, t2, ulim, phi, elim, u, c1, c2;
   int nd = 10;
   
@@ -77,7 +77,7 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
          be1 = 2.2856e-8, // http://periodictable.com/Properties/A/LatticeConstants.html
          be2 = 3.5832e-8, // http://periodictable.com/Properties/A/LatticeConstants.html 
          beo1 = 2.695e-8, // https://link.springer.com/chapter/10.1007%2F10681719_737
-         beo2 = 4.39e-8,  // https://link.springer.com/chapter/10.1007%2F10681719_737
+         beo2 = 4.39e-8;  // https://link.springer.com/chapter/10.1007%2F10681719_737
                           // II-VI and I-VII Compounds; Semimagnetic Compounds
 
   // These are masses
@@ -92,8 +92,12 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
          be4 = 7.53, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
          beo4 = 1.0;
 
-  double cw = 0.658173e-15, eps = 0.05, hbar = 1.05457266e-27, 
-         amu = 1.6605402e-24, amassn = 1.008664904, ev = 1.60217733e-12;
+  double cw = 0.658173e-15, hbar = 1.05457266e-27, amu = 1.6605402e-24, 
+         amassn = 1.008664904, ev = 1.60217733e-12;
+  
+  // eps is the current grouping factor, 5%. This is used to lump together 
+  // multiple tau values, so as to save storage and run time.
+  double eps = 0.05;
 
   // save k,recon,scon
 
@@ -122,75 +126,89 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
   // Coefficient.
   std::vector<double> tmp {296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000};
 
+  // Debye Waller to interpolate over
+  std::vector<double> dwf ( 10 );
   if (lat == 1){       // GRAPHITE
     a = gr1; c = gr2; amsc = gr3; scoh = gr4/natom; 
-    std::vector<double> dwf1 { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 
-      6.1624, 7.3387, 9.6287, 11.992 };  // Debye Waller to interpolate over
-    wal2 = terp(tmp,dwf1,temp,2);
+    dwf = { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 6.1624, 7.3387, 
+      9.6287, 11.992 };      
   }
   else if (lat == 2) { // BERYLLIUM
     a = be1; c = be2; amsc = be3; scoh = be4/natom;
-    std::vector<double> dwf2 { 3.16663, 3.88842, 4.62944, 5.40517, 6.19880, 
-      7.0042, 8.63665, 10.2865, 0, 0 };  // Debye Waller to interpolate over
-    wal2 = terp(tmp,dwf2,temp,2);
+    dwf = { 3.16663, 3.88842, 4.62944, 5.40517, 6.19880, 7.0042, 8.63665, 
+      10.2865, 0, 0 };  
   }
   else if (lat == 3){  // BERYLLIUM OXIDE
     a = beo1; c = beo2; amsc = beo3; scoh = beo4/natom;
-    std::vector<double> dwf3 {  2.153, 2.6374, 3.1348, 3.6513, 4.1798, 4.7164, 
-      5.8052, 6.9068, 0, 0 };           // Debye Waller to interpolate over
-    wal2 = terp(tmp,dwf3,temp,2);
+    dwf = {  2.153, 2.6374, 3.1348, 3.6513, 4.1798, 4.7164, 5.8052, 6.9068, 
+      0, 0 };
   } 
   else {
     std::cout << "OH NO! Error over here. Illegal lat value" << std::endl;
   }
+
+  wal2 = terp(tmp,dwf,temp,2);
+
   c1 = 4.0 / ( 3.0 * a * a );
   c2 = 1.0 / ( c * c );
   scon = scoh * ( 16.0 * M_PI*M_PI )/( 2.0 * a * a * c * sqrt(3) * econ );
   wint = cw * amsc * wal2;
   t2 = hbar / ( 2.0 * amu * amsc );
+
+  // This is the tau^2 value that corresponds to the maximum considered energy.
+  // Calculated according to Eq. 223.
   ulim = econ * emax;
+
   nw = 10000;
   std::vector<double> wrk(nw,0.0);
 
 
   // compute and sort lattice factors.
-  phi = ulim / ( 4 * M_PI * M_PI ); 
-  i1m = a * std::pow(phi,0.5) + 1;
   k = 0;
 
-  for ( int i1 = 1; i1 <= i1m; ++i1 ){
-    l1 = i1 - 1;
+  // phi = ( tau_max/2pi )^2
+  phi = ulim / ( 4 * M_PI * M_PI ); 
+
+  // l1 --> 0 : a * tau_max / 2pi + 1
+  i1m = a * sqrt(phi) + 1;
+
+  for ( int l1 = 0; l1 < i1m; ++l1 ){
     i2m = 0.5 * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) ) + 1;
-    for ( int i2 = i1; i2 <= i2m; ++i2 ){
-      l2 = i2 - 1;
-      x = phi - c1 * ( l1 * l1 + l2 * l2 - l1 * l2 );
-      i3m = c * std::pow(x,0.5) + 1;
-      for ( int i3 = 1; i3 <= i3m; ++i3 ){
-        l3 = i3 - 1;
+
+    for ( int l2 = l1; l2 < i2m; ++l2 ){
+      i3m = c * sqrt(phi - c1*( l1*l1 + l2*l2 - l1*l2 )) + 1;
+
+      for ( int l3 = 0; l3 < i3m; ++l3 ){
         w1 = (l1 == l2) ? 1 : 2;
 
-        if      (l1 == 0 and l2 == 0) { w2 = 0.5; }
-        else if (l1 == 0 or  l2 == 0) { w2 = 1;   }
-        else                          { w2 = 2;   } 
+        if      (l1 == 0 and l2 == 0) { w2 = 0.5; }  // First l1, l2 iteration
+        else if (l2 == 0)             { w2 = 1;   }  // Any l1, first l2
+        else                          { w2 = 2;   }  
         
         w3 = (l3 == 0) ? 1 : 2;
          
         for ( double&& l2: { l2, -l2 } ){
-          tsq = tausq(l1,l2,l3,c1,c2);
-          if (tsq > 0 and tsq <= ulim ){
-            tau = std::pow(tsq,0.5);
-            w = exp(-tsq*t2*wint)*w1*w2*w3/tau;
+          tau_sq = tausq(l1,l2,l3,c1,c2);
+          if (tau_sq > 0 and tau_sq <= ulim ){
+            tau = sqrt(tau_sq);
+            w = exp(-tau_sq*t2*wint)*w1*w2*w3/tau;
             f = w * form( lat, l1, l2, l3 );
 
-            if (k > 0 and tsq > tsqx) {
+            if (k > 0 and tau_sq > tsqx) {
               for ( int i = 1; i <= k; ++i ){
-                if (tsq < wrk[2*i-2] or tsq >= (1+eps)*wrk[2*i-2]){
+
+                // As tau_i gets large, the values of tau_i get more and more 
+                // closely spaced together, so a range of tau values can be 
+                // lumped together to give a single effective tau_i and f_i.
+                // This uses a 5% (eps) grouping factor.
+                if (tau_sq < wrk[2*i-2] or tau_sq >= (1+eps)*wrk[2*i-2]){
                   if ( i == k ){ 
                     k = k + 1;
-                    if ((2*k) > nw) std::cout << "call error('sigcoh','storage exceeded.',' ')" << std::endl;
-                    if ((2*k) > nw) { return wrk; } 
-                    wrk[2*k-2] = tsq;
-                    wrk[2*k-1] = f;
+                    if (2*k > nw){ 
+                      std::cout << "storage exceeded" << std::endl;
+                      return wrk;
+                    }
+                    wrk[2*k-2] = tau_sq; wrk[2*k-1] = f;
                     break;
                   }
                   continue; 
@@ -201,12 +219,12 @@ auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat,
             }
             else {
               k = k + 1;
-              if ((2*k) > nw) { std::cout << "oh no, sigcoh! Storage exceeded" << std::endl; } 
-              if ((2*k) > nw) { return wrk; } 
-              wrk[2*k-2] = tsq;
-              wrk[2*k-1] = f;
+              if ((2*k) > nw) { 
+                std::cout << "storage exceeded" << std::endl;
+                return wrk; 
+              }
+              wrk[2*k-2] = tau_sq; wrk[2*k-1] = f;
             }
-
           } 
         }
       }
