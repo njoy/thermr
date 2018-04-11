@@ -1,7 +1,9 @@
 #include <vector>
 #include <tuple>
+#include "coh_util/sigcoh.h"
 
-auto coh( int lat, int inew, int ne, int nex, double temp ){
+auto coh( int lat, int inew, int ne, int nex, double temp, double emax, 
+    int natom, std::vector<double>& fl ){
  /*-------------------------------------------------------------------
   * Compute the coherent scattering cross sections for a crystalline
   * material. The cross section is computed on an energy grid
@@ -15,14 +17,13 @@ auto coh( int lat, int inew, int ne, int nex, double temp ){
   */
   int nl, imax, nx, nj, i, nlt, nlt1, nb, nw, nbragg, ix, j, iex, il, isave, ltt;
   int nlmax = 6;
-  double e, enext, en, xm, ym, test;
-  std::vector<double> ej(20), ex(20), x(5), y(5), z(5), b(12);
+  double e, enext = 0, en, xm, ym, test;
+  std::vector<double> s(nlmax), ej(20), ex(20), x(5), y(5), z(5), b(12);
   double half = 0.5, small = 1.0e-10, tolmin = 1.0e-6, eps = 3.0e-5; 
 
    // initialize.
    nl = 1;
 
-   // temp = tempr(itemp) --> Just pass in the actual temperature 
    imax = 20;
    if (nl > nlmax) { 
      std::cout << "too many legendre orders" << std::endl; 
@@ -45,33 +46,49 @@ auto coh( int lat, int inew, int ne, int nex, double temp ){
    nbragg = nl;
    e = 0;
    //sigcoh(e,enext,s,nbragg,lat,temp,emax,natom) --> appears later in thermr
+   double scon = 0;
+   int k = 0;
+   std::vector<double> p;
+
+   auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+ 
    ix = 1;
    j = 0;
    iex = 0;
 
-  // 100 continue
-   iex = iex + 1;
-   // finda(iex,ex,nex,iold,bufo,nbuf) --> from util
    
-   // if (ex(1).gt.enext*(1+small)) go to 105
+   // 100 continue
+   bool do100 = true;
+   bool do100Inner = true;
+   int counter = 0;
+   while ( do100 ){
+     while ( do100Inner ){
+       iex = iex + 1;
+       // finda(iex,ex,nex,iold,bufo,nbuf) --> from util
+       if (ex[0] > enext*(1+small)) { do100Inner = false; }
 
-   x[1] = ex[1];
-   y[1] = ex[2];
-   z[1] = ex[nex];
-   j = j + 1;
-   // call loada(j,ex,nj,inew,bufn,nbuf) --> from util
+       x[0] = ex[0];
+       y[0] = ex[1];
+       z[0] = ex[nex-1];
+       j = j + 1;
+       if ( counter > 100 ){ break; }
+       ++counter;
+       // call loada(j,ex,nj,inew,bufn,nbuf) --> from util
+     }
+
+     // 105 continue
+     ix = ix + 1;
+     x[ix] = ex[1];
+     y[ix] = ex[2];
+     z[ix] = ex[nex];
+
+     if (ix >= nlt) { do100 = false; }
+
+  }
    
-   // go to 100
-   
-  // 105 continue
-   ix = ix + 1;
-   x[ix] = ex[1];
-   y[ix] = ex[2];
-   z[ix] = ex[nex];
-   //if (ix.lt.nlt) go to 100
    // prime stack with first bragg edge
    e = enext;
-   // sigcoh(e,enext,s,nl,lat,temp,emax,natom) --> elsewhere in thermr
+   wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
    
    // stk(1,1)=e
    
@@ -83,11 +100,11 @@ auto coh( int lat, int inew, int ne, int nex, double temp ){
    
   // 120 continue
    e = enext;
-   // sigcoh(e,enext,s,nl,lat,temp,emax,natom) --> from thermr
+   wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
    // upstk(e,s,nl,nx,i,stk) --> from thermr
    // make sure input grid points are included
    
-   /*
+ /*-------------------------------------------------------------------
   125 continue
    
    do 130 ix=1,nlt

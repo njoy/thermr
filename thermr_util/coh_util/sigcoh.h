@@ -47,7 +47,7 @@ auto computeCrossSections( double e, std::vector<double>& fl,
 
 
 
-auto sigcoh( double e, double enext, std::vector<double> s, int nl, int lat, 
+auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat, 
   double temp, double emax, int natom, std::vector<double>& fl, 
   std::vector<double>& p, int k, double scon ){
  /*-------------------------------------------------------------------
