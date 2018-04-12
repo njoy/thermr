@@ -1,6 +1,7 @@
 #include <vector>
 #include <tuple>
 #include "coh_util/sigcoh.h"
+#include "coh_util/readWrite_util/finda.h"
 
 auto coh( int lat, int inew, int ne, int nex, double temp, double emax, 
     int natom, std::vector<double>& fl ){
@@ -40,12 +41,13 @@ auto coh( int lat, int inew, int ne, int nex, double temp, double emax,
    nlt1 = nlt - 1;
 
    //allocate(stk(nx,imax)) --> Use eigen? 
-
+   // Oh well, we'll use this for now
+   std::vector<std::vector<double>> stk (nx, std::vector<double> (imax) );
    // determine the energy grid adaptively and
    // store the cross sections in a scratch file.
+  
    nbragg = nl;
    e = 0;
-   //sigcoh(e,enext,s,nbragg,lat,temp,emax,natom) --> appears later in thermr
    double scon = 0;
    int k = 0;
    std::vector<double> p;
@@ -56,7 +58,6 @@ auto coh( int lat, int inew, int ne, int nex, double temp, double emax,
    j = 0;
    iex = 0;
 
-   
    // 100 continue
    bool do100 = true;
    bool do100Inner = true;
@@ -71,7 +72,7 @@ auto coh( int lat, int inew, int ne, int nex, double temp, double emax,
        y[0] = ex[1];
        z[0] = ex[nex-1];
        j = j + 1;
-       if ( counter > 100 ){ break; }
+       if ( counter > 10 ){ break; }
        ++counter;
        // call loada(j,ex,nj,inew,bufn,nbuf) --> from util
      }
