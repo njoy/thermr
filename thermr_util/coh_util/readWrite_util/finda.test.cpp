@@ -5,10 +5,14 @@
 
 TEST_CASE( "finda" ){
   std::fstream file("temp_float");
+  int i, na, nbuf = 10;
+  std::vector<double> buf(nbuf,0.0);
+
   GIVEN( "inow value of 0" ){
+    i = 1;
     WHEN( "a vector is small" ){
-      int i = 1, na = 2, nbuf = 10;
-      std::vector<double> a(na,0.0), buf(10,0.0);
+      na = 2;
+      std::vector<double> a(na,0.0);
 
       finda( i, na, file, a, buf, nbuf );
 
@@ -19,8 +23,8 @@ TEST_CASE( "finda" ){
       } // THEN
     } // WHEN
     WHEN( "a vector is medium" ){
-      int i = 1, na = 5, nbuf = 10;
-      std::vector<double> a(na,0.0), buf(10,0.0);
+      na = 5;
+      std::vector<double> a(na,0.0);
 
       finda( i, na, file, a, buf, nbuf );
 
@@ -37,25 +41,29 @@ TEST_CASE( "finda" ){
     } // WHEN
   } // GIVEN
 
-  } // GIVEN
   GIVEN( "inow doesn't equal 1" ){
-    WHEN( "buf is initialized to all zeros originally" ){
-      THEN( "buf is not read in" ){
-        int i = 2, na = 5, nbuf = 10;
-        std::vector<double> a(na,0.0), buf(10,0.0);
+    i = 2;
 
-        finda( i, na, file, a, buf, nbuf );
+    WHEN( "buf is initialized to all zeros originally" ){
+      na = 5;
+      std::vector<double> a(na,0.0);
+
+      finda( i, na, file, a, buf, nbuf );
+
+      THEN( "buf is not read in" ){
         for ( auto& entry : a ){
           REQUIRE( 0.0 == Approx(entry).epsilon(1e-6) );
         }
       } // THEN
+
     } // WHEN
 
     WHEN( "buf is populated with other values" ){
+      buf = { 1.2, 2.3, 3.4, 4.5, 5.6, 6.7, 7.8, 8.9, 9.0, 10.1 };
       THEN( "buf is not read in, a is filled with existent buf values" ){
         { 
-        int i = 2, na = 2, nbuf = 10;
-        std::vector<double> a(na,0.0), buf { 1.2, 2.3, 3.4, 4.5, 5.6, 6.7, 7.8, 8.9, 9.0, 10.1 };
+        na = 2;
+        std::vector<double> a(na,0.0);
 
         finda( i, na, file, a, buf, nbuf );
 
@@ -63,8 +71,8 @@ TEST_CASE( "finda" ){
         REQUIRE( 4.5 == Approx(a[1]).epsilon(1e-6) );
         }
         { 
-        int i = 2, na = 5, nbuf = 10;
-        std::vector<double> a(na,0.0), buf { 1.2, 2.3, 3.4, 4.5, 5.6, 6.7, 7.8, 8.9, 9.0, 10.1 };
+        na = 5;
+        std::vector<double> a(na,0.0);
 
         finda( i, na, file, a, buf, nbuf );
 
