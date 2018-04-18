@@ -1,10 +1,13 @@
 #include <vector>
 #include <tuple>
+#include "coh_util/upstk.h"
 #include "coh_util/sigcoh.h"
 #include "coh_util/readWrite_util/finda.h"
+#include "coh_util/readWrite_util/loada.h"
 
-auto coh( int lat, int inew, int ne, int nex, double temp, double emax, 
-    int natom, std::vector<double>& fl ){
+auto coh( int lat, std::fstream& inew, int ne, int nex, double temp, 
+  std::fstream& iold, double emax, int natom, std::vector<double>& fl, 
+  std::vector<double>& bufo, std::vector<double>& bufn ){
  /*-------------------------------------------------------------------
   * Compute the coherent scattering cross sections for a crystalline
   * material. The cross section is computed on an energy grid
@@ -16,9 +19,9 @@ auto coh( int lat, int inew, int ne, int nex, double temp, double emax,
   * converted to the coherent grid using Lagrangian interpolation (terp).
   *-------------------------------------------------------------------
   */
-  int nl, imax, nx, nj, i, nlt, nlt1, nb, nw, nbragg, ix, j, iex, il, isave, ltt;
+  int nl, imax, nx, nj, i, nlt, nlt1, nb, nw, ix, j, iex, il, isave, ltt;
   int nlmax = 6;
-  double e, enext = 0, en, xm, ym, test;
+  double enext = 0, en, xm, ym, test;
   std::vector<double> s(nlmax), ej(20), ex(20), x(5), y(5), z(5), b(12);
   double half = 0.5, small = 1.0e-10, tolmin = 1.0e-6, eps = 3.0e-5; 
 
@@ -41,31 +44,38 @@ auto coh( int lat, int inew, int ne, int nex, double temp, double emax,
    nlt1 = nlt - 1;
 
    //allocate(stk(nx,imax)) --> Use eigen? 
-   // Oh well, we'll use this for now
+   // Oh well, we'll use this for now. 
+
    std::vector<std::vector<double>> stk (nx, std::vector<double> (imax) );
+
+
    // determine the energy grid adaptively and
    // store the cross sections in a scratch file.
   
-   nbragg = nl;
-   e = 0;
-   double scon = 0;
-   int k = 0;
+   int nbragg = nl, k = 0;
+   double e = 0, scon = 0;
    std::vector<double> p;
 
    auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
  
    ix = 1;
-   j = 0;
+   j  = 0;
    iex = 0;
 
    // 100 continue
    bool do100 = true;
    bool do100Inner = true;
+
+   // Remove this once you're convinced your code is competent 
    int counter = 0;
+
    while ( do100 ){
      while ( do100Inner ){
+
        iex = iex + 1;
-       // finda(iex,ex,nex,iold,bufo,nbuf) --> from util
+       // Read in the first nex values from iold file and put them into ex
+       finda( iex, nex, iold, ex, bufo, bufo.size() );
+
        if (ex[0] > enext*(1+small)) { do100Inner = false; }
 
        x[0] = ex[0];
@@ -74,7 +84,9 @@ auto coh( int lat, int inew, int ne, int nex, double temp, double emax,
        j = j + 1;
        if ( counter > 10 ){ break; }
        ++counter;
-       // call loada(j,ex,nj,inew,bufn,nbuf) --> from util
+       // Take the elements of ex and put them in file inew, also in buffer bufn
+       loada( j, nj, inew, bufn.size(), ex, bufn );
+
      }
 
      // 105 continue
@@ -91,32 +103,36 @@ auto coh( int lat, int inew, int ne, int nex, double temp, double emax,
    e = enext;
    wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
    
-   // stk(1,1)=e
+   stk[0][0] = e;
    
-   for ( int i1 = 0; i1 < nl; ++i1 ){
-      // stk(1+il,1)=s(il)
+   for ( int il = 0; il < nl; ++il ){
+     stk[1+il][0] = s[il];
    } 
+
    i = 1;
    // add next bragg edge to stack
    
   // 120 continue
    e = enext;
    wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
-   // upstk(e,s,nl,nx,i,stk) --> from thermr
+   upstk(e, s, stk, nl, nx, i );
    // make sure input grid points are included
    
- /*-------------------------------------------------------------------
-  125 continue
+  // 125 continue
    
-   do 130 ix=1,nlt
-   if (x(ix).gt.stk(1,i)*(1+small)) go to 135
-  130 continue
-   go to 140
-  135 continue
-   if (x(ix).ge.stk(1,i-1)*(1-small)) go to 140
-   e=x(ix)
-   call sigcoh(e,en,s,nl,lat,temp,emax,natom)
-   call upstk(e,s,nl,nx,i,stk)
+  for ( int ix = 0; ix < nlt; ++ix ){
+    if (x[ix] > stk[0][i]*(1+small)){  // go to 135
+      // 135 continue
+      if (x[ix] >= stk[0][i-1]*(1-small)){ // go to 140
+        e = x[ix];
+        wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+        upstk(e, s, stk, nl, nx, i );
+      }
+    }
+  }
+
+  // go to 140
+ /*-------------------------------------------------------------------
    ! compare linear approximation to true function.
   140 continue
    if (i.eq.imax) go to 160

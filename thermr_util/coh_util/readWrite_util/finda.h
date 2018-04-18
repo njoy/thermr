@@ -1,7 +1,7 @@
 
 #include "repoz.h"
 
-auto finda( int i, int na, std::fstream& ntape, std::vector<double>& a, 
+void finda( int i, int na, std::fstream& ntape, std::vector<double>& a, 
     std::vector<double>& buf, int nbuf ){
   /*--------------------------------------------------------------------
    * Buffered sequential i/o routine.

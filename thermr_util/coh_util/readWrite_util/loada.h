@@ -1,6 +1,6 @@
 #include "repoz.h"
 
-auto loada( int& i, int& na, std::fstream& ntape, int& nbuf, std::vector<double>& a, 
+void loada( int& i, int& na, std::fstream& ntape, int nbuf, std::vector<double>& a, 
     std::vector<double>& buf ){
  /*--------------------------------------------------------------------
   * Buffered sequential i/o routine.
