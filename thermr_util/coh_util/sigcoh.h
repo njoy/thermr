@@ -4,8 +4,26 @@
 #include "sigcoh_util/terp.h"
 #include "sigcoh_util/legndr.h"
 
+bool finish( int& k, std::vector<double>& wrk, const double& f, int nw,
+  const double& tau_sq ){
+  k = k + 1;
+  if ((2*k) > nw) { 
+    std::cout << "storage exceeded" << std::endl;
+    return true;
+  }
+  wrk[2*k-2] = tau_sq; wrk[2*k-1] = f;
+  return false;
+}
+
 
 auto tausq( int m1, int m2, int m3, double c1, double c2 ){
+  /* This function computes the value tau^2, which is defined in the General
+   * Atomics HEXSCAT documentation. On pg. 62 of the HEXSCAT pdf document
+   * (which is in HEXSCAT Appendix, Section 1: Formulation), we have that 
+   *
+   *     tau^2/4pi^2  = (4/3a^2) * ( l1^2 + l2^2 + l1*l2 ) + l3 / c^2
+   *
+   */
   return (c1*(m1*m1+m2*m2+m1*m2)+c2*(m3*m3))*4*M_PI*M_PI;
 }
 
@@ -30,6 +48,13 @@ auto computeCrossSections( double e, std::vector<double>& fl,
       double f=fl[2*i-1];
       if (e > emax) f=0;
       double u=1-2*elim/e;
+      // u here is equal to fl for l = 1 (P1 component).
+      // This is defined in the General Atomics HEXSCAT paper, in Part 1 
+      // Formulation. If l == 0, fl = 1. But if l == 1, then
+      //            fl = 1 - tau^2 lambda^2 / 8 pi^2
+      //    which simplifies to 
+      //                 1 - tau^2 hbar^2 / 4 m_n E
+
       int lmax=nl-1;
       legndr(u,p,lmax);
       for ( int il = 0; il < nl; ++il ){
@@ -40,8 +65,7 @@ auto computeCrossSections( double e, std::vector<double>& fl,
    for ( int il = 0; il < nl; ++il ){
       s[il]=s[il]*scon/e;
    }
-   if (last == 1) elim=emax;
-   if (elim > emax) elim=emax;
+   if (last == 1 or elim > emax ) { elim=emax; }
 }
 
 
@@ -118,7 +142,7 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   * reciprocal lattice wave vectors and structure factors are computed, 
   * sorted into shells, and stored for later use.
   */
-  amne = amassn * amu;                        // mass of neutron in grams
+  amne = amassn * amu;     // mass of neutron in grams
   econ = ev * 8 * ( amne / hbar ) / hbar;
   tsqx = econ / 20;
 
@@ -127,6 +151,10 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   std::vector<double> tmp {296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000};
 
   // Debye Waller to interpolate over
+  // This appears in Eq. 220 of the manual, as 'W' in the exponential term
+  // This also appears in the General Atomics HEXSCAT report as the integral
+  // shown below (as wal2 description)
+
   std::vector<double> dwf ( 10 );
   if (lat == 1){       // GRAPHITE
     a = gr1; c = gr2; amsc = gr3; scoh = gr4/natom; 
@@ -146,6 +174,23 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   else {
     std::cout << "OH NO! Error over here. Illegal lat value" << std::endl;
   }
+
+
+  // wal2 is (supposed to be) equal to
+  //
+  //       1   |' f(w)        
+  //      ---  |  ----  coth( w / kb T ) dw
+  //       M  _|   w   
+  //
+  // this seems to be the case from pg. 5 of the General Atomics HEXSCAT code,
+  // in the table of descriptions for input values into the original HEXSCAT.
+  //
+  // In this case, the main equation we're trying to compute ( Eq. 1 in the
+  // GA HEXSCAT documentation, on pg. 1 ) can be computed using an exponential 
+  // term 
+  //
+  //                exp[ ( -hbar^2 tau^2 / 2 ) * wal2 ]
+  //
 
   wal2 = terp(tmp,dwf,temp,2);
 
@@ -170,6 +215,7 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   phi = ulim / ( 4 * M_PI * M_PI ); 
 
   // l1 --> 0 : a * tau_max / 2pi + 1
+  // l1max = alpha * sqrt(phi), on pg 63 of the HEXSCAT document pdf. 
   i1m = a * sqrt(phi) + 1;
 
   for ( int l1 = 0; l1 < i1m; ++l1 ){
@@ -179,18 +225,28 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
       i3m = c * sqrt(phi - c1*( l1*l1 + l2*l2 - l1*l2 )) + 1;
 
       for ( int l3 = 0; l3 < i3m; ++l3 ){
+
+        // w1 is equal to M1 on pg 3 of General Atomics HEXSCAT appendix. 
         w1 = (l1 == l2) ? 1 : 2;
 
+        // w2 is equal to M2 on pg 3 of General Atomics HEXSCAT appendix. 
         if      (l1 == 0 and l2 == 0) { w2 = 0.5; }  // First l1, l2 iteration
         else if (l2 == 0)             { w2 = 1;   }  // Any l1, first l2
         else                          { w2 = 2;   }  
         
+        // w3 is equal to M3 on pg 3 of General Atomics HEXSCAT appendix. 
         w3 = (l3 == 0) ? 1 : 2;
          
+        // We consider l2 and -l2 because of Eq. 4 on pg. 4 of the General 
+        // Atomics HEXSCAT appendix.
         for ( double&& l2: { l2, -l2 } ){
           tau_sq = tausq(l1,l2,l3,c1,c2);
+
           if (tau_sq > 0 and tau_sq <= ulim ){
             tau = sqrt(tau_sq);
+
+            // w1*w2*w3 --> weighting factor M, as dfined on pg. 3 of the 
+            // General Atomics HEXSCAT appendix
             w = exp(-tau_sq*t2*wint)*w1*w2*w3/tau;
             f = w * form( lat, l1, l2, l3 );
 
@@ -203,27 +259,18 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
                 // This uses a 5% (eps) grouping factor.
                 if (tau_sq < wrk[2*i-2] or tau_sq >= (1+eps)*wrk[2*i-2]){
                   if ( i == k ){ 
-                    k = k + 1;
-                    if (2*k > nw){ 
-                      std::cout << "storage exceeded" << std::endl;
-                      return wrk;
-                    }
-                    wrk[2*k-2] = tau_sq; wrk[2*k-1] = f;
+                    if ( finish( k, wrk, f, nw, tau_sq ) ){ return wrk; }
                     break;
                   }
-                  continue; 
                 }
-                wrk[2*i-1]=wrk[2*i-1]+f;
-                break;
+                else {                        // because got rid of continue
+                  wrk[2*i-1]=wrk[2*i-1]+f;    // statement
+                  break;
+                }
               }
             }
             else {
-              k = k + 1;
-              if ((2*k) > nw) { 
-                std::cout << "storage exceeded" << std::endl;
-                return wrk; 
-              }
-              wrk[2*k-2] = tau_sq; wrk[2*k-1] = f;
+              if ( finish( k, wrk, f, nw, tau_sq ) ){ return wrk; }
             }
           } 
         }
