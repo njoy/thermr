@@ -4,7 +4,7 @@ auto doSCTApproximation( int lat, double a, double b, double c,
   double tevz, double rtev, double tfff, double teff, double tfff2, 
   double teff2, double arg, double az, double az2, double sigc, double s2,
   double sigVal, double u, double sb2, double e, double tev, double sigmin,
-  double sabflg, double bb, double zero, double s, double sb ){
+  double sabflg, double bb, double s, double sb ){
   // short collision time for large beta or alpha
   std::cout << "170" << std::endl;
    if (lat == 1) b=b*tevz*rtev;
@@ -25,7 +25,7 @@ auto doSCTApproximation( int lat, double a, double b, double c,
    arg=(a-b)*(a-b)*tev/(4*a*tfff)+(b+bb)/2;
    if (-arg > sabflg) s=exp(-arg)/(c*sqrt(a*tfff*rtev));
    sigVal=sigc*sb*s;
-   if (sb2 > zero) {
+   if (sb2 > 0.0) {
       a=a*az/az2;
       arg=(a-b)*(a-b)*tev/(4*a*tfff2)+(b+bb)/2;
       s2=0;
@@ -58,7 +58,7 @@ auto sig( double e, double ep, double u, double tev, int nalpha,
    double rtev,bb,a,sigc,b,c,bbb,s,s1,s2,s3,arg;
    double tfff,tfff2,rat;
    double sigmin=1.e-10, sabflg=-225.e0, amin=1.e-6, test1=0.2e0,
-          test2=30.e0, zero=0;
+          test2=30.e0;
    double sigVal;
 
    // common factors.
@@ -78,8 +78,8 @@ auto sig( double e, double ep, double u, double tev, int nalpha,
      std::cout << "200" << std::endl; 
 
      if (iinc != 1){
-       std::cout << "300" << std::endl; 
        // other options not yet implemented.
+       std::cout << "300" << std::endl; 
        // std::cout << "call error('sig','illegal option.',' ')" << std::endl;
        sigVal = 0;
        throw std::exception();
@@ -99,22 +99,33 @@ auto sig( double e, double ep, double u, double tev, int nalpha,
 
    if (a > alpha[nalpha-1]) {
      // go to 170
-     return doSCTApproximation( lat, a, b, c, tevz, rtev, tfff, teff, tfff2, teff2, arg, az, az2, sigc, s2, sigVal, u, sb2, e, tev, sigmin, sabflg, bb, zero, s, sb );
+     return doSCTApproximation( lat, a, b, c, tevz, rtev, tfff, teff, tfff2, 
+         teff2, arg, az, az2, sigc, s2, sigVal, u, sb2, e, tev, sigmin, 
+         sabflg, bb, s, sb );
    }
 
    if (lasym == 1) {
       bbm=bb;
       if (lat == 1) bbm=bb*tev/tevz;
-      // if (bbm > beta(nbeta)) go to 170
-      // if (bbm < beta(1)) go to 170
+      if ( bbm > beta[nbeta-1] or bbm < beta[0] ){
+        // go to 170
+        return doSCTApproximation( lat, a, b, c, tevz, rtev, tfff, teff, 
+            tfff2, teff2, arg, az, az2, sigc, s2, sigVal, u, sb2, e, tev, 
+            sigmin, sabflg, bb, s, sb );
+      } 
    } // end if 
    else {
-      // if (b > beta(nbeta)) go to 170
+     if ( b > beta[nbeta-1] ){
+        return doSCTApproximation( lat, a, b, c, tevz, rtev, tfff, teff, 
+            tfff2, teff2, arg, az, az2, sigc, s2, sigVal, u, sb2, e, tev, 
+            sigmin, sabflg, bb, s, sb );
+      }
    } // end if
+
    nb1=nbeta-1;
    na1=nalpha-1;
    bbb=b;
-   if (lasym == 1 and bb < zero) bbb=-b;
+   if (lasym == 1 and bb < 0.0 ) bbb=-b;
    for ( int i = 1; i <= nb1; ++i ){
       ib=i;
       if (bbb < beta[i+1-1]) break;
@@ -125,7 +136,7 @@ auto sig( double e, double ep, double u, double tev, int nalpha,
       if (a < alpha[i+1-1]) break;
    } // end do
 
-   //if (cliq == zero or a >= alpha(1)) go to 150
+   //if (cliq == 0.0 or a >= alpha(1)) go to 150
    //if (lasym == 1) go to 150
    //if (b > test1) go to 150
    s=sab[1-1][1-1]+log(alpha[1-1]/a)/2-cliq*b*b/a;
