@@ -1,3 +1,28 @@
+#include "../../extra/terpq.h"
+
+auto do160(double sigc, double sb, double s, double bb, double sabflg,
+  double sigmin ){
+  double sigVal=0;
+  if (s-bb/2 > sabflg) sigVal=exp(s-bb/2);
+  sigVal=sigc*sb*sigVal;
+  if (sigVal < sigmin) sigVal=0;
+  return sigVal;
+}
+
+auto do155( int ia, int ib, int nalpha, int nbeta, std::vector<double>& alpha,
+    std::vector<double>& beta, std::vector<std::vector<double>>& sab,
+    double a, double bbb, double sigc, double sb, double bb, double sabflg,
+    double sigmin ){
+   if (ia+1 == nalpha) ia=ia-1;
+   if (ib+1 == nbeta) ib=ib-1;
+   ia -= 1;
+   ib -= 1;
+   double s1 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib],   sab[ia+1][ib],   sab[ia+2][ib] );
+   double s2 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib+1], sab[ia+1][ib+1], sab[ia+2][ib+1] );
+   double s3 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib+2], sab[ia+1][ib+2], sab[ia+2][ib+2] );
+   double s  = terpq( beta[ib],  beta[ib+1],  beta[ib+2],  bbb, s1, s2, s3 );
+   return do160(sigc, sb, s, bb, sabflg, sigmin );
+}
 
 
 auto doSCTApproximation( int lat, double a, double b, double c,
@@ -6,7 +31,6 @@ auto doSCTApproximation( int lat, double a, double b, double c,
   double sigVal, double u, double sb2, double e, double tev, double sigmin,
   double sabflg, double bb, double s, double sb ){
   // short collision time for large beta or alpha
-  std::cout << "170" << std::endl;
    if (lat == 1) b=b*tevz*rtev;
    if (lat == 1) a=a*tevz*rtev;
    tfff=teff;
@@ -75,14 +99,11 @@ auto sig( double e, double ep, double u, double tev, int nalpha,
 
    // free-gas scattering.
    if ( iinc != 2 ){ 
-     std::cout << "200" << std::endl; 
 
      if (iinc != 1){
        // other options not yet implemented.
-       std::cout << "300" << std::endl; 
-       // std::cout << "call error('sig','illegal option.',' ')" << std::endl;
        sigVal = 0;
-       throw std::exception();
+       throw std::exception(); // call error('sig','illegal option.',' ')
      }
 
      s=0;
@@ -136,35 +157,27 @@ auto sig( double e, double ep, double u, double tev, int nalpha,
       if (a < alpha[i+1-1]) break;
    } // end do
 
-   //if (cliq == 0.0 or a >= alpha(1)) go to 150
-   //if (lasym == 1) go to 150
-   //if (b > test1) go to 150
+   if (cliq == 0.0 or a >= alpha[1-1] or lasym == 1 or b > test1 ){ 
+     // 150 continue
+     if (a*az < test2 and b < test2) { 
+       return do155( ia, ib, nalpha, nbeta, alpha, beta, sab, a, bbb, sigc, sb,
+           bb, sabflg, sigmin );
+     }
+     if ( a*az >= test2 or b >= test2 ){
+       if ( sab[ia][ib]   <= sabflg or sab[ia+1][ib]   <= sabflg or 
+            sab[ia][ib+1] <= sabflg or sab[ia+1][ib+1] <= sabflg ) {
+         return doSCTApproximation( lat, a, b, c, tevz, rtev, tfff, teff, 
+           tfff2, teff2, arg, az, az2, sigc, s2, sigVal, u, sb2, e, tev, 
+           sigmin, sabflg, bb, s, sb );
+       } 
+     }
+   }
+
+
    s=sab[1-1][1-1]+log(alpha[1-1]/a)/2-cliq*b*b/a;
    if (s < sabflg) s=sabflg;
    // go to 160
-  // 150 continue
-   //if (a*az < test2 and b < test2) go to 155
-   //if (sab(ia,ib) <= sabflg) go to 170
-   //if (sab(ia+1,ib) <= sabflg) go to 170
-   //if (sab(ia,ib+1) <= sabflg) go to 170
-   //if (sab(ia+1,ib+1) <= sabflg) go to 170
-  //155 continue
-   if (ia+1 == nalpha) ia=ia-1;
-   if (ib+1 == nbeta) ib=ib-1;
-   //call terpq(alpha(ia),sab(ia,ib),alpha(ia+1),sab(ia+1,ib),&
-   //  alpha(ia+2),sab(ia+2,ib),a,s1)
-   //call terpq(alpha(ia),sab(ia,ib+1),alpha(ia+1),sab(ia+1,ib+1),&
-   //  alpha(ia+2),sab(ia+2,ib+1),a,s2)
-   //call terpq(alpha(ia),sab(ia,ib+2),alpha(ia+1),sab(ia+1,ib+2),&
-   //  alpha(ia+2),sab(ia+2,ib+2),a,s3)
-   //call terpq(beta(ib),s1,beta(ib+1),s2,beta(ib+2),s3,bbb,s)
-  //160 continue
-   sigVal=0;
-   if (s-bb/2 > sabflg) sigVal=exp(s-bb/2);
-   sigVal=sigc*sb*sigVal;
-   if (sigVal < sigmin) sigVal=0;
-   return sigVal;
-
+   return do160(sigc, sb, s, bb, sabflg, sigmin );
 }
 
 
