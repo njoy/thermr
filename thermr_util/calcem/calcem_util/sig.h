@@ -1,9 +1,52 @@
 
+
+auto doSCTApproximation( int lat, double a, double b, double c,
+  double tevz, double rtev, double tfff, double teff, double tfff2, 
+  double teff2, double arg, double az, double az2, double sigc, double s2,
+  double sigVal, double u, double sb2, double e, double tev, double sigmin,
+  double sabflg, double bb, double zero, double s, double sb ){
+  // short collision time for large beta or alpha
+  std::cout << "170" << std::endl;
+   if (lat == 1) b=b*tevz*rtev;
+   if (lat == 1) a=a*tevz*rtev;
+   tfff=teff;
+   tfff2=teff2;
+          // if (az < 3) {
+          //    if (e > 10) {
+          //       tfff=tev
+          //       tfff2=tev
+          //    else { if (e > 2) {
+          //       rat=(e-2)/8
+          //       tfff= (1-rat)*teff+rat*tev
+          //       tfff2= (1-rat)*teff2+rat*tev
+          //    } // end if
+          // } // end if
+   s=0;
+   arg=(a-b)*(a-b)*tev/(4*a*tfff)+(b+bb)/2;
+   if (-arg > sabflg) s=exp(-arg)/(c*sqrt(a*tfff*rtev));
+   sigVal=sigc*sb*s;
+   if (sb2 > zero) {
+      a=a*az/az2;
+      arg=(a-b)*(a-b)*tev/(4*a*tfff2)+(b+bb)/2;
+      s2=0;
+      if (-arg > sabflg) s2=exp(-arg)/(c*sqrt(a*tfff2*rtev));
+      sigVal=sigVal+sigc*sb2*s2;
+   } // end if
+    if (abs(e-10) < .01 and abs(u-.99219) < .0001) {
+    } // end if
+   if (sigVal < sigmin) sigVal=0;
+   return sigVal;
+
+
+
+}
+
+
 auto sig( double e, double ep, double u, double tev, int nalpha, 
     std::vector<double>& alpha, int nbeta, std::vector<double>& beta,
     std::vector<std::vector<double>>& sab, double bbm, double az, double tevz,
     int lasym, double az2, double teff2, int lat, double cliq, double sb,
-    double sb2, double teff ){
+    double sb2, double teff, int iinc ){
 
   /*-------------------------------------------------------------------
    * Compute the differential scattering cross section from e to
@@ -28,10 +71,37 @@ auto sig( double e, double ep, double u, double tev, int nalpha,
    c=sqrt(4*M_PI);
 
    // tabulated s(alpha,beta).
-   // if (iinc != 2) go to 200
+
+
+   // free-gas scattering.
+   if ( iinc != 2 ){ 
+     std::cout << "200" << std::endl; 
+
+     if (iinc != 1){
+       std::cout << "300" << std::endl; 
+       // other options not yet implemented.
+       // std::cout << "call error('sig','illegal option.',' ')" << std::endl;
+       sigVal = 0;
+       throw std::exception();
+     }
+
+     s=0;
+     arg=(a+bb)*(a+bb)/(4*a);
+     if (-arg > sabflg) s=exp(-arg)/(c*sqrt(a));
+     sigVal=sigc*sb*s;
+     if (sigVal < sigmin) sigVal=0;
+     return sigVal;
+   } // end free gas scattering option
+
+
    if (lat == 1) b=b*tev/tevz;
    if (lat == 1) a=a*tev/tevz;
-   // if (a > alpha(nalpha)) go to 170
+
+   if (a > alpha[nalpha-1]) {
+     // go to 170
+     return doSCTApproximation( lat, a, b, c, tevz, rtev, tfff, teff, tfff2, teff2, arg, az, az2, sigc, s2, sigVal, u, sb2, e, tev, sigmin, sabflg, bb, zero, s, sb );
+   }
+
    if (lasym == 1) {
       bbm=bb;
       if (lat == 1) bbm=bb*tev/tevz;
@@ -82,55 +152,8 @@ auto sig( double e, double ep, double u, double tev, int nalpha,
    if (s-bb/2 > sabflg) sigVal=exp(s-bb/2);
    sigVal=sigc*sb*sigVal;
    if (sigVal < sigmin) sigVal=0;
-   return;
+   return sigVal;
 
-   // short collision time for large beta or alpha
-  //170 continue
-   if (lat == 1) b=b*tevz*rtev;
-   if (lat == 1) a=a*tevz*rtev;
-   tfff=teff;
-   tfff2=teff2;
-          // if (az < 3) {
-          //    if (e > 10) {
-          //       tfff=tev
-          //       tfff2=tev
-          //    else { if (e > 2) {
-          //       rat=(e-2)/8
-          //       tfff= (1-rat)*teff+rat*tev
-          //       tfff2= (1-rat)*teff2+rat*tev
-          //    } // end if
-          // } // end if
-   s=0;
-   arg=(a-b)*(a-b)*tev/(4*a*tfff)+(b+bb)/2;
-   if (-arg > sabflg) s=exp(-arg)/(c*sqrt(a*tfff*rtev));
-   sigVal=sigc*sb*s;
-   if (sb2 > zero) {
-      a=a*az/az2;
-      arg=(a-b)*(a-b)*tev/(4*a*tfff2)+(b+bb)/2;
-      s2=0;
-      if (-arg > sabflg) s2=exp(-arg)/(c*sqrt(a*tfff2*rtev));
-      sigVal=sigVal+sigc*sb2*s2;
-   } // end if
-    if (abs(e-10) < .01 and abs(u-.99219) < .0001) {
-    } // end if
-   if (sigVal < sigmin) sigVal=0;
-   return;
-
-   // free-gas scattering.
-  // 200 continue
-   // if (iinc != 1) go to 300
-   s=0;
-   arg=(a+bb)*(a+bb)/(4*a);
-   if (-arg > sabflg) s=exp(-arg)/(c*sqrt(a));
-   sigVal=sigc*sb*s;
-   if (sigVal < sigmin) sigVal=0;
-   return;
-
-   // other options not yet implemented.
-  // 300 continue
-   std::cout << "call error('sig','illegal option.',' ')" << std::endl;
-   sigVal=0;
-   return;
 }
 
 
