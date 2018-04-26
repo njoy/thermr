@@ -1,5 +1,64 @@
 #include "sig.h"
 
+auto do170(int& j, double& test, double& fract, double& sum, std::vector<double>& y,
+  std::vector<double>& x, double& yl, double& xn, double& xl, double& f, double& disc,
+  double& ytol, double& rf, int& i, double& xil, const double& sigmin){
+  double zero = 0;
+  // 170 continue
+  std::cout << 170 << std::endl;
+   j=j+1;
+
+   if (abs(test) > ytol){ 
+     test=(fract-sum)*(y[i-1]-yl)/((x[i-1]-xl)*yl*yl);
+   }
+   if (abs(test) > ytol or yl < sigmin ){
+     std::cout << 175 << std::endl;
+     // 175 continue
+      f=(y[i-1]-yl)*xil;
+      rf=1/f;
+      disc=(yl*rf)*(yl*rf)+2*(fract-sum)*rf;
+      if (disc < zero) {
+         // write(strng,'(''disc='',1p,e12.4)') disc
+         // call mess('sigl',strng,'set to abs value and continue')
+         disc=abs(disc);
+      } // end if
+      if (f > zero) xn=xl-(yl*rf)+sqrt(disc);
+      if (f < zero) xn=xl-(yl*rf)-sqrt(disc);
+      if (xn > xl and xn <= x[i-1]) { 
+        // go to 190
+        return;
+      }
+      if (xn > xl and xn < (x[i-1]+ytol*(x[i-1]-xl))) {
+        // go to 180
+        std::cout << 180 << std::endl;
+        // 180 continue
+        xn=x[i-1];
+        // go to 190
+        return;
+      } 
+      std::cout << "call error('sigl','no legal solution (quadratic path).',' ')" << std::endl;
+
+   }
+
+   xn=xl+(fract-sum)/yl;
+   if (xn > x[i-1]) {
+     // go to 180
+     std::cout << 180 << std::endl;
+     // 180 continue
+     xn=x[i-1];
+    // go to 190
+     return;
+   }
+
+   // if (xn >= xl and xn <= x(i)) go to 190
+   if (xn < xl or xn > x[i-1]) {
+     std::cout << "call error('sigl','no legal solution.',' ')" << std::endl;
+   }
+   // go to 190
+   return;
+}
+
+
 auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
     double tev, std::vector<double>& alpha, std::vector<double>& beta,
     std::vector<std::vector<double>>& sab, std::vector<double>& s, double tolin,
@@ -156,72 +215,83 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
    if (y[2-1] > ymax) ymax=y[2-1];
    if (y[3-1] > ymax) ymax=y[3-1];
    if (ymax < eps) ymax=eps;
+
+   while ( true ){ 
+     while ( i < imax ){
+       // 150 continue
+       std::cout << "150" << std::endl;
+       //if (i == imax) go to 160
+       xm=half*(x[i-1-1]+x[i-1]);
+       ym=half*(y[i-1-1]+y[i-1]);
+       yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+         az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+  
+       test=tol*abs(yt)+tol*ymax/50;
+       test2=ym+ymax/100;
+       if (abs(yt-ym) <= test and abs(y[i-1-1]-y[i-1]) <= test2 and
+         (x[i-1-1]-x[i-1]) < half) break;
+       if (x[i-1-1]-x[i-1] < xtol) break;
+       i=i+1;
+       x[i-1]=x[i-1-1];
+       y[i-1]=y[i-1-1];
+       x[i-1-1]=xm;
+       y[i-1-1]=yt;
+       // go to 150
+     } 
+
+     // check bins for this panel
+     std::cout << "160" << std::endl;
+     add=half*(y[i-1]+yl)*(x[i-1]-xl);
+     if (x[i-1] == xl) {
+       std::cout << "250" << std::endl;
+       // go to 250
+       //  250 continue
+       xl=x[i-1];
+       yl=y[i-1];
+       i=i-1;
+       if (i > 1) {
+         // go to 150
+         std::cout << "go to 150 from 250" << std::endl;
+         continue;
+       }
+       if (i == 1) {
+         // go to 160
+         std::cout << "go to 160 from 250" << std::endl;
+       }
+
+       std::cout << "go to 260 from 250" << std::endl;
+       // 260 continue
+       return;
+  
+     } // end do 250 
+
+     xil=1/(x[i-1]-xl);
+   
+     if (i == 1 and j == nbin-1) {
+       // go to 165
+     
+       std::cout << "165" << std::endl;
+       // 165 continue
+       xn=x[i-1];
+       j=j+1;
+       // go to 190
+
+     }
+
+     if (sum+add >= fract*shade and j < nbin-1){ 
+       // go to 170
+       do170(j, test, fract, sum, y, x, yl, xn, xl, f, disc, ytol, rf, i, xil, sigmin);
+
+       std::cout << "go to 190" << std::endl;
+       
+     }
+     sum=sum+add;
+     gral=gral+half*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
+       +third*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
+  // go to 250
    return;
-
-   bool do150 = true;
-   while ( do150 ){
-   // 150 continue
-     std::cout << "150" << std::endl;
-     //if (i == imax) go to 160
-     xm=half*(x[i-1-1]+x[i-1]);
-     ym=half*(y[i-1-1]+y[i-1]);
-     yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
-       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
-
-     test=tol*abs(yt)+tol*ymax/50;
-     test2=ym+ymax/100;
-     //if (abs(yt-ym) <= test and abs(y(i-1)-y(i)) <= test2 and &
-     //  (x(i-1)-x(i)) < half) go to 160
-     //if (x(i-1)-x(i) < xtol) go to 160
-     i=i+1;
-     x[i-1]=x[i-1-1];
-     y[i-1]=y[i-1-1];
-     x[i-1-1]=xm;
-     y[i-1-1]=yt;
-     // go to 150
-   } 
-
+   }
    /*
-   // check bins for this panel
-  160 continue
-   add=half*(y(i)+yl)*(x(i)-xl)
-   if (x(i) == xl) go to 250
-   xil=1/(x(i)-xl)
-   if (i == 1 and j == nbin-1) go to 165
-   if (sum+add >= fract*shade and j < nbin-1) go to 170
-   sum=sum+add
-   gral=gral+half*(yl*x(i)-y(i)*xl)*(x(i)+xl)&
-     +third*(y(i)-yl)*(x(i)**2+x(i)*xl+xl**2)
-   go to 250
-  165 continue
-   xn=x(i)
-   j=j+1
-   go to 190
-  170 continue
-   j=j+1
-   if (yl < sigmin) go to 175
-   test=(fract-sum)*(y(i)-yl)/((x(i)-xl)*yl**2)
-   if (abs(test) > ytol) go to 175
-   xn=xl+(fract-sum)/yl
-   if (xn > x(i)) go to 180
-   if (xn >= xl and xn <= x(i)) go to 190
-   call error('sigl','no legal solution.',' ')
-  175 continue
-   f=(y(i)-yl)*xil
-   rf=1/f
-   disc=(yl*rf)**2+2*(fract-sum)*rf
-   if (disc < zero) {
-      write(strng,'(''disc='',1p,e12.4)') disc
-      call mess('sigl',strng,'set to abs value and continue')
-      disc=abs(disc)
-   } // end if
-   if (f > zero) xn=xl-(yl*rf)+sqrt(disc)
-   if (f < zero) xn=xl-(yl*rf)-sqrt(disc)
-   if (xn > xl and xn <= x(i)) go to 190
-   if (xn > xl and xn < (x(i)+ytol*(x(i)-xl))) go to 180
-   call error('sigl','no legal solution (quadratic path).',' ')
-  180 continue
-   xn=x(i)
   190 continue
    yn=yl+(y(i)-yl)*(xn-xl)*xil
    gral=gral+(xn-xl)*(yl*half*(xn+xl)&
