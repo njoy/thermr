@@ -20,7 +20,7 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
    * reconstruction of the angular distribution computed by sig.
    *-------------------------------------------------------------------
    */
-   int nl,i,j,il;
+   int nl,i,j,il,nbin;
    double b,seep,sum,xl,yl,ymax,xm,ym,test,test2;
    double rnbin,fract,gral,add,xil,xn,f,rf,disc,yn,xbar,rfract;
    double yt,tol,s1bb;
@@ -63,15 +63,13 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
    if (y[1-1] > ymax) ymax=y[1-1];
    if (y[3-1] > ymax) ymax=y[3-1];
    if (ymax < eps) ymax=eps;
-   return;
 
    bool do110 = true;
    bool do110_inner = true;
    bool do120 = true;
-   int counter = 0;
    while ( do110 ){
      while ( do110_inner ){ 
-       std::cout << "110" << std:endl;
+       std::cout << "110" << std::endl;
        // 110 continue
        
        // if (i == imax) go to 120
@@ -82,7 +80,6 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
 
        yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
          az2,teff2,lat,cliq,sb,sb2,teff,iinc);
-      // yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab);
       
        test=tol*abs(yt)+tol*ymax/50;
        test2=ym+ymax/100;
@@ -94,11 +91,10 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
        y[i-1]=y[i-1-1];
        x[i-1-1]=xm;
        y[i-1-1]=yt;
-       counter += 1; if (counter > 20 ){ return;}
      }  // do 110 inner. This corresponds to    // go to 110 
 
      while ( do120 ){
-       std::cout << "120" << std:endl;
+       std::cout << "120" << std::endl;
 
        // 120 continue
        sum=sum+half*(y[i-1]+yl)*(x[i-1]-xl);
@@ -110,66 +106,82 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
        if (i > 1) { break; }
 
        // if (i == 1) go to 120
-       // if (i == 1) go to 120
-       counter += 1; if (counter > 20 ){ return;}
+       if (i != 1) { // don't go to 120 - either go to 130 or return 
+
+         s[1-1]=sum;
+         // if (sum > sigmin) go to 130
+         if (sum > sigmin) { do110 = false; break;} 
+         for ( int il = 0; il < nl; ++il ){
+           s[il] = 0;
+         } // end do 
+         std::cout << "return from 120" << std::endl;
+         return;
+       } // don't go to 120
+
       } // go to 120
    } // go to 110
 
-   s[1-1]=sum;
-   // if (sum > sigmin) go to 130
-   for ( int il = 0; il < nl; ++il ){
-     s[il] = 0;
-   } // end do 
-   return;
-
-   /*
    // prime stack for equally-probable angles
-  130 continue
-   nbin=nl-1
-   rnbin=one/nbin
-   fract=sum*rnbin
-   rfract=1/fract
-   sum=0
-   gral=0
-   do il=2,nl
-      s(il)=0
-   } // end do
-   j=0
+   // 130 continue
+   std::cout << "130" << std::endl;
+   nbin=nl-1;
+   rnbin=one/nbin;
+   fract=sum*rnbin;
+   rfract=1/fract;
+   sum=0;
+   gral=0;
+   for ( int il = 1; il < nl; ++il ){
+     s[il] = 0;
+   }
+   j=0;
 
    // adaptive linearization
-   i=3
-   x(3)=-1
-   xl=x(3)
-   y(3)=sig(e,ep,x(3),tev,nalpha,alpha,nbeta,beta,sab)
-   if (ep == zero) x(2)=0
-   if (ep != zero) x(2)=half*(e+ep-(s1bb-1)*az*tev)*seep
-   if (abs(x(2)) > 1-eps) x(2)=0.99e0_kr
-   x(2)=sigfig(x(2),8,0)
-   y(2)=sig(e,ep,x(2),tev,nalpha,alpha,nbeta,beta,sab)
-   x(1)=+1
-   y(1)=sig(e,ep,x(1),tev,nalpha,alpha,nbeta,beta,sab)
-   ymax=y(1)
-   if (y(2) > ymax) ymax=y(2)
-   if (y(3) > ymax) ymax=y(3)
-   if (ymax < eps) ymax=eps
-  150 continue
-   if (i == imax) go to 160
-   xm=half*(x(i-1)+x(i))
-   xm=sigfig(xm,8,0)
-   ym=half*(y(i-1)+y(i))
-   yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab)
-   test=tol*abs(yt)+tol*ymax/50
-   test2=ym+ymax/100
-   if (abs(yt-ym) <= test and abs(y(i-1)-y(i)) <= test2 and &
-     (x(i-1)-x(i)) < half) go to 160
-   if (x(i-1)-x(i) < xtol) go to 160
-   i=i+1
-   x(i)=x(i-1)
-   y(i)=y(i-1)
-   x(i-1)=xm
-   y(i-1)=yt
-   go to 150
+   i=3;
+   x[3-1]=-1;
+   xl=x[3-1];
+   y[3-1]=sig(e,ep,x[3-1],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+   if (ep == zero) x[2-1]=0;
+   if (ep != zero) x[2-1]=half*(e+ep-(s1bb-1)*az*tev)*seep;
+   if (abs(x[2-1]) > 1-eps) x[2-1]=0.99e0;
+   y[2-1]=sig(e,ep,x[2-1],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
 
+   x[1-1]=+1;
+   y[1-1]=sig(e,ep,x[1-1],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+
+
+   ymax=y[1-1];
+   if (y[2-1] > ymax) ymax=y[2-1];
+   if (y[3-1] > ymax) ymax=y[3-1];
+   if (ymax < eps) ymax=eps;
+   return;
+
+   bool do150 = true;
+   while ( do150 ){
+   // 150 continue
+     std::cout << "150" << std::endl;
+     //if (i == imax) go to 160
+     xm=half*(x[i-1-1]+x[i-1]);
+     ym=half*(y[i-1-1]+y[i-1]);
+     yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+
+     test=tol*abs(yt)+tol*ymax/50;
+     test2=ym+ymax/100;
+     //if (abs(yt-ym) <= test and abs(y(i-1)-y(i)) <= test2 and &
+     //  (x(i-1)-x(i)) < half) go to 160
+     //if (x(i-1)-x(i) < xtol) go to 160
+     i=i+1;
+     x[i-1]=x[i-1-1];
+     y[i-1]=y[i-1-1];
+     x[i-1-1]=xm;
+     y[i-1-1]=yt;
+     // go to 150
+   } 
+
+   /*
    // check bins for this panel
   160 continue
    add=half*(y(i)+yl)*(x(i)-xl)
@@ -250,3 +262,4 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
 
 
 }
+       //counter += 1; if (counter > 20 ){std::cout << "return from counter" << std::endl; return;}
