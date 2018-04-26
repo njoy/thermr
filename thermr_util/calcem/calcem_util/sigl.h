@@ -1,8 +1,11 @@
+#include "sig.h"
 
 auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
     double tev, std::vector<double>& alpha, std::vector<double>& beta,
     std::vector<std::vector<double>>& sab, std::vector<double>& s, double tolin,
-    double az, double tevz, int iinc, int lat ){
+    double az, double tevz, int iinc, int lat, double bbm, 
+  int lasym, double az2, double teff2, double cliq, double sb,
+  double sb2, double teff ){
 
   /*-------------------------------------------------------------------
    * This is called by calcem, and uses sig.
@@ -45,43 +48,73 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
    sum=0;
    x[3-1]=-1;
    xl=x[3-1];
-   // y[3-1]=sig(e,ep,x[3-1],tev,nalpha,alpha,nbeta,beta,sab);
+   y[3-1]=sig(e,ep,x[3-1],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
    yl=y[3-1];
    if (ep == zero) x[2-1]=0;
    if (ep != zero) x[2-1]=half*(e+ep-(s1bb-1)*az*tev)*seep;
    if (abs(x[2-1]) > 1-eps) x[2-1]=0.99;
-   // x[2-1]=sigfig(x[2-1],8,0);
-   // y[2-1]=sig(e,ep,x[2-1],tev,nalpha,alpha,nbeta,beta,sab);
+   y[2-1]=sig(e,ep,x[2-1],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
    x[1-1]=+1;
-   // y[1-1]=sig(e,ep,x[1-1],tev,nalpha,alpha,nbeta,beta,sab);
+   y[1-1]=sig(e,ep,x[1-1],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
    ymax=y[2-1];
    if (y[1-1] > ymax) ymax=y[1-1];
    if (y[3-1] > ymax) ymax=y[3-1];
    if (ymax < eps) ymax=eps;
-  // 110 continue
-  // if (i == imax) go to 120
-   xm=half*(x[i-1-1]+x[i-1]);
-   //xm=sigfig(xm,8,0)
-   ym=half*(y[i-1-1]+y[i-1]);
-   // yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab);
-   test=tol*abs(yt)+tol*ymax/50;
-   test2=ym+ymax/100;
-   // if (abs(yt-ym) <= test and abs(y[i-1-1]-y[i-1]) <= test2 and
-   //  (x[i-1-1]-x[i-1]) < half) go to 120
-   //if (x[i-1-1]-x[i-1] < xtol) go to 120
-   i=i+1;
-   x[i-1]=x[i-1-1];
-   y[i-1]=y[i-1-1];
-   x[i-1-1]=xm;
-   y[i-1-1]=yt;
-   // go to 110
-   // 120 continue
-   sum=sum+half*(y[i-1]+yl)*(x[i-1]-xl);
-   xl=x[i-1];
-   yl=y[i-1];
-   i=i-1;
-   // if (i > 1) go to 110
-   // if (i == 1) go to 120
+   return;
+
+   bool do110 = true;
+   bool do110_inner = true;
+   bool do120 = true;
+   int counter = 0;
+   while ( do110 ){
+     while ( do110_inner ){ 
+       std::cout << "110" << std:endl;
+       // 110 continue
+       
+       // if (i == imax) go to 120
+       if (i == imax) break;
+
+       xm=half*(x[i-1-1]+x[i-1]);
+       ym=half*(y[i-1-1]+y[i-1]);
+
+       yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+         az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+      // yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab);
+      
+       test=tol*abs(yt)+tol*ymax/50;
+       test2=ym+ymax/100;
+       if (abs(yt-ym) <= test and abs(y[i-1-1]-y[i-1]) <= test2 and
+         (x[i-1-1]-x[i-1]) < half) { break; } // go to 120
+       if (x[i-1-1]-x[i-1] < xtol) { break; } // go to 120
+       i=i+1;
+       x[i-1]=x[i-1-1];
+       y[i-1]=y[i-1-1];
+       x[i-1-1]=xm;
+       y[i-1-1]=yt;
+       counter += 1; if (counter > 20 ){ return;}
+     }  // do 110 inner. This corresponds to    // go to 110 
+
+     while ( do120 ){
+       std::cout << "120" << std:endl;
+
+       // 120 continue
+       sum=sum+half*(y[i-1]+yl)*(x[i-1]-xl);
+       xl=x[i-1];
+       yl=y[i-1];
+       i=i-1;
+
+       // if (i > 1) go to 110
+       if (i > 1) { break; }
+
+       // if (i == 1) go to 120
+       // if (i == 1) go to 120
+       counter += 1; if (counter > 20 ){ return;}
+      } // go to 120
+   } // go to 110
+
    s[1-1]=sum;
    // if (sum > sigmin) go to 130
    for ( int il = 0; il < nl; ++il ){

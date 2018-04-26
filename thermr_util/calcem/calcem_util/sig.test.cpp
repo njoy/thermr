@@ -127,9 +127,10 @@ TEST_CASE( "sig" ){
     } // WHEN
   } // GIVEN
 
+  iinc = 2;
+  e = 1.0e-6, ep = 1.2e-4, u = -1.0, tev = 1.5e-1, tevz = 2.2e-4;
+
   GIVEN( "150" ){
-    iinc = 2;
-    e = 1.0e-6, ep = 1.2e-4, u = -1.0, tev = 1.5e-1, tevz = 2.2e-4;
     WHEN( "final neutron energy E' is zero (ep = 0)" ){
       THEN( "output cross section is 0 (see Eq. 225) " ){
         sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
@@ -151,8 +152,22 @@ TEST_CASE( "sig" ){
 
       } // THEN
     } // WHEN
+    WHEN( "alpha, beta values are smaller" ){
+      for ( auto& entry : alpha ){ entry *= 0.01; }
+      for ( size_t i = 0; i < beta.size()-1; ++i  ){ beta[i] *= 0.1; }
+      THEN( "search for ia and ib in alpha, beta vectors" ){
+        sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+          bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
+        REQUIRE( 187405.9625716 == Approx( sigVal1 ).epsilon(1e-6) );
+
+      } // THEN
+    } // WHEN
+
+  } // GIVEN
+  GIVEN( "160" ){
+    tev = 1.5e-4;
     WHEN( "straight to 160" ){
-    cliq = 1.0;
+      cliq = 1.0;
       ep = 3.1e-5;
       THEN( "output cross section is 0 (see Eq. 225) " ){
         sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
