@@ -27,6 +27,8 @@ TEST_CASE( "sigl" ){
 
     sigl( nlin, nalpha, nbeta, nlmax, e, ep, tev, alpha, beta, sab, s, tolin, az, tevz, iinc, lat, bbm, lasym, az2, teff2, cliq, sb, sb2, teff );
 
+    for ( int i = 0; i < 10; ++i ){std::cout << s[i] << std::endl; }
+
 
 
 

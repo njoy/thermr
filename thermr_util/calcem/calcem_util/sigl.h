@@ -1,5 +1,117 @@
 #include "sig.h"
 
+void do150( double& xm, double& ym, std::vector<double>& x, std::vector<double>& y,
+  double& yt, double& e, double& ep, double& tev, int nalpha, int nbeta,
+  std::vector<double>& alpha, std::vector<double>& beta, std::vector<std::vector<double>>& sab,
+  double& test, int& i, double& test2, double& ymax, int iinc, double teff,
+  double tol, double teff2, double az2, double xtol, int lasym, double tevz, 
+  double az, int lat, int bbm, double cliq, double sb, double sb2, int imax ){
+  double half = 0.5;
+  while ( i < imax ){
+    // 150 continue
+    std::cout << "150" << std::endl;
+    //if (i == imax) go to 160
+    xm=half*(x[i-1-1]+x[i-1]);
+    ym=half*(y[i-1-1]+y[i-1]);
+    yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+      az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+  
+    test=tol*abs(yt)+tol*ymax/50;
+    test2=ym+ymax/100;
+    if (abs(yt-ym) <= test and abs(y[i-1-1]-y[i-1]) <= test2 and
+      (x[i-1-1]-x[i-1]) < half) return;
+    if (x[i-1-1]-x[i-1] < xtol) return;
+    i=i+1;
+    x[i-1]=x[i-1-1];
+    y[i-1]=y[i-1-1];
+    x[i-1-1]=xm;
+    y[i-1-1]=yt;
+    // go to 150
+  }
+
+}
+
+
+int do250( std::vector<double>& x, std::vector<double>& y, double& xl, double& yl,
+  int& i ){
+  std::cout << "250" << std::endl;
+  // go to 250
+  //  250 continue
+  xl=x[i-1];
+  yl=y[i-1];
+  i=i-1;
+  if (i > 1) {
+    // go to 150
+    std::cout << "go to 150 from 250" << std::endl;
+    return 150;
+    //continue;
+  }
+  if (i == 1) {
+    // go to 160
+    std::cout << "go to 160 from 250" << std::endl;
+    return 160;
+  }
+
+  std::cout << "go to 260 from 250" << std::endl;
+  // 260 continue
+  return 260;
+
+}
+
+
+int do160(double add, std::vector<double>& x, std::vector<double>& y, double& xl,
+  double& yl, int& i, double& xil, int& j, double& fract, int& nbin, double& sum,
+  double& gral, double& xn, double& shade ){
+  double half = 0.5;
+  double third = 1.0/3.0;
+  while ( true ){
+     std::cout << "160" << std::endl;
+     add=half*(y[i-1]+yl)*(x[i-1]-xl);
+
+     if (x[i-1] == xl) {
+       // returns either 150, 160, or 260
+       int what_next = do250( x, y, xl, yl, i ); 
+       if ( what_next == 160 ){ continue; }
+       return what_next;
+     } 
+
+     xil=1/(x[i-1]-xl);
+   
+     if (i == 1 and j == nbin-1) {
+       // go to 165
+       std::cout << "165" << std::endl;
+       // 165 continue
+       xn=x[i-1];
+       j=j+1;
+       // go to 190
+       return 190;
+
+     }
+
+     if (sum+add >= fract*shade and j < nbin-1){ 
+       // go to 170
+       return 170;
+
+       //std::cout << "go to 190" << std::endl;
+       
+     }
+     sum=sum+add;
+     gral=gral+half*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
+       +third*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
+     
+  // go to 250
+   // returns either 150, 160, or 260
+   int what_next = do250( x, y, xl, yl, i ); 
+   if ( what_next != 160 ){ 
+     // returns either 150 or 260
+     return what_next;
+   }
+
+  }
+}
+
+
+
 auto do170(int& j, double& test, double& fract, double& sum, std::vector<double>& y,
   std::vector<double>& x, double& yl, double& xn, double& xl, double& f, double& disc,
   double& ytol, double& rf, int& i, double& xil, const double& sigmin){
@@ -59,12 +171,12 @@ auto do170(int& j, double& test, double& fract, double& sum, std::vector<double>
 }
 
 
-auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
-    double tev, std::vector<double>& alpha, std::vector<double>& beta,
-    std::vector<std::vector<double>>& sab, std::vector<double>& s, double tolin,
-    double az, double tevz, int iinc, int lat, double bbm, 
-  int lasym, double az2, double teff2, double cliq, double sb,
-  double sb2, double teff ){
+auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double& e, double& ep,
+    double& tev, std::vector<double>& alpha, std::vector<double>& beta,
+    std::vector<std::vector<double>>& sab, std::vector<double>& s, double& tolin,
+    double& az, double& tevz, int iinc, int lat, double& bbm, 
+  int lasym, double& az2, double& teff2, double& cliq, double& sb,
+  double& sb2, double& teff ){
 
   /*-------------------------------------------------------------------
    * This is called by calcem, and uses sig.
@@ -216,120 +328,68 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double e, double ep,
    if (y[3-1] > ymax) ymax=y[3-1];
    if (ymax < eps) ymax=eps;
 
+   bool go_straight_to_150_from_190 = true;
    while ( true ){ 
-     while ( i < imax ){
-       // 150 continue
-       std::cout << "150" << std::endl;
-       //if (i == imax) go to 160
-       xm=half*(x[i-1-1]+x[i-1]);
-       ym=half*(y[i-1-1]+y[i-1]);
-       yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
-         az2,teff2,lat,cliq,sb,sb2,teff,iinc);
-  
-       test=tol*abs(yt)+tol*ymax/50;
-       test2=ym+ymax/100;
-       if (abs(yt-ym) <= test and abs(y[i-1-1]-y[i-1]) <= test2 and
-         (x[i-1-1]-x[i-1]) < half) break;
-       if (x[i-1-1]-x[i-1] < xtol) break;
-       i=i+1;
-       x[i-1]=x[i-1-1];
-       y[i-1]=y[i-1-1];
-       x[i-1-1]=xm;
-       y[i-1-1]=yt;
-       // go to 150
-     } 
+     if (go_straight_to_150_from_190){
+       do150( xm, ym, x, y, yt, e, ep, tev, nalpha, nbeta, alpha, beta, sab, test, i, test2, ymax, iinc, teff, tol, teff2, az2, xtol, lasym, tevz, az, lat, bbm, cliq, sb, sb2, imax );
+     }
+     go_straight_to_150_from_190 = true; 
 
      // check bins for this panel
-     std::cout << "160" << std::endl;
-     add=half*(y[i-1]+yl)*(x[i-1]-xl);
-     if (x[i-1] == xl) {
-       std::cout << "250" << std::endl;
-       // go to 250
-       //  250 continue
-       xl=x[i-1];
-       yl=y[i-1];
-       i=i-1;
-       if (i > 1) {
-         // go to 150
-         std::cout << "go to 150 from 250" << std::endl;
-         continue;
-       }
-       if (i == 1) {
-         // go to 160
-         std::cout << "go to 160 from 250" << std::endl;
-       }
+     //
+     int what_next = do160(add, x, y, xl, yl, i, xil, j, fract, nbin, sum, gral, xn, shade );
+     if (what_next == 150){ continue; }
+     if (what_next == 260){ return; }
+     if (what_next == 170 ){ do170(j, test, fract, sum, y, x, yl, xn, xl, f, disc, ytol, rf, i, xil, sigmin); }
 
-       std::cout << "go to 260 from 250" << std::endl;
-       // 260 continue
-       return;
-  
-     } // end do 250 
-
-     xil=1/(x[i-1]-xl);
-   
-     if (i == 1 and j == nbin-1) {
-       // go to 165
-     
-       std::cout << "165" << std::endl;
-       // 165 continue
-       xn=x[i-1];
-       j=j+1;
-       // go to 190
-
-     }
-
-     if (sum+add >= fract*shade and j < nbin-1){ 
-       // go to 170
-       do170(j, test, fract, sum, y, x, yl, xn, xl, f, disc, ytol, rf, i, xil, sigmin);
-
-       std::cout << "go to 190" << std::endl;
-       
-     }
-     sum=sum+add;
-     gral=gral+half*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
-       +third*(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl);
-  // go to 250
-   return;
-   }
-   /*
-  190 continue
-   yn=yl+(y(i)-yl)*(xn-xl)*xil
-   gral=gral+(xn-xl)*(yl*half*(xn+xl)&
-     +(y(i)-yl)*xil*(-xl*half*(xn+xl)&
-     +third*(xn**2+xn*xl+xl**2)))
-   xbar=gral*rfract
+     //190 continue
+     std::cout << "190" << std::endl;
+     yn=yl+(y[i-1]-yl)*(xn-xl)*xil;
+     gral=gral+(xn-xl)*(yl*half*(xn+xl)
+       +(y[i-1]-yl)*xil*(-xl*half*(xn+xl)
+       +third*(xn*xn+xn*xl+xl*xl)));
+     xbar=gral*rfract;
 
    // compute legendre components
    if (nlin >= 0) {
-      call legndr(xbar,p,nl)
-      do il=2,nl
-         s(il)=s(il)+p(il)*rnbin
+    //  call legndr(xbar,p,nl)
+      for ( int il = 1; il < nl; ++il ){
+         s[il]=s[il]+p[il]*rnbin;
       } // end do
-
+   }
    // output equally probable angles
    else {
-      s(j+1)=xbar
+      s[j+1]=xbar;
    } // end if
 
    // continue bin loop and linearization loop
-   xl=xn
-   yl=yn
-   sum=0
-   gral=0
-   if (j == nbin) go to 260
-   if (xl < x(i)) go to 160
-  250 continue
-   xl=x(i)
-   yl=y(i)
-   i=i-1
-   if (i > 1) go to 150
-   if (i == 1) go to 160
-  260 continue
-   return
-   end subroutine sigl
+   xl=xn;
+   yl=yn;
+   sum=0;
+   gral=0;
+   if (j == nbin) return;
+   if (xl < x[i-1]) {
+     // go to 160
+     go_straight_to_150_from_190 = false; 
+     continue;
+     
+   }
+   
+   // returns either 150, 160, or 260
+   what_next = do250( x, y, xl, yl, i ); 
+   if ( what_next == 160 ){  
+     go_straight_to_150_from_190 = false; 
+     continue;
+   }
+   if ( what_next == 150 ){
+     continue;
+   }
+   if (what_next == 260 ){
+     return;
+   }
 
-   */
 
+  }
 
 }
        //counter += 1; if (counter > 20 ){std::cout << "return from counter" << std::endl; return;}
