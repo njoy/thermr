@@ -27,8 +27,11 @@ TEST_CASE( "sigl" ){
 
     sigl( nlin, nalpha, nbeta, nlmax, e, ep, tev, alpha, beta, sab, s, tolin, az, tevz, iinc, lat, bbm, lasym, az2, teff2, cliq, sb, sb2, teff );
 
-    for ( int i = 0; i < 10; ++i ){std::cout << s[i] << std::endl; }
-
+    std::vector<double> correctS { 271591.65320443577, -8.7762705475558089E-005 , -6.1624950395032796E-003, 7.1582888474724937E-005, -2.0187802051442470E-002, 1.0016609703506103E-004, -3.9444078853636121E-002, 3.0130372017232732E-005, -5.4590794907848357E-002, -9.1381657730357779E-005};
+   for ( int i = 0; i < 10; ++i ){ 
+     //std::cout << s[i] << "      " << correctS[i] << std::endl;
+     REQUIRE( correctS[i] == Approx(s[i]).epsilon(1e-6) ); 
+   }
 
 
 
