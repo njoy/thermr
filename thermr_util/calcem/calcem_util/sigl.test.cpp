@@ -5,7 +5,7 @@
 
 TEST_CASE( "sigl" ){
   GIVEN( "inputs" ){
-    int nalpha = 5, nbeta = 7, lasym = 0, lat = 1, iinc = 2, nlmax = 65, 
+    int lasym = 0, lat = 1, iinc = 2, nlmax = 65, 
         nlin = 10;
 
     std::cout << std::setprecision(10) ;
@@ -17,19 +17,18 @@ TEST_CASE( "sigl" ){
       beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 },
       s(65,0.0);
 
-    std::vector<std::vector<double>> sab(nalpha, std::vector<double>(nbeta,0));
-    for ( int i = 0; i < nalpha; ++i ){
-      for ( int j = 0; j < nbeta; ++j ){
+    std::vector<std::vector<double>> sab(alpha.size(), std::vector<double>(beta.size(),0));
+    for ( int i = 0; i < alpha.size(); ++i ){
+      for ( int j = 0; j < beta.size(); ++j ){
         sab[i][j] = 0.01*((j+1) + 0.1*(i+1));
       } 
     } 
 
 
-    sigl( nlin, nalpha, nbeta, nlmax, e, ep, tev, alpha, beta, sab, s, tolin, az, tevz, iinc, lat, bbm, lasym, az2, teff2, cliq, sb, sb2, teff );
+    sigl( nlin, nlmax, e, ep, tev, alpha, beta, sab, s, tolin, az, tevz, iinc, lat, bbm, lasym, az2, teff2, cliq, sb, sb2, teff );
 
     std::vector<double> correctS { 271591.65320443577, -8.7762705475558089E-005 , -6.1624950395032796E-003, 7.1582888474724937E-005, -2.0187802051442470E-002, 1.0016609703506103E-004, -3.9444078853636121E-002, 3.0130372017232732E-005, -5.4590794907848357E-002, -9.1381657730357779E-005};
    for ( int i = 0; i < 10; ++i ){ 
-     //std::cout << s[i] << "      " << correctS[i] << std::endl;
      REQUIRE( correctS[i] == Approx(s[i]).epsilon(1e-6) ); 
    }
 

@@ -1,3 +1,8 @@
+
+#ifndef THERMR_SIG
+#define THERMR_SIG
+
+
 #include "../../extra/terpq.h"
 
 double do160(double sigc, double sb, double s, double bb, double sabflg,
@@ -13,12 +18,12 @@ double do160(double sigc, double sb, double s, double bb, double sabflg,
   return (sigVal < sigmin) ? 0 : sigVal;
 }
 
-auto do155( int ia, int ib, int nalpha, int nbeta, std::vector<double>& alpha,
+auto do155( int ia, int ib, std::vector<double>& alpha,
     std::vector<double>& beta, std::vector<std::vector<double>>& sab,
     double a, double bbb, double sigc, double sb, double bb, double sabflg,
     double sigmin ){
-   if (ia+1 == nalpha) ia -= 1;
-   if (ib+1 == nbeta)  ib -= 1;
+   if (ia+1 == alpha.size()) ia -= 1;
+   if (ib+1 == beta.size())  ib -= 1;
    ia -= 1;
    ib -= 1;
    double s1 = terpq( alpha[ia],     alpha[ia+1],     alpha[ia+2], a, 
@@ -62,8 +67,8 @@ auto doSCTApproximation( int lat, double a, double b, double tevz, double teff,
 }
 
 
-auto sig( double e, double ep, double& u, double tev, int nalpha, 
-  std::vector<double>& alpha, int nbeta, std::vector<double>& beta,
+auto sig( double e, double ep, double& u, double tev,  
+  std::vector<double>& alpha, std::vector<double>& beta,
   std::vector<std::vector<double>>& sab, double bbm, double az, double tevz,
   int lasym, double az2, double teff2, int lat, double cliq, double sb,
   double sb2, double teff, int iinc ){
@@ -122,7 +127,7 @@ auto sig( double e, double ep, double& u, double tev, int nalpha,
     b = abs(bb_tev); a = a_tev;
   }
 
-  if (a > alpha[nalpha-1]) {
+  if (a > alpha[alpha.size()-1]) {
     // go to 170
     return doSCTApproximation( lat, a_tev, b_tev, tevz, teff, 
         teff2, az, az2, sigc, s2, u, sb2, e, tev, sigmin, 
@@ -131,7 +136,7 @@ auto sig( double e, double ep, double& u, double tev, int nalpha,
 
   if (lasym == 1) {
      bbm = (lat == 1) ? bb*tev/tevz : bb_tev;
-     if ( bbm > beta[nbeta-1] or bbm < beta[0] ){
+     if ( bbm > beta[beta.size()-1] or bbm < beta[0] ){
        // go to 170
        return doSCTApproximation( lat, a_tev, b_tev, tevz, teff, 
            teff2, az, az2, sigc, s2, u, sb2, e, tev, 
@@ -139,7 +144,7 @@ auto sig( double e, double ep, double& u, double tev, int nalpha,
      } 
   } // end if 
   else {
-    if ( b > beta[nbeta-1] ){
+    if ( b > beta[beta.size()-1] ){
        return doSCTApproximation( lat, a_tev, b_tev, tevz, teff, 
            teff2, az, az2, sigc, s2, u, sb2, e, tev, 
            sigmin, sabflg, bb_tev, s, sb );
@@ -158,7 +163,7 @@ auto sig( double e, double ep, double& u, double tev, int nalpha,
 
     // 150 continue
     if (a*az < test2 and b < test2) { 
-      return do155( ia, ib, nalpha, nbeta, alpha, beta, sab, a, b, sigc, sb,
+      return do155( ia, ib, alpha, beta, sab, a, b, sigc, sb,
           bb_tev, sabflg, sigmin );
     }
     if ( a*az >= test2 or b >= test2 ){
@@ -181,3 +186,4 @@ auto sig( double e, double ep, double& u, double tev, int nalpha,
 
 
 
+#endif

@@ -1,120 +1,18 @@
 #include "sig.h"
 #include "../../coh_util/sigcoh_util/legndr.h"
-
-
-auto do_110_120_130(int& i, int& imax, double& xm, double& ym, std::vector<double>& x,
-  std::vector<double>& y, double& e, double& ep, double& tev, double& tevz, 
-  int& nalpha, int& nbeta, std::vector<double>& alpha,std::vector<double>& beta,
-  std::vector<std::vector<double>>& sab, double& bbm, double& az, double& az2,
-  int& lasym, double& teff, double& teff2, int& lat, double& cliq, double& sb,
-  double& sb2, int& iinc, double& yt, double& sum, int& nl, double& sigmin,
-  std::vector<double>& s, int& nbin, double& fract, double& rnbin, double& xl,
-  int& j, double& ymax, double& eps, double& rfract, double& seep, double& gral, 
-  double& yl, double& test2, double& s1bb, double& test, double& tol, double& xtol){
-
-  bool do110 = true;
-  bool do110_inner = true;
-  bool do120 = true;
-  while ( do110 ){
-    while ( do110_inner ){ 
-      std::cout << "110" << std::endl;
-      // 110 continue
-      
-      // if (i == imax) go to 120
-      if (i == imax) break;
-
-      xm=0.5*(x[i-2]+x[i-1]);
-      ym=0.5*(y[i-2]+y[i-1]);
-
-      yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
-        az2,teff2,lat,cliq,sb,sb2,teff,iinc);
-      
-      test=tol*abs(yt)+tol*ymax/50;
-      test2=ym+ymax/100;
-      if (abs(yt-ym) <= test and abs(y[i-2]-y[i-1]) <= test2 and
-        (x[i-2]-x[i-1]) < 0.5 ) { break; } // go to 120
-      if (x[i-2]-x[i-1] < xtol) { break; } // go to 120
-      i=i+1;
-      x[i-1]=x[i-2];
-      y[i-1]=y[i-2];
-      x[i-2]=xm;
-      y[i-2]=yt;
-    }  // do 110 inner. This corresponds to    // go to 110 
-
-    while ( do120 ){
-      std::cout << "120" << std::endl;
-
-      // 120 continue
-      sum=sum+0.5*(y[i-1]+yl)*(x[i-1]-xl);
-      xl=x[i-1];
-      yl=y[i-1];
-      i=i-1;
-
-      // if (i > 1) go to 110
-      if (i > 1) { break; }
-
-      // if (i == 1) go to 120
-      if (i != 1) { // don't go to 120 - either go to 130 or return 
-        s[0]=sum; 
-
-        // if (sum > sigmin) go to 130
-        if (sum > sigmin) { do110 = false; break;} 
-        for ( int il = 0; il < nl; ++il ){
-          s[il] = 0;
-        } // end do 
-        std::cout << "return from 120" << std::endl;
-        return;
-      } // don't go to 120
-
-    } // go to 120
-  } // go to 110
-
-  // prime stack for equally-probable angles
-  // 130 continue
-  std::cout << "130" << std::endl;
-  nbin=nl-1;
-  rnbin=1.0/nbin;
-  fract=sum*rnbin;
-  rfract=1/fract;
-  sum=0;
-  gral=0;
-  for ( int il = 1; il < nl; ++il ){
-    s[il] = 0;
-  }
-  j=0;
-
-  // adaptive linearization
-  i=3;
-  x[2]=-1;
-  xl=x[2];
-  y[2]=sig(e,ep,x[2],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
-    az2,teff2,lat,cliq,sb,sb2,teff,iinc);
-  if (ep == 0.0) x[1]=0;
-  if (ep != 0.0) x[1]=0.5*(e+ep-(s1bb-1)*az*tev)*seep;
-  if (abs(x[1]) > 1-eps) x[1]=0.99e0;
-  y[1]=sig(e,ep,x[1],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
-    az2,teff2,lat,cliq,sb,sb2,teff,iinc);
-
-  x[0]=+1;
-  y[0]=sig(e,ep,x[0],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
-    az2,teff2,lat,cliq,sb,sb2,teff,iinc);
-
-  ymax=y[0];
-  if (y[1] > ymax) ymax=y[1];
-  if (y[2] > ymax) ymax=y[2];
-  if (ymax < eps) ymax=eps;
-
-}
+#include "beginningLoop.h"
 
 
 
 
-void do150( double& xm, double& ym, std::vector<double>& x, std::vector<double>& y,
-  double& yt, double& e, double& ep, double& tev, int nalpha, int nbeta,
+void do150( std::vector<double>& x, std::vector<double>& y,
+  double& e, double& ep, double& tev, 
   std::vector<double>& alpha, std::vector<double>& beta, std::vector<std::vector<double>>& sab,
-  double& test, int& i, double& test2, double& ymax, int iinc, double teff,
+  int& i, double& ymax, int iinc, double teff,
   double tol, double teff2, double az2, double xtol, int lasym, double tevz, 
   double az, int lat, int bbm, double cliq, double sb, double sb2, int imax ){
+
+  double xm, ym, yt, test, test2;
 
   while ( i < imax ){
     // 150 continue
@@ -122,7 +20,7 @@ void do150( double& xm, double& ym, std::vector<double>& x, std::vector<double>&
     //if (i == imax) go to 160
     xm=0.5*(x[i-2]+x[i-1]);
     ym=0.5*(y[i-2]+y[i-1]);
-    yt=sig(e,ep,xm,tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+    yt=sig(e,ep,xm,tev,alpha,beta,sab,bbm,az,tevz,lasym,
       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
   
     test=tol*abs(yt)+tol*ymax/50;
@@ -218,12 +116,13 @@ int do160(double add, std::vector<double>& x, std::vector<double>& y, double& xl
 
 
 
-auto do170(int& j, double& test, double& fract, double& sum, std::vector<double>& y,
+auto do170(int& j, double& fract, double& sum, std::vector<double>& y,
   std::vector<double>& x, double& yl, double& xn, double& xl, double& f, double& disc,
   double& ytol, double& rf, int& i, double& xil, const double& sigmin){
   // 170 continue
   std::cout << 170 << std::endl;
   j=j+1;
+  double test;
 
   if (abs(test) > ytol){ 
     test=(fract-sum)*(y[i-1]-yl)/((x[i-1]-xl)*yl*yl);
@@ -276,7 +175,7 @@ auto do170(int& j, double& test, double& fract, double& sum, std::vector<double>
 }
 
 
-auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double& e, double& ep,
+auto sigl( int nlin, int nlmax, double& e, double& ep,
   double& tev, std::vector<double>& alpha, std::vector<double>& beta,
   std::vector<std::vector<double>>& sab, std::vector<double>& s, double& tolin,
   double& az, double& tevz, int iinc, int lat, double& bbm, 
@@ -297,9 +196,9 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double& e, double& ep,
   *-------------------------------------------------------------------
   */
   int nl,i,j,il,nbin;
-  double b,seep,sum,xl,yl,ymax,xm,ym,test,test2;
-  double rnbin,fract,gral,add,xil,xn,f,rf,disc,yn,xbar,rfract;
-  double yt,tol,s1bb;
+  double b,seep,sum,xl,yl,ymax;
+  double fract,gral,add,xil,xn,f,rf,disc,yn,xbar;
+  double tol,s1bb;
   int imax=20;
   std::vector<double> x(imax), y(imax), p(nlin);
   // character(60)::strng
@@ -323,16 +222,16 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double& e, double& ep,
   sum=0;
   x[2]=-1;
   xl=x[2];
-  y[2]=sig(e,ep,x[2],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+  y[2]=sig(e,ep,x[2],tev,alpha,beta,sab,bbm,az,tevz,lasym,
       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
   yl=y[2];
   if (ep == 0.0) x[1]=0;
   if (ep != 0.0) x[1]=0.5*(e+ep-(s1bb-1)*az*tev)*seep;
   if (abs(x[1]) > 1-eps) x[1]=0.99;
-  y[1]=sig(e,ep,x[1],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+  y[1]=sig(e,ep,x[1],tev,alpha,beta,sab,bbm,az,tevz,lasym,
       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
   x[0]=+1;
-  y[0]=sig(e,ep,x[0],tev,nalpha,alpha,nbeta,beta,sab,bbm,az,tevz,lasym,
+  y[0]=sig(e,ep,x[0],tev,alpha,beta,sab,bbm,az,tevz,lasym,
       az2,teff2,lat,cliq,sb,sb2,teff,iinc);
   ymax=y[1];
   if (y[0] > ymax) ymax=y[0];
@@ -340,13 +239,13 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double& e, double& ep,
   if (ymax < eps) ymax=eps;
 
 
-  do_110_120_130(i, imax, xm, ym, x, y, e, ep, tev, tevz, nalpha, nbeta, alpha,beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, yt, sum, nl, sigmin, s, nbin, fract, rnbin, xl, j, ymax, eps, rfract, seep, gral, yl, test2, s1bb, test, tol, xtol);
+  do_110_120_130(i, imax, x, y, e, ep, tev, tevz, alpha,beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, sum, nl, sigmin, s, nbin, fract, xl, j, ymax, eps, seep, gral, yl, s1bb, tol, xtol);
 
 
   bool go_straight_to_150_from_190 = true;
   while ( true ){ 
     if (go_straight_to_150_from_190){
-      do150( xm, ym, x, y, yt, e, ep, tev, nalpha, nbeta, alpha, beta, sab, test, i, test2, ymax, iinc, teff, tol, teff2, az2, xtol, lasym, tevz, az, lat, bbm, cliq, sb, sb2, imax );
+      do150( x, y, e, ep, tev, alpha, beta, sab, i, ymax, iinc, teff, tol, teff2, az2, xtol, lasym, tevz, az, lat, bbm, cliq, sb, sb2, imax );
     }
     go_straight_to_150_from_190 = true; 
 
@@ -355,7 +254,7 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double& e, double& ep,
     int what_next = do160(add, x, y, xl, yl, i, xil, j, fract, nbin, sum, gral, xn, shade );
     if (what_next == 150){ continue; }
     if (what_next == 260){ return; }
-    if (what_next == 170 ){ do170(j, test, fract, sum, y, x, yl, xn, xl, f, disc, ytol, rf, i, xil, sigmin); }
+    if (what_next == 170 ){ do170(j, fract, sum, y, x, yl, xn, xl, f, disc, ytol, rf, i, xil, sigmin); }
 
     //190 continue
     std::cout << "190" << std::endl;
@@ -363,13 +262,13 @@ auto sigl( int nlin, int nalpha, int nbeta, int nlmax, double& e, double& ep,
     gral=gral+(xn-xl)*(yl*0.5*(xn+xl)
       +(y[i-1]-yl)*xil*(-xl*0.5*(xn+xl)
       +(xn*xn+xn*xl+xl*xl)/3.0));
-    xbar=gral*rfract;
+    xbar=gral/fract;
 
     // compute legendre components
     if (nlin >= 0) {
        legndr(xbar,p,nl);
        for ( int il = 1; il < nl; ++il ){
-          s[il]=s[il]+p[il]*rnbin;
+          s[il]=s[il]+p[il]/nbin;
        } // end do
     }
     // output equally probable angles

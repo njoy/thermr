@@ -14,9 +14,9 @@ TEST_CASE( "sig" ){
 
   std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
     beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
-  std::vector<std::vector<double>> sab(nalpha, std::vector<double>(nbeta,0));
-  for ( int i = 0; i < nalpha; ++i ){
-    for ( int j = 0; j < nbeta; ++j ){
+  std::vector<std::vector<double>> sab(alpha.size(), std::vector<double>(beta.size(),0));
+  for ( int i = 0; i < alpha.size(); ++i ){
+    for ( int j = 0; j < beta.size(); ++j ){
       sab[i][j] = 0.01*((j+1) + 0.1*(i+1));
 
     } 
@@ -26,7 +26,7 @@ TEST_CASE( "sig" ){
   GIVEN( "invalid input requested (iinc != 1,2)" ){
     iinc = 0;
     THEN( "throw exception" ){
-      REQUIRE_THROWS( sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+      REQUIRE_THROWS( sig( e, ep, u, tev, alpha, beta, sab, 
         bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc ) );
     } // THEN
   } // GIVEN
@@ -36,7 +36,7 @@ TEST_CASE( "sig" ){
 
     WHEN( "final neutron energy E' is zero (ep = 0)" ){
       THEN( "output cross section is 0 (see Eq. 225) " ){
-        sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+        sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
           bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
         REQUIRE( 0.0 == Approx( sigVal1 ).epsilon(1e-6) );
       } // THEN
@@ -46,7 +46,7 @@ TEST_CASE( "sig" ){
 
     WHEN( "temperature is extremely small" ){
       tev = 1.5e-8;
-      sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+      sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
         bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
       THEN( "alpha, beta --> big, so exponential in Eq. 229 dies" ){
         REQUIRE( 0.0 == Approx( sigVal1 ).epsilon(1e-6) );
@@ -54,7 +54,7 @@ TEST_CASE( "sig" ){
     } // WHEN
 
     WHEN( "nonextreme values are provided" ){
-      sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+      sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
         bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
       THEN( "nonzero sig output is provided" ){
         REQUIRE( 1384.063418 == Approx( sigVal1 ).epsilon(1e-6) );
@@ -66,11 +66,11 @@ TEST_CASE( "sig" ){
     iinc = 2; tev = 1.5e-1; tevz = 2.2e-4;
     WHEN( "this is because of a > alpha(nalpha)" ){
       e = 1.0e-2, ep = 1.2e-2;
-      sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+      sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
         bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
 
       e = 1.0e-3, ep = 1.2e-3; alpha = { 0.1, 0.2, 0.3, 0.5, 0.8 };
-      sigVal2 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+      sigVal2 = sig( e, ep, u, tev, alpha, beta, sab, 
         bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
 
       THEN( "SCT Approximation is used" ){
@@ -85,7 +85,7 @@ TEST_CASE( "sig" ){
       AND_WHEN( "lasym != 1" ){ 
         e = 1.0e-4, ep = 5.2e-3, tev = 1.5e-1;
         lasym = 0;
-        sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+        sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
           bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
         REQUIRE( 795.18855771477308 == Approx( sigVal1 ).epsilon(1e-6) );
       } // AND WHEN
@@ -95,7 +95,7 @@ TEST_CASE( "sig" ){
           ep = 1.2e-6, tev = 1.5e-8;
           alpha = { 0.1, 0.2, 0.3, 0.5, 0.8 };
           lasym = 1;
-          sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+          sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
             bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
           REQUIRE( 883.34692414 == Approx( sigVal1 ).epsilon(1e-6) );
         } // AND WHEN
@@ -105,17 +105,17 @@ TEST_CASE( "sig" ){
 
           AND_WHEN( "-arg < sabflg" ){ 
              tev = 1.5e-8;
-            sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+            sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
               bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
             REQUIRE( 0.0 == Approx( sigVal1 ).epsilon(1e-6) );
           } // AND WHEN
 
           AND_WHEN( "-arg > sabflg" ){ 
-            sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+            sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
               bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
 
             e = 1.0e-4;
-            sigVal2 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+            sigVal2 = sig( e, ep, u, tev, alpha, beta, sab, 
               bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
             THEN( "SCT Approximation is used" ){
               REQUIRE( 12.9236152 == Approx( sigVal1 ).epsilon(1e-6) );
@@ -133,7 +133,7 @@ TEST_CASE( "sig" ){
   GIVEN( "150" ){
     WHEN( "final neutron energy E' is zero (ep = 0)" ){
       THEN( "output cross section is 0 (see Eq. 225) " ){
-        sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+        sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
           bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
         REQUIRE( 201.87960468 == Approx( sigVal1 ).epsilon(1e-6) );
       } // THEN
@@ -141,12 +141,12 @@ TEST_CASE( "sig" ){
     tev = 1.5e-4;
     WHEN( "150 to 155 to 160" ){
       THEN( "output cross section is 0 (see Eq. 225) " ){
-        sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+        sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
           bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
         REQUIRE( 135829.64964 == Approx( sigVal1 ).epsilon(1e-6) );
 
         cliq = 1.0;
-        sigVal2 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+        sigVal2 = sig( e, ep, u, tev, alpha, beta, sab, 
           bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
         REQUIRE( 135829.64964 == Approx( sigVal2 ).epsilon(1e-6) );
 
@@ -156,7 +156,7 @@ TEST_CASE( "sig" ){
       for ( auto& entry : alpha ){ entry *= 0.01; }
       for ( size_t i = 0; i < beta.size()-1; ++i  ){ beta[i] *= 0.1; }
       THEN( "search for ia and ib in alpha, beta vectors" ){
-        sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+        sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
           bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
         REQUIRE( 187405.9625716 == Approx( sigVal1 ).epsilon(1e-6) );
 
@@ -170,7 +170,7 @@ TEST_CASE( "sig" ){
       cliq = 1.0;
       ep = 3.1e-5;
       THEN( "output cross section is 0 (see Eq. 225) " ){
-        sigVal1 = sig( e, ep, u, tev, nalpha, alpha, nbeta, beta, sab, 
+        sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
           bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
         REQUIRE( 248176.610043 == Approx( sigVal1 ).epsilon(1e-6) );
       } // THEN
