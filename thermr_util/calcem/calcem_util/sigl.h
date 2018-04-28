@@ -10,11 +10,11 @@ void do150( std::vector<double>& x, std::vector<double>& y,
   std::vector<double>& alpha, std::vector<double>& beta, std::vector<std::vector<double>>& sab,
   int& i, double& ymax, int iinc, double teff,
   double tol, double teff2, double az2, double xtol, int lasym, double tevz, 
-  double az, int lat, int bbm, double cliq, double sb, double sb2, int imax ){
+  double az, int lat, int bbm, double cliq, double sb, double sb2 ){
 
   double xm, ym, yt, test, test2;
 
-  while ( i < imax ){
+  while ( i < x.size() ){
     // 150 continue
     std::cout << "150" << std::endl;
     //if (i == imax) go to 160
@@ -239,13 +239,13 @@ auto sigl( int nlin, int nlmax, double& e, double& ep,
   if (ymax < eps) ymax=eps;
 
 
-  do_110_120_130(i, imax, x, y, e, ep, tev, tevz, alpha,beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, sum, nl, sigmin, s, nbin, fract, xl, j, ymax, eps, seep, gral, yl, s1bb, tol, xtol);
+  do_110_120_130(i, x, y, e, ep, tev, tevz, alpha,beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, sum, nl, sigmin, s, nbin, fract, xl, j, ymax, eps, seep, gral, yl, s1bb, tol, xtol);
 
 
   bool go_straight_to_150_from_190 = true;
   while ( true ){ 
     if (go_straight_to_150_from_190){
-      do150( x, y, e, ep, tev, alpha, beta, sab, i, ymax, iinc, teff, tol, teff2, az2, xtol, lasym, tevz, az, lat, bbm, cliq, sb, sb2, imax );
+      do150( x, y, e, ep, tev, alpha, beta, sab, i, ymax, iinc, teff, tol, teff2, az2, xtol, lasym, tevz, az, lat, bbm, cliq, sb, sb2 );
     }
     go_straight_to_150_from_190 = true; 
 

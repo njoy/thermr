@@ -18,8 +18,8 @@ double do160(double sigc, double sb, double s, double bb, double sabflg,
   return (sigVal < sigmin) ? 0 : sigVal;
 }
 
-auto do155( int ia, int ib, std::vector<double>& alpha,
-    std::vector<double>& beta, std::vector<std::vector<double>>& sab,
+auto do155( int ia, int ib, const std::vector<double>& alpha,
+    const std::vector<double>& beta, const std::vector<std::vector<double>>& sab,
     double a, double bbb, double sigc, double sb, double bb, double sabflg,
     double sigmin ){
    if (ia+1 == alpha.size()) ia -= 1;
@@ -68,8 +68,8 @@ auto doSCTApproximation( int lat, double a, double b, double tevz, double teff,
 
 
 auto sig( double e, double ep, double& u, double tev,  
-  std::vector<double>& alpha, std::vector<double>& beta,
-  std::vector<std::vector<double>>& sab, double bbm, double az, double tevz,
+  const std::vector<double>& alpha, const std::vector<double>& beta,
+  const std::vector<std::vector<double>>& sab, double bbm, double az, double tevz,
   int lasym, double az2, double teff2, int lat, double cliq, double sb,
   double sb2, double teff, int iinc ){
 
