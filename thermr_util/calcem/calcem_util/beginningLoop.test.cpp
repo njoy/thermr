@@ -40,6 +40,8 @@ TEST_CASE( "110 120 130" ){
       az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
         nbin, fract, xl, j, ymax, eps, seep, yl, s1bb, tol, xtol);
 
+      adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, ymax, eps, seep, s1bb );
+
       double gral = std::get<0>(out), sum = std::get<1>(out);
       REQUIRE( 0 == Approx(gral).epsilon(1e-6) ); 
       REQUIRE( 0 == Approx(sum).epsilon(1e-6) ); 
@@ -92,6 +94,8 @@ TEST_CASE( "110 120 130" ){
       auto out = do_110_120_130(i, x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, 
       az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
         nbin, fract, xl, j, ymax, eps, seep, yl, s1bb, tol, xtol);
+
+      adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, ymax, eps, seep, s1bb );
 
       std::cout << fract << std::endl;
       double gral = std::get<0>(out), sum = std::get<1>(out);
@@ -149,6 +153,7 @@ TEST_CASE( "110 120 130" ){
       auto out = do_110_120_130(i, x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, 
       az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
         nbin, fract, xl, j, ymax, eps, seep, yl, s1bb, tol, xtol);
+
 
       std::cout << fract << std::endl;
       double gral = std::get<0>(out), sum = std::get<1>(out);
