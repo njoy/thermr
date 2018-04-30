@@ -174,22 +174,36 @@ auto sigl( int nlin, int nlmax, double& e, double& ep,
   double shade = 0.99999999; 
 
   // constant factors
-  b=(ep-e)/tev;
-  tol=0.5*tolin;
-  nl=nlin;
-  if (nl < 0) nl=-nl;
-  b=abs(b);
-  if (lat == 1 and iinc == 2) b=b*tev/tevz;
-  s1bb=sqrt(1+b*b);
-  if (ep != 0.0) seep=1/sqrt(e*ep);
+  
+  // """ 
+  // A stact is first primed with tthe point at zero, and the first point above
+  // can be derived from the positive and negative values of beta from the 
+  // evaluator's beta grid using Eq. 226.
+  // """ 
+  // (pg. 170 of manual)
+  // So b is supposed to be the first nonzero value for our stack.
+  b = (lat == 1 and iinc == 2) ? (ep-e)/tevz : (ep-e)/tev; // Eq. 226
 
-  sum = 0;
-  i = 3;
-  xl = -1;
+  tol  = 0.5*tolin;
+  nl   = abs(nlin);
+  s1bb = sqrt(1+b*b);
+  sum  = 0;
+  i    = 3;
+  xl   = -1;
+  yl = sig(e,ep,xl,tev,alpha,beta,sab,bbm,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+
+  seep = (ep == 0) ? 0.0 : 1.0/sqrt(e*ep);
 
   // adaptive calculation of cross section
-  adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, lasym, teff, 
-      teff2, lat, cliq, sb, sb2, iinc, xl, ymax, eps, seep, s1bb );
+
+  // Vary the cosine mu between 3 values. Calculate the corresponding
+  // incoherent cross sections, and then return ymax to be the maximum
+  // cross section of these three. 
+  // mu1 = -1, 
+  // mu2 = mu such that alpha equals sqrt(1+beta^2)
+  // mu3 = 1
+  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, 
+      lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, eps, seep, s1bb );
 
   auto out = do_110_120_130( i, x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, 
       az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
@@ -200,26 +214,30 @@ auto sigl( int nlin, int nlmax, double& e, double& ep,
   gral = std::get<0>(out);
   sum  = std::get<1>(out);
 
-  adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, lasym, teff, 
-      teff2, lat, cliq, sb, sb2, iinc, xl, ymax, eps, seep, s1bb );
+  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, 
+      lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, eps, seep, s1bb );
 
 
   bool go_straight_to_150_from_190 = true;
   while ( true ){ 
     if (go_straight_to_150_from_190){
-    //  do150( x, y, e, ep, tev, alpha, beta, sab, i, ymax, iinc, teff, tol, 
-     //     teff2, az2, xtol, lasym, tevz, az, lat, bbm, cliq, sb, sb2 );
-    do_110(i, x, y, e, ep, tev, alpha, beta, sab, bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc, xtol, tol, ymax);
+      //  do150( x, y, e, ep, tev, alpha, beta, sab, i, ymax, iinc, teff, tol, 
+      //     teff2, az2, xtol, lasym, tevz, az, lat, bbm, cliq, sb, sb2 );
+      std::cout << "150" << std::endl;
+      do_110(i, x, y, e, ep, tev, alpha, beta, sab, bbm, az, tevz, lasym, az2, 
+          teff2, lat, cliq, sb, sb2, teff, iinc, xtol, tol, ymax);
 
     }
     go_straight_to_150_from_190 = true; 
 
     // check bins for this panel
 
-    int what_next = do160(add, x, y, xl, yl, i, xil, j, fract, nbin, sum, gral, xn, shade );
+    int what_next = do160(add, x, y, xl, yl, i, xil, j, fract, nbin, sum, gral, 
+        xn, shade );
     if (what_next == 150){ continue; }
     if (what_next == 260){ return; }
-    if (what_next == 170 ){ do170(j, fract, sum, y, x, yl, xn, xl, f, disc, ytol, rf, i, xil, sigmin); }
+    if (what_next == 170 ){ do170(j, fract, sum, y, x, yl, xn, xl, f, disc, 
+        ytol, rf, i, xil, sigmin); }
 
     //190 continue
     std::cout << "190" << std::endl;
@@ -241,10 +259,10 @@ auto sigl( int nlin, int nlmax, double& e, double& ep,
     } // end if
 
     // continue bin loop and linearization loop
-    xl=xn;
-    yl=yn;
-    sum=0;
-    gral=0;
+    xl = xn;
+    yl = yn;
+    sum = 0;
+    gral = 0;
     if (j == nbin) return;
     if (xl < x[i-1]) {
       // go to 160

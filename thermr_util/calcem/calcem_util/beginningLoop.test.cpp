@@ -40,7 +40,7 @@ TEST_CASE( "110 120 130" ){
       az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
         nbin, fract, xl, j, ymax, eps, seep, yl, s1bb, tol, xtol);
 
-      adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, ymax, eps, seep, s1bb );
+      ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, eps, seep, s1bb );
 
       double gral = std::get<0>(out), sum = std::get<1>(out);
       REQUIRE( 0 == Approx(gral).epsilon(1e-6) ); 
@@ -90,14 +90,12 @@ TEST_CASE( "110 120 130" ){
     THEN( "110-->110, 110-->120, 120-->110, 120-->120, 120-->130, many iterations" ){
 
 
-      std::cout << std::setprecision(10) << std::endl;
       auto out = do_110_120_130(i, x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, 
       az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
         nbin, fract, xl, j, ymax, eps, seep, yl, s1bb, tol, xtol);
 
-      adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, ymax, eps, seep, s1bb );
+      ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, eps, seep, s1bb );
 
-      std::cout << fract << std::endl;
       double gral = std::get<0>(out), sum = std::get<1>(out);
       REQUIRE( 0 == Approx(gral).epsilon(1e-6) ); 
       REQUIRE( 0 == Approx(sum).epsilon(1e-6) ); 
@@ -149,13 +147,11 @@ TEST_CASE( "110 120 130" ){
     THEN( "110-->110, 110-->120, 120-->110, 120-->120, 120-->130, many iterations" ){
 
 
-      std::cout << std::setprecision(10) << std::endl;
       auto out = do_110_120_130(i, x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, 
       az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
         nbin, fract, xl, j, ymax, eps, seep, yl, s1bb, tol, xtol);
 
 
-      std::cout << fract << std::endl;
       double gral = std::get<0>(out), sum = std::get<1>(out);
       REQUIRE( 0 == Approx(gral).epsilon(1e-6) ); 
       REQUIRE( -4969.3589863 == Approx(sum).epsilon(1e-6) ); 
