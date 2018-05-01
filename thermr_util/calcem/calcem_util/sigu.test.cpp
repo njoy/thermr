@@ -5,17 +5,17 @@
 
 TEST_CASE( "sigu" ){
   GIVEN( "inputs" ){
-    int lasym = 0, lat = 1, iinc = 2, nlmax = 65, 
+    int lasym = 0, lat = 1, iinc = 2, nemax = 65, 
         nlin = 10;
 
     std::cout << std::setprecision(10) ;
     double e = 1.0e-6, ep = 1.2e-4, tev = 1.5e-4, bbm = 0.0, az = 11.9,
       tevz = 2.2e-4, az2 = 0.0, teff2 = 0.0, cliq = 1.0, sb = 5.53, sb2 = 0.0,
-      teff = 6.14e-2, tolin = 5e-2;
+      teff = 6.14e-2, tolin = 5e-2, u;
 
     std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
       beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 },
-      s(65,0.0);
+      s(2*nemax,0.0);
 
     std::vector<std::vector<double>> sab(alpha.size(), std::vector<double>(beta.size(),0));
     for ( int i = 0; i < alpha.size(); ++i ){
@@ -25,9 +25,9 @@ TEST_CASE( "sigu" ){
     } 
 
 
-    /*
-    sigu( nlin, nlmax, e, ep, tev, alpha, beta, sab, s, tolin, az, tevz, iinc, 
+    sigu( nlin, nemax, e, u, ep, tev, alpha, beta, sab, s, tolin, az, tevz, iinc, 
         lat, bbm, lasym, az2, teff2, cliq, sb, sb2, teff );
+    /*
 
     std::vector<double> correctS { 271591.653204, -8.776270547E-5 , 
       -6.162495039E-3, 7.1582888474E-5, -2.018780205E-2,  1.0016609703E-4, 

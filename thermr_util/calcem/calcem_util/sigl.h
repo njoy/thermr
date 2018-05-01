@@ -263,8 +263,6 @@ auto sigl( int nlin, int nlmax, double e, double ep,
     yl = yn;
     sum = 0;
     gral = 0;
-    std::cout << "still okay" << std::endl;
-    std::cout << &out << "    " << &il << "     " << &shade << "     " << &eps << std::endl;
 
     if (j == nbin) { return; }
     if (xl < x[i-1]) {

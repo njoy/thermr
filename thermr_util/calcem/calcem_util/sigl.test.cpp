@@ -66,9 +66,7 @@ TEST_CASE( "sigl" ){
 
     sigl( nlin, nlmax, e, ep, tev, alpha, beta, sab, s, tolin, az, tevz, iinc, 
         lat, bbm, lasym, az2, teff2, cliq, sb, sb2, teff );
-    std::cout << "HERE    " << &nlin << "    " << &nlmax << std::endl;
 
-    /*
     std::vector<double> correctS { 271591.653204, -8.776270547E-5 , 
       -6.162495039E-3, 7.1582888474E-5, -2.018780205E-2,  1.0016609703E-4, 
       -3.944407885E-2, 3.0130372017E-5, -5.459079490E-2, -9.1381657730E-5 };
@@ -82,7 +80,6 @@ TEST_CASE( "sigl" ){
 
     REQUIRE( true );
 
-    */
   } // GIVEN
 
 
