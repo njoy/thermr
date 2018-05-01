@@ -97,8 +97,8 @@ auto do_110(int& i, std::vector<double>& x, std::vector<double>& y,
     
     xm = 0.5*( x[i-2] + x[i-1] );
     ym = 0.5*( y[i-2] + y[i-1] );
-    yt=sig(e,ep,xm,tev,alpha,beta,sab,bbm,az,tevz,lasym,
-      az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+    yt = sig(e, ep, xm, tev, alpha, beta, sab, bbm, az, tevz, lasym, az2, teff2,
+      lat, cliq, sb, sb2, teff, iinc);
     
     if ( ( abs(yt-ym) <= tol*abs(yt)+tol*ymax/50.0 and 
            abs(y[i-2]-y[i-1]) <= ym+ymax/100.0 and 
@@ -137,17 +137,30 @@ auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y,
   double& yl, const double& s1bb, const double& tol, 
   const double& xtol ){
 
-
   double gral, sum = 0;
 
   while (true){
 
+    // Fills up x, y with mu and S(a,b,mu) values (respectively) so that they
+    // are close enough to be reasonably interpolated.
+    // x = [   mu1      mu2      mu3     ...    mu_i     0    0   0 ... ]
+    // y = [ s(mu1)   s(mu2)   s(mu3)    ...  s(mu_i)    0    0   0 ... ]
+
     do_110(i, x, y, e, ep, tev, alpha, beta, sab, bbm, az, tevz, lasym, az2, 
         teff2, lat, cliq, sb, sb2, teff, iinc, xtol, tol, ymax);
+
+    // When do_100 returns, we x and y both have i-many nonzero entries
+    // On the first iteration, xl = -1, and yl = S(a,b,mu=-1)
 
     while ( true ){
 
       // 120 continue
+      
+      // Sum is meant to be the integral of cross section across all values of
+      // mu. 
+      // x = [   -1  ..   mu_j  ..   1   0  0  0 ... ]
+      // y = [ s(-1) .. s(mu_j) .. s(1)  0  0  0 ... ]
+      
       sum = sum + 0.5*(y[i-1]+yl)*(x[i-1]-xl);
       xl  = x[i-1];
       yl  = y[i-1];
@@ -155,31 +168,29 @@ auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y,
 
       if ( i > 1 ){ break; }
       // if (i == 1) go to 120
+      
       if (i != 1) { // don't go to 120 - either go to 130 or return 
-        s[0]=sum; 
-
+        
         // if (sum > sigmin) go to 130
         if (sum > sigmin) { 
-
-          nbin  = nl-1;
+          s[0] = sum; 
+          nbin  = nl - 1;
           fract = sum/nbin;
           sum   = 0;
           i     = 3;
           j     = 0;
           xl    = -1;
           gral  = 0;
-
-          for ( int il = 1; il < nl; ++il ){ s[il] = 0; }
-
-          return std::tuple<double,double,bool> { gral, sum, false };
-
         } 
+        else { 
+          s[0] = 0; 
+        }
 
-        for ( int il = 0; il < nl; ++il ){ s[il] = 0; } // end do 
+        for ( int il = 1; il < nl; ++il ){ s[il] = 0; } 
         return std::tuple<double,double,bool> { gral, sum, false };
+
       } // don't go to 120
     } // go to 120
-
   } // go to 110
 
 }
