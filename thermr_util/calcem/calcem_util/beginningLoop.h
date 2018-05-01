@@ -31,7 +31,6 @@ auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y,
   // What's the cross section?
   x[1] = 0.5 * seep * ( e + ep - (s1bb-1) * az * tev );
   if (abs(x[1]) > 1-eps) x[1] = 0.99;
-
   y[1] = sig(e,ep,x[1],tev,alpha,beta,sab,bbm,az,tevz,lasym,
     az2,teff2,lat,cliq,sb,sb2,teff,iinc);
 
@@ -41,7 +40,6 @@ auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y,
 
   double ymax = maxOf3Vals(y[0],y[1],y[2]);
   return ( ymax < eps ) ? eps : ymax;
-
 
 }
 

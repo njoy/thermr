@@ -3,7 +3,7 @@
 #include "beginningLoop.h"
 
 TEST_CASE( "110 120 130" ){
-  std::vector<double> x(20,0.0),y(20,0.0),s(20,0.0);
+  std::vector<double> x(20,0.0),y(20,0.0),s(65,0.0);
   x[0] = 1.0; x[1] = 0.99; x[2] = -1.0;
   y[0] = 1.35700e5; y[1] = 1.35701e5; y[2] = 1.35809e5;
 
@@ -136,12 +136,16 @@ TEST_CASE( "110 120 130" ){
   } // GIVEN
 
   GIVEN( "inputs 2" ){
-    y[0] = 1.00000e5; y[1] = 1.00001e5; y[2] = 1.00009e5;
-    x[0] = 1.00; x[1] = 1.01; x[2] = -1.09;
+    x[0] = 1.00; x[1] = 0.99; x[2] = -1.00;
+    y[0] = 0.00; y[1] = 0.00; y[2] = 0.00;
 
-    e = 1.0e-3; ep = 1.2e-2; tev = 1.5e-1;
+    e = 1.0e-3; ep = 1.2e-2; tev = 1.5e-5;
       tevz = 2.2e-1; 
-      teff = 6.14e-0; 
+      teff = 6.14e-3; 
+      xl =-1.0;
+      yl = 0.0;
+      i = 3;
+      ymax = 1e-3;
 
 
     THEN( "110-->110, 110-->120, 120-->110, 120-->120, 120-->130, many iterations" ){
@@ -154,33 +158,31 @@ TEST_CASE( "110 120 130" ){
 
       double gral = std::get<0>(out), sum = std::get<1>(out);
       REQUIRE( 0 == Approx(gral).epsilon(1e-6) ); 
-      REQUIRE( -4969.3589863 == Approx(sum).epsilon(1e-6) ); 
+      REQUIRE( 0 == Approx(sum).epsilon(1e-6) ); 
 
       REQUIRE( 0 == Approx(i).epsilon(1e-6) ); 
       REQUIRE( 0 == Approx(j).epsilon(1e-6) ); 
       REQUIRE( 8 == Approx(nbin).epsilon(1e-6) ); 
       REQUIRE( 1.0 == Approx(xl).epsilon(1e-6) );
       REQUIRE( 0.0 == Approx(fract).epsilon(1e-6) );
-      REQUIRE( 100000 == Approx(yl).epsilon(1e-6) );
-      REQUIRE( 13500.0 == Approx(ymax).epsilon(1e-6) );
+      REQUIRE( 0 == Approx(yl).epsilon(1e-6) );
+      REQUIRE( 1e-3 == Approx(ymax).epsilon(1e-6) );
+      
 
-      std::vector<double> correctX = { 1.0, 1.01, 1.00999, 1.0099839, -4.0e-2, 
-        -0.95875003, -1.024375, -1.0571875, -1.0735938, -1.0817969, -1.0858985, 
-        -1.0879493, -1.0889747, -1.0894874, -1.0897437, -1.0898719, -1.089936, 
-        -1.089968, -1.089984, -1.09 },
-      correctY = { 100000.0, 100001.0, 458.1631128, 458.16561, 559.873519, 
-        540.0340460, 537.9302281, 536.8654128, 536.33012496, 536.061804, 
-        535.9274772, 535.8602733, 535.8266613, 535.80985281, 535.8014495,
-        535.7972461, 535.7951444, 535.7940951, 535.79357053, 100009.0 };
-        
+      std::vector<double> correctX = { 1.0, 0.99, 0.4925, -5.0E-3, -1.0 };
 
       for ( int i = 0; i < x.size(); ++i ){ 
-        REQUIRE( correctX[i] == Approx(x[i]).epsilon(1e-6) );
+        if ( i < correctX.size() ){
+          REQUIRE( correctX[i] == Approx(x[i]).epsilon(1e-6) );
+        }
+        else {
+          REQUIRE( 0.0 == Approx(x[i]).epsilon(1e-6) );
+        }
       }
 
 
       for ( int i = 0; i < y.size(); ++i ){ 
-        REQUIRE( correctY[i] == Approx(y[i]).epsilon(1e-6) );
+        REQUIRE( 0.0 == Approx(y[i]).epsilon(1e-6) );
       }
 
       for ( int i = 0; i < s.size(); ++i ){ 
@@ -190,6 +192,7 @@ TEST_CASE( "110 120 130" ){
 
     } // THEN
   } // GIVEN
+
 } // TEST CASE
 
 

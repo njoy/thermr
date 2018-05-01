@@ -141,12 +141,12 @@ int do160(double add, std::vector<double>& x, std::vector<double>& y, double& xl
 }
 
 
-auto sigl( int nlin, int nlmax, double& e, double& ep,
-  double& tev, std::vector<double>& alpha, std::vector<double>& beta,
-  std::vector<std::vector<double>>& sab, std::vector<double>& s, double& tolin,
-  double& az, double& tevz, int iinc, int lat, double& bbm, 
-  int lasym, double& az2, double& teff2, double& cliq, double& sb,
-  double& sb2, double& teff ){
+auto sigl( int nlin, int nlmax, double e, double ep,
+  double tev, std::vector<double> alpha, std::vector<double> beta,
+  std::vector<std::vector<double>> sab, std::vector<double>& s, double tolin,
+  double az, double tevz, int iinc, int lat, double bbm, 
+  int lasym, double az2, double teff2, double cliq, double sb,
+  double sb2, double teff ){
 
  /*-------------------------------------------------------------------
   * This is called by calcem, and uses sig.
@@ -263,7 +263,10 @@ auto sigl( int nlin, int nlmax, double& e, double& ep,
     yl = yn;
     sum = 0;
     gral = 0;
-    if (j == nbin) return;
+    std::cout << "still okay" << std::endl;
+    std::cout << &out << "    " << &il << "     " << &shade << "     " << &eps << std::endl;
+
+    if (j == nbin) { return; }
     if (xl < x[i-1]) {
       // go to 160
       go_straight_to_150_from_190 = false; 
