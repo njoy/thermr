@@ -176,5 +176,16 @@ TEST_CASE( "sig" ){
       } // THEN
     } // WHEN
   } // GIVEN
+  GIVEN( "other stuff that's failing" ){
+    WHEN( "straight to 160" ){
+      cliq = 1.0; e = 1e-6; tev = 1.5e-4; ep = 2.3e-5; tevz = 2.2e-4; teff = 6.14e-2; u = 0.1;
+      THEN( "output cross section is 0 (see Eq. 225) " ){
+        sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
+          bbm, az, tevz, lasym, az2, teff2, lat, cliq, sb, sb2, teff, iinc );
+        REQUIRE( 298101.75219413883 == Approx( sigVal1 ).epsilon(1e-6) );
+      } // THEN
+    } // WHEN
+  } // GIVEN
+
 } // TEST CASE
 
