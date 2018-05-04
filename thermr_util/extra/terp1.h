@@ -8,40 +8,39 @@ auto terp1( const double& x1, const double& y1, const double& x2,
    * thr6 is the kinematic threshold for i = 6 (thr6 > 0)
    */
 
-  double a, b, t, y;
+  double a, b, t;
 
   // make sure x2 .ne. x1
   if (x2 == x1) {
-    y = y1;
-    return y;
+    return y1;
   }
 
   // y is constant
   if (i == 1 or y2 == y1 or x == x1) {
-    y = y1;
+    return y1;
   } 
 
   // y is linear in x
   else if (i == 2) {
-    y = y1 + (x-x1) * (y2-y1) / (x2-x1);
+    return y1 + (x-x1) * (y2-y1) / (x2-x1);
   }
 
   // y is linear in ln(x)
   else if (i == 3) {
-    y = y1 + log(x/x1) * (y2-y1) / log(x2/x1);
+    return y1 + log(x/x1) * (y2-y1) / log(x2/x1);
   }
 
   // ln(y) is linear in x
   else if (i == 4) {
-    y = y1 * exp((x-x1) * log(y2/y1) / (x2-x1));
+    return y1 * exp((x-x1) * log(y2/y1) / (x2-x1));
   }
 
   // ln(y) is linear in ln(x)
   else if (i == 5) {
     if (y1 == 0.0) {
-      y = y1;
+      return y1;
     } else {
-      y = y1 * exp(log(x/x1) * log(y2/y1) / log(x2/x1));
+      return y1 * exp(log(x/x1) * log(y2/y1) / log(x2/x1));
     }
   }
 
@@ -60,7 +59,7 @@ auto terp1( const double& x1, const double& y1, const double& x2,
     }
   }
   */
-  return y;
+  return y1;
 }
 
 

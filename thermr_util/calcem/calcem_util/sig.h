@@ -67,11 +67,13 @@ auto doSCTApproximation( int lat, double a, double b, double tevz, double teff,
 }
 
 
-auto sig( double e, double ep, double& u, double tev,  
+auto sig( const double& e, const double& ep, const double& u, 
+  const double& tev,  
   const std::vector<double>& alpha, const std::vector<double>& beta,
-  const std::vector<std::vector<double>>& sab, double bbm, double az, double tevz,
-  int lasym, double az2, double teff2, int lat, double cliq, double sb,
-  double sb2, double teff, int iinc ){
+  const std::vector<std::vector<double>>& sab, double& bbm, const double az, 
+  const double tevz, const int lasym, const double az2, const double teff2, 
+  const int lat, const double cliq, const double sb, const double sb2, 
+  const double teff, const int iinc ){
 
  /*-------------------------------------------------------------------
   * Compute the differential scattering cross section from e to

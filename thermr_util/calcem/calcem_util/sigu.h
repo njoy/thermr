@@ -105,26 +105,32 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& ep, double& tev,
      while (do150){
        std::cout << 150 << std::endl;
        // if (i == imax) go to 160
-       // if (i > 3 and half*(y[i-1-1]+y[i-1])*(x[i-1-1]-x[i-1]) < tolmin) go to 160
-       xm=half*(x[i-1-1]+x[i-1]);
-       // if (xm <= x[i-1] or xm.ge.x[i-1-1]) go to 160
-       ym=half*(y[i-1-1]+y[i-1]);
-       // yt=sig(e,xm,u,tev,nalpha,alpha,nbeta,beta,sab)
-       yt = sig(e,xm,xl,tev,alpha,beta,sab,bbm,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
-       test=tol*abs(yt);
-
-       if (abs(yt-ym) <= test) {
-         std::cout << "go to 160" << std::endl;
-       }
-       else {
-         // point fails
-         i=i+1;
-         x[i-1]=x[i-1-1];
-         y[i-1]=y[i-1-1];
-         x[i-1-1]=xm;
-         y[i-1-1]=yt;
-         // go to 150
-         continue;
+       if (i != imax){
+         // if (i > 3 and half*(y[i-1-1]+y[i-1])*(x[i-1-1]-x[i-1]) < tolmin) go to 160
+         if (i <= 3 or half*(y[i-1-1]+y[i-1])*(x[i-1-1]-x[i-1]) >= tolmin) {
+           xm=half*(x[i-1-1]+x[i-1]);
+           // if (xm <= x[i-1] or xm.ge.x[i-1-1]) go to 160
+           if (xm > x[i-1] and xm > x[i-1-1]){
+             ym=half*(y[i-1-1]+y[i-1]);
+             // yt=sig(e,xm,u,tev,nalpha,alpha,nbeta,beta,sab)
+             yt = sig(e,xm,xl,tev,alpha,beta,sab,bbm,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+             test=tol*abs(yt);
+      
+             if (abs(yt-ym) <= test) {
+               std::cout << "go to 160" << std::endl;
+             }
+             if (abs(yt-ym) > test) {
+               // point fails
+               i=i+1;
+               x[i-1]=x[i-1-1];
+               y[i-1]=y[i-1-1];
+               x[i-1-1]=xm;
+               y[i-1-1]=yt;
+               // go to 150
+               continue;
+             }
+           }
+         }
        }
   
        // point passes
@@ -138,19 +144,10 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& ep, double& tev,
        yl=y[i-1];
 
        // if (j >= nemax-1) go to 170
-       if (j >= nemax-1) {
+       if (j >= nemax-1 or (jbeta > 0 and beta[jbeta-1] > bmax )) {
          s[1-1]=sum;
          s[2-1]=j;
          return; 
-      }
-
-      if (jbeta > 0) {
-        //if (beta(jbeta) > bmax) go to 170
-        if (beta[jbeta-1] > bmax) {
-          s[1-1]=sum;
-          s[2-1]=j;
-          return; 
-        }
       }
 
       // continue bin loop and linearization loop
