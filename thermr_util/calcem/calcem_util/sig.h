@@ -2,7 +2,6 @@
 #ifndef THERMR_SIG
 #define THERMR_SIG
 
-
 #include "../../extra/terpq.h"
 
 double do160(double sigc, double sb, double s, double bb, double sabflg,
@@ -37,7 +36,7 @@ auto do155( int ia, int ib, const std::vector<double>& alpha,
 }
 
 
-auto doSCTApproximation( int lat, double a, double b, double tevz, double teff, 
+auto doSCTApproximation( int lat, double a, double tevz, double teff, 
   double teff2, double az, double az2, double sigc, double s2, double u, 
   double sb2, double e, double tev, double sigmin, double sabflg, double bb, 
   double s, double sb ){
@@ -49,28 +48,27 @@ auto doSCTApproximation( int lat, double a, double b, double tevz, double teff,
   */
 
   // short collision time for large beta or alpha
-          
-  // Shouldn't this be (a-bb) since bb is the absolute value of b, and we want
-  // this to match up with Eq. 230 in the NJOY manual?
-  double arg = (a-b)*(a-b)*tev/(4*a*teff) + (b+bb)/2;
-  s = -arg > sabflg ? exp(-arg)/(sqrt(4.0*M_PI*a*teff/tev)) : 0;
-  double sigVal = sigc*sb*s;
-  
-  if (sb2 > 0.0) {
-    a *= az/az2; // Redefine a to be (E+E'-2mu\sqrt{EE'})/(Az2 * kb * T)
-    arg = (a-b)*(a-b)*tev/(4*a*teff2) + (b+bb)/2;
-    s2 = (-arg > sabflg) ? exp(-arg)/(sqrt(4.0*M_PI*a*teff2/tev)) : 0;
-    sigVal=sigVal+sigc*sb2*s2;
-  } // end if
+
+  // Eq. 230 in the NJOY manual
+  double arg, sigVal = 0;
+  for ( const double& sb_val : {sb, sb2} ){
+    // Eq. 230 in the NJOY manual
+    arg = (a-abs(bb))*(a-abs(bb))*tev/(4.0*a*teff) + (abs(bb)+bb)/2.0;
+    s = (-arg > sabflg) ? exp(-arg)/(sqrt(4.0*M_PI*a*teff/tev)) : 0;
+    sigVal += sigc * sb_val * s;
+  }
+  // If sb2 > 0, then we're going to have to add the second atom's contribution
+  // to sig. 
 
   return sigVal < sigmin ? 0 : sigVal;
+
 }
 
 
 auto sig( const double& e, const double& ep, const double& u, 
   const double& tev,  
   const std::vector<double>& alpha, const std::vector<double>& beta,
-  const std::vector<std::vector<double>>& sab, double& bbm, const double az, 
+  const std::vector<std::vector<double>>& sab, const double az, 
   const double tevz, const int lasym, const double az2, const double teff2, 
   const int lat, const double cliq, const double sb, const double sb2, 
   const double teff, const int iinc ){
@@ -82,20 +80,16 @@ auto sig( const double& e, const double& ep, const double& u,
   *-------------------------------------------------------------------
   */
   int i,ib,ia;
-  double bb,a,sigc,b,s,s1,s2,s3;
+  double bb,a,sigc,b,s,s1,s2,s3,bbm;
   double sigmin=1.e-10, sabflg=-225.e0, amin=1.e-6, test1=0.2e0,
          test2=30.e0;
   double sigVal;
 
   // common factors.
-  double bb_tev=(ep-e)/tev;         // beta,  according to Eq. 226
-  //a=(e+ep-2*u*sqrt(e*ep))/(az*tev); // alpha, according to Eq. 227
-  if (a < amin) { a = amin; }
   sigc=sqrt(ep/e)/(2.0*tev);
-  double a_tev = (e+ep-2*u*sqrt(e*ep))/(az*tev);
-  double a_tevz = a_tev*tev/tevz;
-  double b_tev = abs((ep-e)/tev);
-  double b_tevz = abs((ep-e)/tevz);
+  double a_tev   = (e+ep-2*u*sqrt(e*ep))/(az*tev);
+  double a_tevz  = (e+ep-2*u*sqrt(e*ep))/(az*tevz);
+  double bb_tev  = (ep-e)/tev;     
   double bb_tevz = (ep-e)/tevz;
 
 
@@ -123,7 +117,7 @@ auto sig( const double& e, const double& ep, const double& u,
   // Now we change the definitions of a and b so that they're defined using
   // tevz instead of tev
   if ( lat == 1 ){ 
-    b = b_tevz; a = a_tevz;
+    b = abs(bb_tevz); a = a_tevz;
   }
   else {
     b = abs(bb_tev); a = a_tev;
@@ -131,29 +125,31 @@ auto sig( const double& e, const double& ep, const double& u,
 
   if (a > alpha[alpha.size()-1]) {
     // go to 170
-    return doSCTApproximation( lat, a_tev, b_tev, tevz, teff, 
+    return doSCTApproximation( lat, a_tev, tevz, teff, 
         teff2, az, az2, sigc, s2, u, sb2, e, tev, sigmin, 
         sabflg, bb_tev, s, sb );
   }
 
   if (lasym == 1) {
+     // S(a,b) is not symmetric, probably because we have orthohydrogen or 
+     // parahydrogen.
      bbm = (lat == 1) ? bb*tev/tevz : bb_tev;
      if ( bbm > beta[beta.size()-1] or bbm < beta[0] ){
        // go to 170
-       return doSCTApproximation( lat, a_tev, b_tev, tevz, teff, 
+       return doSCTApproximation( lat, a_tev, tevz, teff, 
            teff2, az, az2, sigc, s2, u, sb2, e, tev, 
            sigmin, sabflg, bb_tev, s, sb );
      } 
   } // end if 
   else {
     if ( b > beta[beta.size()-1] ){
-       return doSCTApproximation( lat, a_tev, b_tev, tevz, teff, 
+       return doSCTApproximation( lat, a_tev, tevz, teff, 
            teff2, az, az2, sigc, s2, u, sb2, e, tev, 
            sigmin, sabflg, bb_tev, s, sb );
      }
   } // end if
 
-  if (cliq == 0.0 or a >= alpha[0] or lasym == 1 or b > test1 ){ 
+  if (cliq == 0.0 or a >= alpha[0] or lasym == 1 or b >= test1 ){ 
 
     // Find index ia such that alpha[ia-1] < a < alpha[ia]. Same for ib
     auto ia1 = std::distance(alpha.cbegin(), std::lower_bound(alpha.cbegin(), 
@@ -171,7 +167,7 @@ auto sig( const double& e, const double& ep, const double& u,
     if ( a*az >= test2 or b >= test2 ){
       if ( sab[ia][ib]   <= sabflg or sab[ia+1][ib]   <= sabflg or 
            sab[ia][ib+1] <= sabflg or sab[ia+1][ib+1] <= sabflg ) {
-        return doSCTApproximation( lat, a_tev, b_tev, tevz, teff, 
+        return doSCTApproximation( lat, a_tev, tevz, teff, 
          teff2, az, az2, sigc, s2, u, sb2, e, tev, 
           sigmin, sabflg, bb_tev, s, sb );
       } 

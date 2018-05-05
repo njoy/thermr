@@ -7,7 +7,7 @@ double maxOf3Vals( const double& a, const double& b, const double& c ){
 auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y, 
   const double& e, const double& ep, const double& tev, const double& tevz, 
   const std::vector<double>& alpha, const std::vector<double>& beta,
-  const std::vector<std::vector<double>>& sab, const double& bbm, 
+  const std::vector<std::vector<double>>& sab, 
   const double& az, const double& az2, const int& lasym, const double& teff, 
   const double& teff2, const int& lat, const double& cliq, const double& sb, 
   const double& sb2, const int& iinc, 
@@ -25,18 +25,18 @@ auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y,
   // adaptive linearization
   // Consider a cosine mu equal to -1. What's the cross section?
   x[2] = -1;
-  y[2] = sig(e,ep,x[2],tev,alpha,beta,sab,bbm,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+  y[2] = sig(e,ep,x[2],tev,alpha,beta,sab,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
 
   // Consider a cosine mu that corresponds to an alpha value of sqrt(1+beta^2).
   // What's the cross section?
   x[1] = 0.5 * seep * ( e + ep - (s1bb-1) * az * tev );
   if (abs(x[1]) > 1-eps) x[1] = 0.99;
-  y[1] = sig(e,ep,x[1],tev,alpha,beta,sab,bbm,az,tevz,lasym,
+  y[1] = sig(e,ep,x[1],tev,alpha,beta,sab,az,tevz,lasym,
     az2,teff2,lat,cliq,sb,sb2,teff,iinc);
 
   // Consider a cosine mu equal to 1. What's the cross section?
   x[0] = 1;
-  y[0] = sig(e,ep,x[0],tev,alpha,beta,sab,bbm,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+  y[0] = sig(e,ep,x[0],tev,alpha,beta,sab,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
 
   double ymax = maxOf3Vals(y[0],y[1],y[2]);
   return ( ymax < eps ) ? eps : ymax;
@@ -65,7 +65,7 @@ void shiftOver( int& i, std::vector<double>& x, std::vector<double>& y,
 auto do_110(int& i, std::vector<double>& x, std::vector<double>& y, 
   const double& e, const double& ep, const double& tev, 
   const std::vector<double>& alpha, const std::vector<double>& beta, 
-  const std::vector<std::vector<double>>& sab, const double& bbm, const 
+  const std::vector<std::vector<double>>& sab, const 
   double& az, const double tevz, const int& lasym, const double& az2, const 
   double& teff2, const int& lat, const double& cliq, const double& sb, const 
   double& sb2, const double& teff, const int& iinc, const double& xtol, 
@@ -95,7 +95,7 @@ auto do_110(int& i, std::vector<double>& x, std::vector<double>& y,
     
     xm = 0.5*( x[i-2] + x[i-1] );
     ym = 0.5*( y[i-2] + y[i-1] );
-    yt = sig(e, ep, xm, tev, alpha, beta, sab, bbm, az, tevz, lasym, az2, teff2,
+    yt = sig(e, ep, xm, tev, alpha, beta, sab, az, tevz, lasym, az2, teff2,
       lat, cliq, sb, sb2, teff, iinc);
     
     if ( ( abs(yt-ym) <= tol*abs(yt)+tol*ymax/50.0 and 
@@ -126,7 +126,7 @@ auto do_110(int& i, std::vector<double>& x, std::vector<double>& y,
 auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y, 
   const double& e, const double& ep, const double& tev, const double& tevz, 
   const std::vector<double>& alpha, const std::vector<double>& beta,
-  const std::vector<std::vector<double>>& sab, const double& bbm, 
+  const std::vector<std::vector<double>>& sab, 
   const double& az, const double& az2, const int& lasym, const double& teff, 
   const double& teff2, const int& lat, const double& cliq, const double& sb, 
   const double& sb2, const int& iinc, const int& nl, 
@@ -144,7 +144,7 @@ auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y,
     // x = [   mu1      mu2      mu3     ...    mu_i     0    0   0 ... ]
     // y = [ s(mu1)   s(mu2)   s(mu3)    ...  s(mu_i)    0    0   0 ... ]
 
-    do_110(i, x, y, e, ep, tev, alpha, beta, sab, bbm, az, tevz, lasym, az2, 
+    do_110(i, x, y, e, ep, tev, alpha, beta, sab, az, tevz, lasym, az2, 
         teff2, lat, cliq, sb, sb2, teff, iinc, xtol, tol, ymax);
 
     // When do_100 returns, we x and y both have i-many nonzero entries

@@ -12,6 +12,11 @@ int main(){
   double za, awr, tol, emax, sb, az, tevz, teff, sb2, az2, teff2, cliq;
   int lasym, lat;
 
+
+  // Weird ints that you don't know anything about
+  int iverf, n1h, n2h;
+
+
   // array for thermal elastic data
   std::vector<double> fl;
 
@@ -132,7 +137,10 @@ int main(){
   int iverp, itemp, nwb, it, ntape, nex, ne, np, isave, lthr;
   double e, enext, emaxs, time, sz2, t, templ, s, temp;
   std::vector<double> ex(2);
-  double s1099 = 3.76e0, a1099 = 15.86e0, s1095 = 4.74e0, a1095 = 11.90e0,
+  double s1099 = 3.76e0,  // Free cross section for BeO
+         a1099 = 15.86e0, // Mass Ratio for BeO
+         s1095 = 4.74e0,  // Free cross section for Benzene (C6H6)
+         a1095 = 11.90e0, // Mass Ratio for Benzene (C6H6)
     eps = 1.e-4, breakVal = 3000.e0, small = 1.e-10, up = 1.00001e0, zero = 0;
 
   std::vector<double> scr(nwscr,0.0), bufo(nbuf), bufn(nbuf);
@@ -181,45 +189,50 @@ int main(){
   noutFile.close();
  
   
-  /*
-   !--check for endf-6 format data
-   call tpidio(nendf,0,0,scr,nb,nw)
-   call contio(nendf,0,0,scr,nb,nw)
-   call contio(nendf,0,0,scr,nb,nw)
-   if (n1h.ne.0) then
-      iverf=4
-   else if (n2h.eq.0) then
-      iverf=5
-   else
-      iverf=6
-   endif
-   call skiprz(nendf,-1)
+   // check for endf-6 format data
+   // call tpidio(nendf,0,0,scr,nb,nw)
+   // call contio(nendf,0,0,scr,nb,nw)
+   // call contio(nendf,0,0,scr,nb,nw)
+   if (n1h != 0) {
+      iverf=4;
+   }
+   else if (n2h == 0) {
+      iverf=5;
+   }
+   else {
+      iverf=6;
+   } // endif
+   // call skiprz(nendf,-1)
 
-   !--set up internal data for older endf versions
-   if (iverf.lt.6) then
+   // set up internal data for older endf versions
+   if (iverf < 6) {
 
-      !--check for mixed s(a,b) cases (beo, benzine)
-      !--supply appropriate parameters
-      sz2=0
-      az2=0
-      if (matde.eq.1099) sz2=s1099
-      if (matde.eq.1099) az2=a1099
-      if (matde.eq.1095) sz2=s1095
-      if (matde.eq.1095) az2=a1095
-      sb2=sz2
-      if (az2.ne.zero) sb2=sz2*((az2+1)/az2)**2
+      // check for mixed s(a,b) cases (beo, benzine)
+      // supply appropriate parameters
+      sz2=0;
+      az2=0;
+      if (matde == 1099) sz2=s1099;
+      if (matde == 1099) az2=a1099;
+      if (matde == 1095) sz2=s1095;
+      if (matde == 1095) az2=a1095;
+      // sz2 = Free cross section for the second atom
+      // az2 = Mass ratio for the second atom
+      
+      sb2=sz2;
+      if (az2 != zero) sb2=sz2*((az2+1)/az2)*((az2+1)/az2);
 
-         !--default effective temperatures to standard values if
-         !--available, otherwise set them to the material temperature
-         if (matde.ne.0) then
-            call gateff(tempr,eftemp,ntemp,matde)
-            if (sz2.ne.zero) then
-               call gatef2(tempr,eftmp2,ntemp,matde)
-            endif
-         endif
-      endif
+         // default effective temperatures to standard values if
+         // available, otherwise set them to the material temperature
+         if (matde != 0) {
+            //call gateff(tempr,eftemp,ntemp,matde)
+            if (sz2 != zero) {
+             //  call gatef2(tempr,eftmp2,ntemp,matde)
+             } // } // endif
+         } // endif
+      } // endif
 
-   !--write parameters.
+      /*
+   // write parameters.
    write(nsyso,'(/&
      &'' unit for endf tape ................... '',i10/&
      &'' unit for input pendf tape ............ '',i10/&
@@ -240,40 +253,40 @@ int main(){
    write(nsyso,'(&
      &'' temperatures (kelvin) ................ '',1p,e10.4)')&
      tempr(1)
-   if (ntemp.gt.1) write(nsyso,'(40x,1p,e10.4)')&
+   if (ntemp > 1) write(nsyso,'(40x,1p,e10.4)')&
      (tempr(i),i=2,ntemp)
    write(nsyso,'(&
      &'' tolerance ............................ '',1p,e10.4/&
      &'' max energy for thermal treatment ..... '',e10.4)')&
      tol,emax
-   if (iinc.eq.2.and.iverf.lt.6) then
+   if (iinc == 2 and iverf < 6) {
       write(nsyso,'(/&
         &'' parameters for sct app.''/&
         &'' -----------------------'')')
       write(nsyso,'(&
         &'' effective temperatures ............... '',1p,e10.4)')&
         eftemp(1)
-      if (ntemp.gt.1) write(nsyso,'(40x,1p,e10.4)')&
+      if (ntemp > 1) write(nsyso,'(40x,1p,e10.4)')&
         (eftemp(i),i=2,ntemp)
-      if (sz2.ne.zero) then
+      if (sz2 != zero) {
          write(nsyso,'(&
            &'' free xsec for second atom ............ '',1p,e10.4/&
            &'' mass ratio for second atom ........... '',1p,e10.4/&
            &'' eff. temps for second atom ........... '',1p,e10.4)')&
            sz2,az2,eftmp2(1)
-         if (ntemp.gt.1) write(nsyso,'(40x,1p,e10.4)')&
+         if (ntemp > 1) write(nsyso,'(40x,1p,e10.4)')&
            (eftmp2(i),i=2,ntemp)
-      endif
-   endif
+      } // endif
+    } // endif
    write(nsyso,'(/'' endf uses endf-'',i1,'' format'')') iverf
 
-   !--initialize i/o units
+   // initialize i/o units
    iold=10
    inew=11
    nscr=12
-   if (nout.lt.0) nscr=-nscr
+   if (nout < 0) nscr=-nscr
    nscr2=13
-   if (nout.lt.0) nscr2=-nscr2
+   if (nout < 0) nscr2=-nscr2
    call openz(-iold,1)
    call openz(-inew,1)
    call openz(nscr,1)
@@ -283,91 +296,91 @@ int main(){
    call repoz(nin)
    call repoz(nscr2)
 
-   !--copy through to desired material
+   // copy through to desired material
    nsh=0
    call tpidio(nin,nout,0,scr,nb,nw)
   110 continue
    call contio(nin,0,0,scr,nb,nw)
-   if (math.eq.matdp) go to 120
-   if (math.lt.0)&
+   if (math == matdp) go to 120
+   if (math < 0)&
      call error('thermr','desired material not on pendf tape.',' ')
    call contio(0,nout,0,scr,nb,nw)
    call tomend(nin,nout,0,scr)
    go to 110
   120 continue
    call contio(nin,0,0,scr(7),nb,nw)
-   if (n1h.ne.0) then
+   if (n1h != 0) {
       iverp=4
-   else if (n2h.eq.0) then
+   else if (n2h == 0) {
       iverp=5
    else
       iverp=6
-   endif
+   } // endif
    call skiprz(nin,-1)
    write(nsyso,'(/'' pendf uses endf-'',i1,'' format'')') iverp
 
-   !--loop over desired temperatures
+   // loop over desired temperatures
    itemp=1
    icopy=0
   130 continue
    call contio(0,0,nscr2,scr,nb,nw)
-   if (math.ne.matdp)&
+   if (math != matdp)&
      call error('thermr','desired material not on pendf tape.',' ')
    nwb=0
    za=scr(1)
    awr=scr(2)
    az=scr(2)
-   if (iverp.ge.5) call contio(nin,0,nscr2,scr,nb,nw)
-   if (iverp.ge.6) call contio(nin,0,nscr2,scr,nb,nw)
+   if (iverp >= 5) call contio(nin,0,nscr2,scr,nb,nw)
+   if (iverp >= 6) call contio(nin,0,nscr2,scr,nb,nw)
    call hdatio(nin,0,nscr2,scr,nb,nw)
    t=scr(1)
-   if (abs(t-tempr(itemp)).le.eps*tempr(itemp)) go to 180
-   if (t.gt.tempr(itemp))&
+   if (abs(t-tempr(itemp)) <= eps*tempr(itemp)) go to 180
+   if (t > tempr(itemp))&
      call error('thermr','desired temperature not on tape.',' ')
 
-   !--check for skipped temperatures to be copied
-   if (itemp.eq.1) icopy=icopy+1
-   if (itemp.eq.1) go to 160
+   // check for skipped temperatures to be copied
+   if (itemp == 1) icopy=icopy+1
+   if (itemp == 1) go to 160
    templ=tempr(itemp-1)
    it=0
   150 continue
    it=it+1
-   if (it.ge.itemp) go to 160
-   if (abs(t-tempr(it)).le.eps*tempr(it)) go to 150
-   if (abs(t-templ).le.eps*templ) go to 150
-   if (t.lt.templ) go to 150
+   if (it >= itemp) go to 160
+   if (abs(t-tempr(it)) <= eps*tempr(it)) go to 150
+   if (abs(t-templ) <= eps*templ) go to 150
+   if (t < templ) go to 150
    icopy=icopy+1
    go to 150
   160 continue
-   if (icopy.eq.0) call repoz(nscr2)
+   if (icopy == 0) call repoz(nscr2)
    ntape=nscr2
-   if (icopy.eq.0) ntape=0
+   if (icopy == 0) ntape=0
    call tomend(nin,0,ntape,scr)
    call contio(nin,0,0,scr,nb,nw)
    go to 130
   180 continue
    call findf(matdp,3,2,nin)
 
-   !--save elastic cross section on scratch file.
+   // save elastic cross section on scratch file.
    call contio(nin,0,0,scr,nb,nw)
    nex=2
    ne=0
    e=0
    call gety1(e,enext,idis,s,nin,scr)
    emaxs=emax
-   if (t.gt.break) emax=emax*t/break
+   if (t > break) emax=emax*t/break
   200 continue
    e=enext
    call gety1(e,enext,idis,s,nin,scr)
    ex(1)=e
    ex(2)=s
-   if (e.gt.emax*(1+small)) ex(2)=0
+   if (e > emax*(1+small)) ex(2)=0
    ne=ne+1
-   if (e.gt.emax*(1+small)) ne=-ne
+   if (e > emax*(1+small)) ne=-ne
    call loada(ne,ex,nex,inew,bufn,nbuf)
-   if (ne.lt.0) go to 210
-   if (enext.gt.emax*(1+small)) enext=emax
-   if (abs(e-emax).lt.small*emax) enext=up*emax
+   if (ne < 0) go to 210
+   if (enext > emax*(1+small)) enext=emax
+   if (abs(e-emax) < small*emax) enext=up*emax
    go to 200
   210 continue
    np=-ne
@@ -377,20 +390,20 @@ int main(){
    inew=isave
    call skiprz(nin,-1)
 
-   !--set up for elastic calculation
-   if (iverf.ge.6.and.nendf.ne.0) then
+   // set up for elastic calculation
+   if (iverf >= 6 and nendf != 0) {
       call findf(matde,7,0,nendf)
       call contio(nendf,0,0,scr,nb,nw)
-      if (mth.eq.2) then
+      if (mth == 2) {
          lthr=l1h
          icoh=10*lthr
          temp=tempr(itemp)
          call rdelas(temp,lthr,nendf,nwb)
-      endif
-   endif
+      } // endif
+   } // endif
    write(*,*) "HERE"
    return
 */
-return 1;
+return 0;
 }
 

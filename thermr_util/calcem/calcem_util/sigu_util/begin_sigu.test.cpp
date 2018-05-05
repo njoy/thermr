@@ -9,7 +9,7 @@ TEST_CASE( "begin sigu (113,116)" ){
       nlin = 10, lasym = 0;
 
   std::cout << std::setprecision(10) ;
-  double e = 1.0e-3, ep = 1.2e-4, tev = 1.5e-5, bbm = 0.0, az = 11.9,
+  double e = 1.0e-3, ep = 1.2e-4, tev = 1.5e-5, az = 11.9,
     tevz = 2.2e-1, az2 = 0.0, teff2 = 0.0, cliq = 1.0, sb = 5.53, sb2 = 0.0,
     teff = 6.14e-2, tolin = 5e-2, u, root1 = 2.9e-2*2.9e-2;
 
@@ -27,7 +27,7 @@ TEST_CASE( "begin sigu (113,116)" ){
 
 
     do_113_116( jbeta, lat, x, y, e, tev, tevz, root1, u, alpha, beta, 
-        sab, bbm, az, lasym, az2, teff, teff2, cliq, sb, sb2, iinc);
+        sab, az, lasym, az2, teff, teff2, cliq, sb, sb2, iinc);
 
     REQUIRE( 2.3e-2 == Approx(x[0]).epsilon(1e-6) );
     REQUIRE( 0.0    == Approx(y[0]).epsilon(1e-6) ); 
@@ -47,7 +47,7 @@ TEST_CASE( "begin sigu (113,116)" ){
         nlin = 10, i = 10001, lasym = 0;
 
     std::cout << std::setprecision(10) ;
-    double e = 1.0e-3, ep = 1.2e-4, tev = 1.5e-5, bbm = 0.0, az = 11.9,
+    double e = 1.0e-3, ep = 1.2e-4, tev = 1.5e-5, az = 11.9,
       tevz = 2.2e-1, az2 = 0.0, teff2 = 0.0, cliq = 1.0, sb = 5.53, sb2 = 0.0,
       teff = 6.14e-2, tolin = 5e-2, u = 0.05, root1 = 2.9e-2*2.9e-2;
 
@@ -66,7 +66,7 @@ TEST_CASE( "begin sigu (113,116)" ){
 
 
     do_113_116( jbeta, lat, x, y, e, tev, tevz, root1, u, alpha, beta, 
-        sab, bbm, az, lasym, az2, teff, teff2, cliq, sb, sb2, iinc);
+        sab, az, lasym, az2, teff, teff2, cliq, sb, sb2, iinc);
 
     REQUIRE( 0.111 == Approx(x[0]).epsilon(1e-6) );
     REQUIRE( 0.0   == Approx(y[0]).epsilon(1e-6) ); 

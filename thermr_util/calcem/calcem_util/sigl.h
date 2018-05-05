@@ -144,7 +144,7 @@ int do160(double add, std::vector<double>& x, std::vector<double>& y, double& xl
 auto sigl( int nlin, int nlmax, double e, double ep,
   double tev, std::vector<double> alpha, std::vector<double> beta,
   std::vector<std::vector<double>> sab, std::vector<double>& s, double tolin,
-  double az, double tevz, int iinc, int lat, double bbm, 
+  double az, double tevz, int iinc, int lat, 
   int lasym, double az2, double teff2, double cliq, double sb,
   double sb2, double teff ){
 
@@ -190,7 +190,7 @@ auto sigl( int nlin, int nlmax, double e, double ep,
   sum  = 0;
   i    = 3;
   xl   = -1;
-  yl = sig(e,ep,xl,tev,alpha,beta,sab,bbm,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+  yl = sig(e,ep,xl,tev,alpha,beta,sab,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
 
   seep = (ep == 0) ? 0.0 : 1.0/sqrt(e*ep);
 
@@ -202,10 +202,10 @@ auto sigl( int nlin, int nlmax, double e, double ep,
   // mu1 = -1, 
   // mu2 = mu such that alpha equals sqrt(1+beta^2)
   // mu3 = 1
-  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, 
+  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, az2, 
       lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, eps, seep, s1bb );
 
-  auto out = do_110_120_130( i, x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, 
+  auto out = do_110_120_130( i, x, y, e, ep, tev, tevz, alpha, beta, sab,  
       az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
       nbin, fract, xl, j, ymax, eps, seep, yl, s1bb, tol, xtol );
 
@@ -214,7 +214,7 @@ auto sigl( int nlin, int nlmax, double e, double ep,
   gral = std::get<0>(out);
   sum  = std::get<1>(out);
 
-  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, az2, 
+  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, az2, 
       lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, eps, seep, s1bb );
 
 
@@ -222,9 +222,9 @@ auto sigl( int nlin, int nlmax, double e, double ep,
   while ( true ){ 
     if (go_straight_to_150_from_190){
       //  do150( x, y, e, ep, tev, alpha, beta, sab, i, ymax, iinc, teff, tol, 
-      //     teff2, az2, xtol, lasym, tevz, az, lat, bbm, cliq, sb, sb2 );
+      //     teff2, az2, xtol, lasym, tevz, az, lat, cliq, sb, sb2 );
       std::cout << "150" << std::endl;
-      do_110(i, x, y, e, ep, tev, alpha, beta, sab, bbm, az, tevz, lasym, az2, 
+      do_110(i, x, y, e, ep, tev, alpha, beta, sab, az, tevz, lasym, az2, 
           teff2, lat, cliq, sb, sb2, teff, iinc, xtol, tol, ymax);
 
     }

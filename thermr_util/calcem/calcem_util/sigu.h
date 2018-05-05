@@ -5,7 +5,7 @@
 auto sigu( int nlin, int nemax, double& e, double& u, double& tev, 
   std::vector<double>& alpha, std::vector<double>& beta, 
   std::vector<std::vector<double>>&sab, std::vector<double>&s, double& tolin, 
-  double& az, double& tevz, int iinc, int lat, double bbm, int lasym, 
+  double& az, double& tevz, int iinc, int lat, int lasym, 
   double& az2, double& teff2, double& cliq, double& sb, double& sb2, 
   double& teff ){
 
@@ -18,6 +18,7 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& tev,
    double sum, xl, yl, xm, ym, test, yt, tol, root1, root2;
    std::vector<double> x(imax), y(imax);
    double tolmin = 1.e-6, bmax = 20;
+   std::cout << std::setprecision(12);
 
    // constant factors
    tol=tolin;
@@ -31,7 +32,7 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& tev,
    // adaptive calculation of cross section
    sum=0;
    x[1-1]=0;
-   y[1-1] = sig( e, x[1-1], xl, tev, alpha, beta, sab, bbm, az, tevz, lasym, 
+   y[1-1] = sig( e, x[1-1], xl, tev, alpha, beta, sab, az, tevz, lasym, 
        az2, teff2, lat, cliq, sb, sb2, teff, iinc );
    jbeta = -beta.size();
    if (lasym > 0) jbeta=1;
@@ -47,35 +48,38 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& tev,
      y[2-1]=y[1-1];
 
 
+     std::cout << "\n\n\n" << std::endl;
+     std::cout << x[0] << "      " << y[0] << std::endl;
      do_113_116( jbeta, lat, x, y, e, tev, tevz, root1, u, alpha, beta, 
-         sab, bbm, az, lasym, az2, teff, teff2, cliq, sb, sb2, iinc );
+         sab, az, lasym, az2, teff, teff2, cliq, sb, sb2, iinc );
+     std::cout << x[0] << "      " << y[0] << std::endl;
 
      i = 2;
-     std::cout << y[0] << std::endl;
-
 
 
      // compare linear approximation to true function
      // 150 continue
      bool do150 = true;
+     bool goTo150 = true;
      while (do150){
-       std::cout << 150 << std::endl;
        // if (i == imax) go to 160
-       if (i != imax){
+       if ( i != imax and goTo150 ){
+         std::cout << 150 << std::endl;
          // if (i > 3 and half*(y[i-1-1]+y[i-1])*(x[i-1-1]-x[i-1]) < tolmin) go to 160
          if (i <= 3 or 0.5*(y[i-1-1]+y[i-1])*(x[i-1-1]-x[i-1]) >= tolmin) {
            xm=0.5*(x[i-1-1]+x[i-1]);
            // if (xm <= x[i-1] or xm.ge.x[i-1-1]) go to 160
+           std::cout << std::fixed << std::setprecision(15);
+           std::cout << xm << "    " << x[i-2] << "     " << x[0]<< std::endl;
+           if ( y[0] < 200000 ){ return; }
            if (xm > x[i-1] and xm < x[i-1-1]){
              ym=0.5*(y[i-1-1]+y[i-1]);
              // yt=sig(e,xm,u,tev,nalpha,alpha,nbeta,beta,sab)
-             yt = sig( e, xm, xl, tev, alpha, beta, sab, bbm, az, tevz, lasym, 
+             yt = sig( e, xm, u, tev, alpha, beta, sab, az, tevz, lasym, 
                  az2, teff2, lat, cliq, sb, sb2, teff, iinc );
              test = tol*abs(yt);
       
-             if (abs(yt-ym) <= test) {
-               std::cout << "go to 160" << std::endl;
-             }
+             //if (abs(yt-ym) <= test) { std::cout << "go to 160" << std::endl; }
              if (abs(yt-ym) > test) {
                // point fails
                i=i+1;
@@ -89,10 +93,11 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& tev,
            }
          }
        }
+       goTo150 = true;
   
        // point passes
        // 160 continue
-       std::cout << 160 << std::endl;
+       std::cout << 160 << "    " << j << "    " << i << "      " << x[i-1] << std::endl;
        j=j+1;
        s[2*j+1-1]=x[i-1];
        s[2*j+2-1]=y[i-1];
@@ -102,6 +107,7 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& tev,
 
        // if (j >= nemax-1) go to 170
        if (j >= nemax-1 or (jbeta > 0 and beta[jbeta-1] > bmax )) {
+         std::cout << j << "    " << nemax-1 << "    " << jbeta << "     " << bmax <<std::endl;
          s[1-1]=sum;
          s[2-1]=j;
          return; 
@@ -109,12 +115,21 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& tev,
 
       // continue bin loop and linearization loop
       i=i-1;
+      //std::cout << i << "     " << jbeta << "    " << beta.size() << std::endl;
 
       // if (i > 1) go to 150
       if (i > 1) {
         continue;
       }
       //std::cout << "no longer doing 150" << std::endl;
+      //
+      //
+      if ( jbeta > beta.size() and i == 1 ){
+        jbeta = jbeta + 1;
+        goTo150 = false;
+        continue;
+      } 
+
       break;
     } 
 
@@ -123,10 +138,6 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& tev,
     // if (jbeta <= nbeta) go to 111
     if (jbeta <= beta.size()) continue;
  
-    // if (i == 1) go to 160
-    if (i == 1) {
-      std::cout << "go to 160" << std::endl;
-    }
 
     // 170 continue
     std::cout << 170 << std::endl;

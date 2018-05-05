@@ -9,7 +9,7 @@ TEST_CASE( "sigu" ){
         nlin = 10;
 
     std::cout << std::setprecision(10) ;
-    double e = 1.0e-6, tev = 1.5e-4, bbm = 0.0, az = 11.9,
+    double e = 1.0e-6, tev = 1.5e-4, az = 11.9,
       tevz = 2.2e-4, az2 = 0.0, teff2 = 0.0, cliq = 1.0, sb = 5.53, sb2 = 0.0,
       teff = 6.14e-2, tolin = 5e-2, u = 0.1;
 
@@ -26,7 +26,7 @@ TEST_CASE( "sigu" ){
 
 
     sigu( nlin, nemax, e, u, tev, alpha, beta, sab, s, tolin, az, tevz, iinc, 
-        lat, bbm, lasym, az2, teff2, cliq, sb, sb2, teff );
+        lat, lasym, az2, teff2, cliq, sb, sb2, teff );
 
 
 
