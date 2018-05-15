@@ -134,6 +134,18 @@ auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y,
   double& xl, int& j, double& ymax, const double& eps, const double& seep, 
   double& yl, const double& s1bb, const double& tol, 
   const double& xtol ){
+  /* For this, we fill up mu values into x, and S(a,b,mu) values into y (with
+   * a and b being fixed, and mu corresponding to the values in x). The grid
+   * is chosen adaptively. So let's consider x = [2, -8, -16, 0, 0, 0, ... ]
+   * (in reality 2-->1 and -16 --> -1, but this is just good for discussion now)
+   *
+   *
+   *
+   *
+   *
+   */
+
+
 
   double gral, sum = 0;
 
@@ -160,6 +172,8 @@ auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y,
       // y = [ s(-1) .. s(mu_j) .. s(1)  0  0  0 ... ]
       
       sum = sum + 0.5*(y[i-1]+yl)*(x[i-1]-xl);
+      // If the tolerance between my i-th point and my (i-1)th point is 
+      // reasonably low, then go left to check the other side.
       xl  = x[i-1];
       yl  = y[i-1];
       i   = i - 1;
