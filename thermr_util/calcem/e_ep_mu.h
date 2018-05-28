@@ -1,13 +1,19 @@
 
-/*
-auto do310(){
+auto do310( int& ie, double& enow, std::vector<double>& egrid, const double& temp,
+  const double& bk, const double& break_val, const double& therm, 
+  std::vector<double>& esi, std::vector<double>& xsi, std::vector<double>& ubar,
+  std::vector<double>& p2, std::vector<double>& p3, double& ep, int& jbeta,
+  int& nbeta, int& iskip, int& j, std::vector<std::vector<double>>& y, 
+  std::vector<double>& yt, const int nl, const int& lasym, std::vector<double>& x,
+  const int& ngrid){
      std::cout << 310 << std::endl;
+     double tone, elo;
      ie=ie+1;
      enow=egrid[ie-1];
      if (temp > break_val) {
        tone=therm/bk;
        elo=egrid[0];
-       enow=elo*exp(log(enow/elo)*log((temp/tone)*egrid(ngrid)/elo)/log(egrid(ngrid)/elo));
+       enow=elo*exp(log(enow/elo)*log((temp/tone)*egrid[ngrid-1]/elo)/log(egrid[ngrid-1]/elo));
      } // endif
      esi[ie-1]=enow;
      xsi[ie-1]=0;
@@ -27,12 +33,47 @@ auto do310(){
      iskip=0;
 }
 
-*/
+auto do360(int& j, const int& jmax, std::vector<double>& xsi, std::vector<double>& x,
+    double& xlast, std::vector<std::vector<double>>& y, double& uu, double& u2,
+    double& u3, int& nll, const int& nl, std::vector<double>& p, double& ubar ){
+  // 360 continue
+  std::cout << 360 << std::endl;
+  j=j+1;
+  if (j >= jmax) std::cout << "call error('calcem','storage exceeded.',' ')" << std::endl;
+  if (j > 1) xsi[ie-1]=xsi[ie-1]+(x[i-1]-xlast)*(y[0][i-1]+ylast)*0.5;
+  if (j > 1) {
+    uu=0;
+    u2=0;
+    u3=0;
+    nll=3;
+    for ( int il = 1; il < nl; ++il ){
+      //call legndr(y(il,i),p,nll)
+      uu=uu+p[2-1];
+      u2=u2+p[3-1];
+      u3=u3+p[4-1];
+    } // enddo
+    uu=uu/(nl-1);
+    uu=uu*y[0][i-1];
+    u2=u2/(nl-1);
+    u3=u3/(nl-1);
+    u2=u2*y[0][i-1];
+    u3=u3*y[0][i-1];
+    ubar[ie-1]=ubar[ie-1]+0.5*(x[i-1]-xlast)*(uu+ulast);
+    p2[ie-1]=p2[ie-1]+0.5*(x[i-1]-xlast)*(u2+u2last);
+    p3[ie-1]=p3[ie-1]+0.5*(x[i-1]-xlast)*(u3+u3last);
+  } // endif
+  // if (j != 3 or xsi[ie-1] >= tolmin) go to 380
+  if (j == 3 and xsi[ie-1] < tolmin){ j = 2; }
+  // j=2
+
+}
+
 
 
 auto e_ep_mu(double& math, double& matdp, double& teff, double& teff2, 
     std::vector<double>& scr, const int& mtref, double& za, double& awr,
-    int& ncds, double& emax, double& cliq, int iinc ){
+    int& ncds, double& emax, double& cliq, int iinc, int lat,
+    std::vector<double>& esi, std::vector<double>& xsi, const int& lasym){
 
    int itemp,iold,inew,ne,nex;
    double temp;
@@ -58,45 +99,24 @@ auto e_ep_mu(double& math, double& matdp, double& teff, double& teff2,
    double u2,u2last,u3,u3last;
    std::vector<double> alpha, beta;
    std::vector<std::vector<double>> sab;
-   std::vector<double> egrid {
-     1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 1.e-4,
-     1.26e-4, 1.6e-4, 2.0e-4, 0.000253, 0.000297, 0.000350, 
-     0.00042, 0.000506, 0.000615, 0.00075, 0.00087, 
-     0.001012, 0.00123, 0.0015, 0.0018, 0.00203, 0.002277, 
-     0.0026, 0.003, 0.0035, 0.004048, 0.0045, 0.005, 
-     0.0056, 0.006325, 0.0072, 0.0081, 0.009108, 0.01, 
-     0.01063, 0.0115, 0.012397, 0.0133, 0.01417, 0.015, 
-     0.016192, 0.0182, 0.0199, 0.020493, 0.0215, 0.0228, 
-     0.0253, 0.028, 0.030613, 0.0338, 0.0365, 0.0395,
-     0.042757, 0.0465, 0.050, 0.056925, 0.0625, 0.069, 
-     0.075, 0.081972, 0.09, 0.096, 0.1035, 0.111573, 
-     0.120, 0.128, 0.1355, 0.145728, 0.160, 0.172, 
-     0.184437, 0.20, 0.2277, 0.2510392, 0.2705304, 
-     0.2907501, 0.3011332, 0.3206421, 0.3576813, 0.39, 
-     0.4170351, 0.45, 0.5032575, 0.56, 0.625, 
-     0.70, 0.78, 0.86, 0.95, 1.05, 1.16, 1.28, 
-     1.42, 1.55, 1.70, 1.855, 2.02, 2.18, 
-     2.36, 2.59, 2.855, 3.12, 3.42, 3.75,
-     4.07, 4.46, 4.90, 5.35, 5.85, 6.40, 
-     7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
-   const double unity = 1.0;
-   const double sabflg = -225.;
-   const double eps = 1.e-4;
-   const double tolmin = 5.e-7;
-   const double half = 0.5;
-   const double therm = 0.0253;
-   const double break_val = 3000.;
-   const double em9 = 1.e-9;
-   const double zero = 0.;
-   const double tenth = 0.1;
-   const double up = 1.1;
-   const double dn = 0.9;
-   const double uumin = 0.00001;
-   const double yumin = 2.e-7;
-   const int nlpmx = 10;
-
+   std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
+     1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 0.000253, 0.000297, 0.000350, 0.00042, 
+     0.000506, 0.000615, 0.00075, 0.00087, 0.001012, 0.00123, 0.0015, 0.0018, 
+     0.00203, 0.002277, 0.0026, 0.003, 0.0035, 0.004048, 0.0045, 0.005, 0.0056, 
+     0.006325, 0.0072, 0.0081, 0.009108, 0.01, 0.01063, 0.0115, 0.012397, 
+     0.0133, 0.01417, 0.015, 0.016192, 0.0182, 0.0199, 0.020493, 0.0215, 0.0228, 
+     0.0253, 0.028, 0.030613, 0.0338, 0.0365, 0.0395, 0.042757, 0.0465, 0.050, 
+     0.056925, 0.0625, 0.069, 0.075, 0.081972, 0.09, 0.096, 0.1035, 0.111573, 
+     0.120, 0.128, 0.1355, 0.145728, 0.160, 0.172, 0.184437, 0.20, 0.2277, 
+     0.2510392, 0.2705304, 0.2907501, 0.3011332, 0.3206421, 0.3576813, 0.39, 
+     0.4170351, 0.45, 0.5032575, 0.56, 0.625, 0.70, 0.78, 0.86, 0.95, 1.05, 
+     1.16, 1.28, 1.42, 1.55, 1.70, 1.855, 2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 
+     3.42, 3.75, 4.07, 4.46, 4.90, 5.35, 5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 
+     9.85, 10.00 };
+   const double sabflg = -225, eps = 1.e-4, tolmin = 5.e-7, therm = 0.0253, 
+     break_val = 3000, em9 = 1e-9, up = 1.1, dn = 0.9, uumin = 0.00001, yumin = 2e-7, 
+     nlpmx = 10, bk =8.617385e-5;
    int mth, mfh;
-   double bk =8.617385e-5;
    // save nwtab,sabmin,nl,nlt,nlp,nlp1,nl1,nnl,jmax,nne
    tevz = therm;
 
@@ -163,224 +183,214 @@ auto e_ep_mu(double& math, double& matdp, double& teff, double& teff2,
    std::cout << 305 << std::endl;
    ie=0;
 
-   /*
    // Loop over incident energy (green line in my drawing)
    bool loopE = true;
    while (loopE){
 
      // 310 continue
-     do310();
+     do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, 
+         p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid );
+
+     return;
+
+     bool moreBeta = true;
+     while (moreBeta) {
+       // set up next panel
+       // 311 continue
+       std::cout << 311 << std::endl;
+       x[2-1]=x[1-1];
+       for (int il = 0; il < nl; ++il ){
+          y[il][2-1] = y[il][1-1];
+       } // enddo
+       bool do313 = true;
+       while ( do313 ){
+         // 313 continue
+         std::cout << 313 << std::endl;
+         if (jbeta == 0) jbeta=1;
+         if (jbeta <= 0) {
+            if (lat == 1) {
+               ep=enow-beta[-jbeta-1]*tevz;
+            }
+            else {
+               ep=enow-beta[-jbeta-1]*tev;
+            } // endif
+          } 
+          else {
+            if (lat == 1) {
+               ep=enow+beta[jbeta-1]*tevz;
+            }
+            else {
+               ep=enow+beta[jbeta-1]*tev;
+            } // endif
+         } // endif
+         // if (ep > x(2)) go to 316
+         if (ep > x[2-1]) { moreBeta = false; }
+         jbeta=jbeta+1;
+       // go to 313
+       }
+
+       // 316 continue
+       std::cout << 316 << std::endl;
+       // ep=sigfig(ep,8,0)
+       x[1-1]=ep;
+       // call sigl(enow,ep,nnl,tev,nalpha,alpha,nbeta,beta,&
+       // sab,yt,nlmax,tol)
+       for (int il = 0; il < nl; ++il ){
+         y[il][1-1]=yt[il];
+       } // enddo
+
+       // adaptive subdivision of panel
+       i=2;
+       // compare linear approximation to true function
+       return;
+      } 
+      bool passedTest = false;
+      while (not passedTest){
+        std::cout << 330 << std::endl;
+        // 330 continue
+        if (i == imax) go to 360
+        if (iskip == 1) {
+          iskip=0;
+          // go to 360
+          std::cout << "go to 360" << std::endl;
+         } // endif
+         if (0.5*(y[0][i-1-1]+y[0][i-1])*(x[i-1-1]-x[i-1]) < tolmin) {
+           std::cout << "go to 360" << std::endl; 
+         }
+         xm=0.5*(x[i-1-1]+x[i-1]);
+         if (xm <= x[i-1] or xm >= x(i-1)) {
+           std::cout << "go to 360" << std::endl;
+         }
+         // call sigl(enow,xm,nnl,tev,nalpha,alpha,nbeta,beta,&
+         //  sab,yt,nlmax,tol)
+         uu=0;
+         uum=0;
+         do 350 k=1,nl
+           call terp1(x(i),y(k,i),x(i-1),y(k,i-1),xm,ym,2)
+           if (k > 1) uu=uu+yt(k)
+           if (k > 1) uum=uum+ym
+           test=tol*abs(yt(k))
+           test2=test
+           if (k > 1) test2=tol
+           if (abs(yt(k)-ym) > test2) go to 410
+           350 continue
+           test=2*tol*abs(uu)+uumin
+           if (abs(uu-uum) > test) go to 410
+           // point passes.  save top point in stack and continue.
+
+             do360()
 
 
-
-   // set up next panel
-  311 continue
-   x(2)=x(1)
-   do il=1,nl
-      y(il,2)=y(il,1)
-   } // enddo
-  313 continue
-   if (jbeta == 0) jbeta=1
-   if (jbeta <= 0) {
-      if (lat == 1) {
-         ep=enow-beta(-jbeta)*tevz
-      else
-         ep=enow-beta(-jbeta)*tev
-      } // endif
-      if (ep == enow) {
-         ep=sigfig(enow,8,-1)
-      else
-         ep=sigfig(ep,8,0)
-      } // endif
-   else
-      if (lat == 1) {
-         ep=enow+beta(jbeta)*tevz
-      else
-         ep=enow+beta(jbeta)*tev
-      } // endif
-      if (ep == enow) {
-         ep=sigfig(enow,8,+1)
-         iskip=1
-      else
-         ep=sigfig(ep,8,0)
-      } // endif
-   } // endif
-   if (ep > x(2)) go to 316
-   jbeta=jbeta+1
-   go to 313
-  316 continue
-   ep=sigfig(ep,8,0)
-   x(1)=ep
-   call sigl(enow,ep,nnl,tev,nalpha,alpha,nbeta,beta,&
-     sab,yt,nlmax,tol)
-   do il=1,nl
-      y(il,1)=yt(il)
-   } // enddo
-
-   // adaptive subdivision of panel
-   i=2
-   // compare linear approximation to true function
-  330 continue
-   if (i == imax) go to 360
-   if (iskip == 1) {
-      iskip=0
-      go to 360
-   } // endif
-   if (half*(y(1,i-1)+y(1,i))*(x(i-1)-x(i)) < tolmin) go to 360
-   xm=half*(x(i-1)+x(i))
-   xm=sigfig(xm,8,0)
-   if (xm <= x(i) or xm >= x(i-1)) go to 360
-   call sigl(enow,xm,nnl,tev,nalpha,alpha,nbeta,beta,&
-     sab,yt,nlmax,tol)
-   uu=0
-   uum=0
-   do 350 k=1,nl
-   call terp1(x(i),y(k,i),x(i-1),y(k,i-1),xm,ym,2)
-   if (k > 1) uu=uu+yt(k)
-   if (k > 1) uum=uum+ym
-   test=tol*abs(yt(k))
-   test2=test
-   if (k > 1) test2=tol
-   if (abs(yt(k)-ym) > test2) go to 410
-  350 continue
-   test=2*tol*abs(uu)+uumin
-   if (abs(uu-uum) > test) go to 410
-   // point passes.  save top point in stack and continue.
-  360 continue
-   j=j+1
-   if (j >= jmax) call error('calcem','storage exceeded.',' ')
-   if (j > 1) xsi(ie)=xsi(ie)+(x(i)-xlast)*(y(1,i)+ylast)*half
-   if (j > 1) {
-      uu=0
-      u2=0
-      u3=0
-      nll=3
-      do il=2,nl
-         call legndr(y(il,i),p,nll)
-         uu=uu+p(2)
-         u2=u2+p(3)
-         u3=u3+p(4)
-      } // enddo
-      uu=uu/(nl-1)
-      uu=uu*y(1,i)
-      u2=u2/(nl-1)
-      u3=u3/(nl-1)
-      u2=u2*y(1,i)
-      u3=u3*y(1,i)
-      ubar(ie)=ubar(ie)+half*(x(i)-xlast)*(uu+ulast)
-      p2(ie)=p2(ie)+half*(x(i)-xlast)*(u2+u2last)
-      p3(ie)=p3(ie)+half*(x(i)-xlast)*(u3+u3last)
-   } // endif
-   if (j != 3 or xsi(ie) >= tolmin) go to 380
-   j=2
-  380 continue
-   jscr=7+(j-1)*(nl+1)
-   scr(jscr)=x(i)
-   if (y(1,i) >= em9) {
-      scr(1+jscr)=sigfig(y(1,i),9,0)
-   else
-      scr(1+jscr)=sigfig(y(1,i),8,0)
-   } // endif
-   do il=2,nl
-      scr(il+jscr)=sigfig(y(il,i),9,0)
-      if (scr(il+jscr) > unity) {
-         // only warn for big miss, but always fix the overflow
-         //  use this same unity+0.0005 value in aceth
-         if (scr(il+jscr) > unity+0.0005) {
-            write(strng,'("1cos=",f7.4,", set to 1.&
+          380 continue
+           jscr=7+(j-1)*(nl+1)
+           scr(jscr)=x(i)
+           if (y(1,i) >= em9) {
+              scr(1+jscr)=sigfig(y(1,i),9,0)
+           else
+              scr(1+jscr)=sigfig(y(1,i),8,0)
+           } // endif
+           do il=2,nl
+              scr(il+jscr)=sigfig(y(il,i),9,0)
+              if (scr(il+jscr) > 1) {
+                 // only warn for big miss, but always fix the overflow
+                 //  use this same 1+0.0005 value in aceth
+                 if (scr(il+jscr) > 1+0.0005) {
+                    write(strng,'("1cos=",f7.4,", set to 1.&
+                                  &  enow,e''=",2(1pe12.5))')&
+                                    scr(il+jscr),enow,scr(jscr)
+                    call mess('calcem',strng,'')
+                 } // endif
+                 scr(il+jscr)=1
+              } // endif
+              if (scr(il+jscr) < -1) {
+                 // only warn for big miss, but always fix the underflow
+                 if (scr(il+jscr) < -(1+0.0005)) {
+                    write(strng,'("1cos=",f7.4,", set to -1.&
+                                  &  enow,e''=",2(1pe12.5),i3)')&
+                                    scr(il+jscr),enow,scr(jscr)
+                    call mess('calcem',strng,'')
+                 } // endif
+                 scr(il+jscr)=-1
+              } // endif
+           } // enddo
+           xlast=x(i)
+           ylast=y(1,i)
+           if (ylast != 0) jnz=j
+           ulast=0
+           u2last=0
+           u3last=0
+           nll=3
+           do il=2,nl
+              call legndr(y(il,i),p,nll)
+              ulast=ulast+p(2)
+              u2last=u2last+p(3)
+              u3last=u3last+p(4)
+           } // enddo
+           ulast=ulast*y(1,i)/(nl-1)
+           u2last=u2last*y(1,i)/(nl-1)
+           u3last=u3last*y(1,i)/(nl-1)
+           i=i-1
+           // if (i >= 2) go to 330
+           if (i >= 2) continue;
+           jbeta=jbeta+1
+           if (jbeta <= nbeta) go to 311
+           do il=1,nl
+              y(il,i)=0
+           } // enddo
+           go to 430
+           // test fails.  add point to stack and continue.
+      } // Loops through all times that 
+          410 continue
+           i=i+1
+           x(i)=x(i-1)
+           x(i-1)=xm
+           do il=1,nl
+              y(il,i)=y(il,i-1)
+              y(il,i-1)=yt(il)
+           } // enddo
+           go to 330
+           // linearization complete.  write out result.
+          430 continue
+           j=j+1
+           xsi(ie)=xsi(ie)+(x(i)-xlast)*(y(1,i)+ylast)*0.5
+           uu=0
+           u2=0
+           u3=0
+           ubar(ie)=ubar(ie)+0.5*(x(i)-xlast)*(uu+ulast)
+           p2(ie)=p2(ie)+0.5*(x(i)-xlast)*(u2+u2last)
+           p3(ie)=p3(ie)+0.5*(x(i)-xlast)*(u3+u3last)
+           xsi(ie)=sigfig(xsi(ie),9,0)
+           scr(7+(nl+1)*(j-1))=x(i)
+           jscr=7+(j-1)*(nl+1)
+           if (y(1,i) >= em9) {
+              scr(1+jscr)=sigfig(y(1,i),9,0)
+           else
+              scr(1+jscr)=sigfig(y(1,i),8,0)
+           } // endif
+           do il=2,nl
+              scr(il+jscr)=sigfig(y(il,i),9,0)
+              if (scr(il+jscr) > 1) {
+                 // only warn for big miss, but always fix the overflow
+                if (scr(il+jscr) > 1+0.0005) {
+                  write(strng,'("2cos",f7.4,", set to 1.&
                           &  enow,e''=",2(1pe12.5))')&
                             scr(il+jscr),enow,scr(jscr)
             call mess('calcem',strng,'')
          } // endif
-         scr(il+jscr)=unity
+         scr(il+jscr)=1
       } // endif
-      if (scr(il+jscr) < -unity) {
+      if (scr(il+jscr) < -1) {
          // only warn for big miss, but always fix the underflow
-         if (scr(il+jscr) < -(unity+0.0005)) {
-            write(strng,'("1cos=",f7.4,", set to -1.&
-                          &  enow,e''=",2(1pe12.5),i3)')&
-                            scr(il+jscr),enow,scr(jscr)
-            call mess('calcem',strng,'')
-         } // endif
-         scr(il+jscr)=-unity
-      } // endif
-   } // enddo
-   xlast=x(i)
-   ylast=y(1,i)
-   if (ylast != zero) jnz=j
-   ulast=0
-   u2last=0
-   u3last=0
-   nll=3
-   do il=2,nl
-      call legndr(y(il,i),p,nll)
-      ulast=ulast+p(2)
-      u2last=u2last+p(3)
-      u3last=u3last+p(4)
-   } // enddo
-   ulast=ulast*y(1,i)/(nl-1)
-   u2last=u2last*y(1,i)/(nl-1)
-   u3last=u3last*y(1,i)/(nl-1)
-   i=i-1
-   if (i >= 2) go to 330
-   jbeta=jbeta+1
-   if (jbeta <= nbeta) go to 311
-   do il=1,nl
-      y(il,i)=0
-   } // enddo
-   go to 430
-   // test fails.  add point to stack and continue.
-  410 continue
-   i=i+1
-   x(i)=x(i-1)
-   x(i-1)=xm
-   do il=1,nl
-      y(il,i)=y(il,i-1)
-      y(il,i-1)=yt(il)
-   } // enddo
-   go to 330
-   // linearization complete.  write out result.
-  430 continue
-   j=j+1
-   xsi(ie)=xsi(ie)+(x(i)-xlast)*(y(1,i)+ylast)*half
-   uu=0
-   u2=0
-   u3=0
-   ubar(ie)=ubar(ie)+half*(x(i)-xlast)*(uu+ulast)
-   p2(ie)=p2(ie)+half*(x(i)-xlast)*(u2+u2last)
-   p3(ie)=p3(ie)+half*(x(i)-xlast)*(u3+u3last)
-   xsi(ie)=sigfig(xsi(ie),9,0)
-   scr(7+(nl+1)*(j-1))=x(i)
-   jscr=7+(j-1)*(nl+1)
-   if (y(1,i) >= em9) {
-      scr(1+jscr)=sigfig(y(1,i),9,0)
-   else
-      scr(1+jscr)=sigfig(y(1,i),8,0)
-   } // endif
-   do il=2,nl
-      scr(il+jscr)=sigfig(y(il,i),9,0)
-      if (scr(il+jscr) > unity) {
-         // only warn for big miss, but always fix the overflow
-         if (scr(il+jscr) > unity+0.0005) {
-            write(strng,'("2cos",f7.4,", set to 1.&
-                          &  enow,e''=",2(1pe12.5))')&
-                            scr(il+jscr),enow,scr(jscr)
-            call mess('calcem',strng,'')
-         } // endif
-         scr(il+jscr)=unity
-      } // endif
-      if (scr(il+jscr) < -unity) {
-         // only warn for big miss, but always fix the underflow
-         if (scr(il+jscr) < -(unity+0.0005)) {
+         if (scr(il+jscr) < -(1+0.0005)) {
             write(strng,'("2cos",f7.4,", set to -1.&
                           &  enow,e''=",2(1pe12.5),i3)')&
                             scr(il+jscr),enow,scr(jscr)
             call mess('calcem',strng,'')
          } // endif
-         scr(il+jscr)=-unity
+         scr(il+jscr)=-1
       } // endif
    } // enddo
-   if (y(1,1) != zero) jnz=j
+   if (y(1,1) != 0) jnz=j
    if (jnz < j) j=jnz+1
    if (iprint == 2) {
       ubar(ie)=ubar(ie)/xsi(ie)
@@ -418,5 +428,6 @@ auto e_ep_mu(double& math, double& matdp, double& teff, double& teff2,
    go to 610
 
    */
+   } // While looking over incident energies E
 
 }
