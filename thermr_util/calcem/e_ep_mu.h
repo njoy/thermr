@@ -1,4 +1,42 @@
 
+#include "../extra/terp1.h"
+#include "calcem_util/sigl.h"
+
+
+auto do313( int& jbeta, const int& lat, double& ep, double& enow, 
+  const std::vector<double>& beta, const double& tev, const double& tevz,
+  const std::vector<double>& x){
+  bool do_313 = true;
+  std::cout << 313 << std::endl;
+  while ( do_313 ){
+    // 313 continue
+    if (jbeta == 0) jbeta=1;
+    if (jbeta <= 0) {
+      if (lat == 1) {
+        ep=enow-beta[-jbeta-1]*tevz;
+      }
+      else {
+        ep=enow-beta[-jbeta-1]*tev;
+      } // endif
+    } 
+    else {
+      if (lat == 1) {
+        ep=enow+beta[jbeta-1]*tevz;
+      }
+      else {
+        ep=enow+beta[jbeta-1]*tev;
+      } // endif
+    } // endif
+    if (ep > x[2-1]) { do_313 = false; } // go to 316
+    jbeta=jbeta+1;
+    // go to 313
+  }
+}
+
+
+
+
+
 auto do310( int& ie, double& enow, std::vector<double>& egrid, const double& temp,
   const double& bk, const double& break_val, const double& therm, 
   std::vector<double>& esi, std::vector<double>& xsi, std::vector<double>& ubar,
@@ -20,11 +58,11 @@ auto do310( int& ie, double& enow, std::vector<double>& egrid, const double& tem
      ubar[ie-1]=0;
      p2[ie-1]=0;
      p3[ie-1]=0;
-     ep=0;
+     ep=0.0;
      x[0]=ep;
      //call sigl(enow,ep,nnl,tev,nalpha,alpha,nbeta,beta,&
      //  sab,yt,nlmax,tol)
-     for ( int il = 0; il < nl; ++il ){
+     for ( int il = 0; il < yt.size(); ++il ){
         y[il][0] = yt[il];
      } // enddo
      jbeta=-nbeta;
@@ -33,9 +71,14 @@ auto do310( int& ie, double& enow, std::vector<double>& egrid, const double& tem
      iskip=0;
 }
 
-auto do360(int& j, const int& jmax, std::vector<double>& xsi, std::vector<double>& x,
-    double& xlast, std::vector<std::vector<double>>& y, double& uu, double& u2,
-    double& u3, int& nll, const int& nl, std::vector<double>& p, double& ubar ){
+auto do360(int& j, const int& jmax, std::vector<double>& xsi, 
+    std::vector<double>& x, double& xlast, double& ylast, double& ulast,
+    double& u2last, double& u3last, const double& tolmin,
+    std::vector<std::vector<double>>& y, std::vector<double>& p2,
+    std::vector<double>& p3,
+    double& uu, double& u2, double& u3, int& nll, const int& nl, 
+    std::vector<double>& p, std::vector<double>& ubar, const int ie, 
+    const int i ){
   // 360 continue
   std::cout << 360 << std::endl;
   j=j+1;
@@ -70,217 +113,226 @@ auto do360(int& j, const int& jmax, std::vector<double>& xsi, std::vector<double
 
 
 
-auto e_ep_mu(double& math, double& matdp, double& teff, double& teff2, 
-    std::vector<double>& scr, const int& mtref, double& za, double& awr,
-    int& ncds, double& emax, double& cliq, int iinc, int lat,
-    std::vector<double>& esi, std::vector<double>& xsi, const int& lasym){
+auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2, 
+  std::vector<double>& scr, const int& mtref, double& za, double& awr,
+  int& ncds, double& emax, double& cliq, int iinc, int lat,
+  std::vector<double>& esi, std::vector<double>& xsi, const int& lasym,
+  std::vector<double>& alpha, std::vector<double>& beta, 
+  std::vector<std::vector<double>>& sab, const double t, const double& tol,
+  const double& az, const double& az2, const double& sb, const double& sb2, 
+  int& nnl ){
 
-   int itemp,iold,inew,ne,nex;
-   double temp;
-   int nr,np,nwtab,nl,nlt,nlp,nlp1,nnl,jmax,nne;
-   int i,ia,nl1,ltt,loc,l,jscr,ilog;
-   int matd,itprnt,nb,nw,ni,nbeta,lt,it,nalpha;
-   int itrunc,ib,ip,ir,idis,ie,nmu,nep,istart,iend;
-   int jbeta,j,iskip,il,k,jnz,ll,jj,ii,nexn,ien,isave;
-    int nll;
-   double smz,t1,t,tmax,test,tempt,tt1,ttn,tnxt,xm;
-   double uu,uum,ym,test2,xlast,ulast,xs;
-   double b,diff,enow,ep,sabmin,tev,tevz,ylast;
-   double u,xl,yl,sum;
-   double tone,elo;
-   const int ngrid=118;
-   const int nlmax=65;
-   const int nemax=5000;
-   const int mumax=300;
-   const int imax=20;
-   std::vector<double> ex(imax),x(imax),yt(nlmax);
-   std::vector<std::vector<double>> y(nlmax,std::vector<double> (imax));
-   std::vector<double> yy(imax),yu(2*nemax),ubar(ngrid),p2(ngrid),p3(ngrid),p(4),uj(mumax),sj(mumax);
-   double u2,u2last,u3,u3last;
-   std::vector<double> alpha, beta;
-   std::vector<std::vector<double>> sab;
-   std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
-     1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 0.000253, 0.000297, 0.000350, 0.00042, 
-     0.000506, 0.000615, 0.00075, 0.00087, 0.001012, 0.00123, 0.0015, 0.0018, 
-     0.00203, 0.002277, 0.0026, 0.003, 0.0035, 0.004048, 0.0045, 0.005, 0.0056, 
-     0.006325, 0.0072, 0.0081, 0.009108, 0.01, 0.01063, 0.0115, 0.012397, 
-     0.0133, 0.01417, 0.015, 0.016192, 0.0182, 0.0199, 0.020493, 0.0215, 0.0228, 
-     0.0253, 0.028, 0.030613, 0.0338, 0.0365, 0.0395, 0.042757, 0.0465, 0.050, 
-     0.056925, 0.0625, 0.069, 0.075, 0.081972, 0.09, 0.096, 0.1035, 0.111573, 
-     0.120, 0.128, 0.1355, 0.145728, 0.160, 0.172, 0.184437, 0.20, 0.2277, 
-     0.2510392, 0.2705304, 0.2907501, 0.3011332, 0.3206421, 0.3576813, 0.39, 
-     0.4170351, 0.45, 0.5032575, 0.56, 0.625, 0.70, 0.78, 0.86, 0.95, 1.05, 
-     1.16, 1.28, 1.42, 1.55, 1.70, 1.855, 2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 
-     3.42, 3.75, 4.07, 4.46, 4.90, 5.35, 5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 
-     9.85, 10.00 };
-   const double sabflg = -225, eps = 1.e-4, tolmin = 5.e-7, therm = 0.0253, 
-     break_val = 3000, em9 = 1e-9, up = 1.1, dn = 0.9, uumin = 0.00001, yumin = 2e-7, 
-     nlpmx = 10, bk =8.617385e-5;
-   int mth, mfh;
-   // save nwtab,sabmin,nl,nlt,nlp,nlp1,nl1,nnl,jmax,nne
-   tevz = therm;
-
-
-
-
-   // compute kernel and write in special mf6 energy-angle format
-   // 300 continue
-   std::cout << "300" << std::endl;
-   // if (iform == 1) go to 510 
-   // ^^ Take care of this in the upstairs function
-   // This will go to the other branch ( the E-mu-E' branch )
-   ltt=5;
-   math=matdp;
-   mfh=6;
-   mth=mtref;
-   tev=t*bk;
-   teff=teff*bk;
-   teff2=teff2*bk;
-   scr[1-1]=za;
-   scr[2-1]=awr;
-   scr[3-1]=0;
-   scr[4-1]=ltt; // temporary flag for this format
-   scr[5-1]=1;
-   scr[6-1]=0;
-   nw=6;
-   // call contio(0,0,nscr,scr,nb,nw)
-   ncds=ncds+1;
-   scr[1-1]=1;
-   scr[2-1]=1;
-   scr[3-1]=-1; // LIP=-1 indicates incoherent inelastic data
-   scr[4-1]=1; // LAW=1 for incoherent inelastic data
-   scr[5-1]=1;
-   scr[6-1]=2;
-   scr[7-1]=2;
-   scr[8-1]=2;
-   scr[9-1]=1.e-5;
-   scr[10-1]=1;
-   scr[11-1]=emax;
-   scr[12-1]=1;
-   nw=12;
-   //call tab1io(0,0,nscr,scr,nb,nw)
-   ncds=ncds+2;
-   scr[1-1]=temp;
-   scr[2-1]=0;
-   scr[3-1]=3; // lang=3 is a special code for equally probable cosines
-   scr[4-1]=1;
-   scr[5-1]=1;
-   scr[6-1]=nne;
-   scr[7-1]=nne;
-   scr[8-1]=2;
-   nw=8;
-   // call tab2io(0,0,nscr,scr,nb,nwtab)
-   ncds=ncds+2;
-   cliq=0;
+  int itemp,iold,inew,ne,nex;
+  double temp;
+  int nr,np,nwtab,nl,nlt,nlp,nlp1,jmax,nne;
+  int i,ia,nl1,ltt,loc,l,jscr,ilog;
+  int matd,itprnt,nb,nw,ni,nbeta=beta.size(),lt,it,nalpha=alpha.size();
+  int itrunc,ib,ip,ir,idis,ie,nmu,nep,istart,iend;
+  int jbeta=0,j=0,iskip,il,k,jnz,ll,jj,ii,nexn,ien,isave;
+  int nll;
+  double smz,t1,tmax,test,tempt,tt1,ttn,tnxt,xm;
+  double uu,uum,ym,test2,xlast,ulast,xs;
+  double b,diff,enow,ep,sabmin,tev,tevz,ylast;
+  double u,xl,yl,sum;
+  double tone,elo;
+  const int ngrid=118;
+  const int nlmax=65;
+  const int nemax=5000;
+  const int mumax=300;
+  const int imax=20;
+  std::vector<double> ex(imax,0.0),x(imax,0.0),yt(nlmax,0.0);
+  std::vector<std::vector<double>> y(nlmax,std::vector<double> (imax,0.0));
+  std::vector<double> yy(imax,0.0),yu(2*nemax,0.0),ubar(ngrid,0.0),p2(ngrid,0.0),p3(ngrid,0.0),p(4,0.0),uj(mumax,0.0),sj(mumax,0.0);
+  double u2=0,u2last=0,u3=0,u3last=0;
+  std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
+    1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 0.000253, 0.000297, 0.000350, 0.00042, 
+    0.000506, 0.000615, 0.00075, 0.00087, 0.001012, 0.00123, 0.0015, 0.0018, 
+    0.00203, 0.002277, 0.0026, 0.003, 0.0035, 0.004048, 0.0045, 0.005, 0.0056, 
+    0.006325, 0.0072, 0.0081, 0.009108, 0.01, 0.01063, 0.0115, 0.012397, 
+    0.0133, 0.01417, 0.015, 0.016192, 0.0182, 0.0199, 0.020493, 0.0215, 0.0228, 
+    0.0253, 0.028, 0.030613, 0.0338, 0.0365, 0.0395, 0.042757, 0.0465, 0.050, 
+    0.056925, 0.0625, 0.069, 0.075, 0.081972, 0.09, 0.096, 0.1035, 0.111573, 
+    0.120, 0.128, 0.1355, 0.145728, 0.160, 0.172, 0.184437, 0.20, 0.2277, 
+    0.2510392, 0.2705304, 0.2907501, 0.3011332, 0.3206421, 0.3576813, 0.39, 
+    0.4170351, 0.45, 0.5032575, 0.56, 0.625, 0.70, 0.78, 0.86, 0.95, 1.05, 
+    1.16, 1.28, 1.42, 1.55, 1.70, 1.855, 2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 
+    3.42, 3.75, 4.07, 4.46, 4.90, 5.35, 5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 
+    9.85, 10.00 };
+  const double sabflg = -225, eps = 1.e-4, tolmin = 5.e-7, therm = 0.0253, 
+    break_val = 3000, em9 = 1e-9, up = 1.1, dn = 0.9, uumin = 0.00001, yumin = 2e-7, 
+    nlpmx = 10, bk =8.617385e-5;
+  int mth, mfh;
+  // save nwtab,sabmin,nl,nlt,nlp,nlp1,nl1,nnl,jmax,nne
+  tevz = therm;
 
 
-   if ( iinc != 1 and sab[0][0] > sab[0][1]){
-     cliq=(sab[0][0]-sab[0][1])*alpha[0]/(beta[1]*beta[1]);
-   }
+  // compute kernel and write in special mf6 energy-angle format
+  // 300 continue
+  std::cout << "300" << std::endl;
+  // if (iform == 1) go to 510 
+  // ^^ Take care of this in the upstairs function
+  // This will go to the other branch ( the E-mu-E' branch )
+  ltt=5;
+  math=matdp;
+  mfh=6;
+  mth=mtref;
+  tev=t*bk;
+  teff=teff*bk;
+  teff2=teff2*bk;
+  scr[1-1]=za;
+  scr[2-1]=awr;
+  scr[3-1]=0;
+  scr[4-1]=ltt; // temporary flag for this format
+  scr[5-1]=1;
+  scr[6-1]=0;
+  nw=6;
+  // call contio(0,0,nscr,scr,nb,nw)
+  ncds=ncds+1;
+  scr[1-1]=1;
+  scr[2-1]=1;
+  scr[3-1]=-1; // LIP=-1 indicates incoherent inelastic data
+  scr[4-1]=1; // LAW=1 for incoherent inelastic data
+  scr[5-1]=1;
+  scr[6-1]=2;
+  scr[7-1]=2;
+  scr[8-1]=2;
+  scr[9-1]=1.e-5;
+  scr[10-1]=1;
+  scr[11-1]=emax;
+  scr[12-1]=1;
+  nw=12;
+  //call tab1io(0,0,nscr,scr,nb,nw)
+  ncds=ncds+2;
+  scr[1-1]=temp;
+  scr[2-1]=0;
+  scr[3-1]=3; // lang=3 is a special code for equally probable cosines
+  scr[4-1]=1;
+  scr[5-1]=1;
+  scr[6-1]=nne;
+  scr[7-1]=nne;
+  scr[8-1]=2;
+  nw=8;
+  // call tab2io(0,0,nscr,scr,nb,nwtab)
+  ncds=ncds+2;
+  cliq=0;
 
-   // loop over given incident energy grid.
-   // 305 continue
-   std::cout << 305 << std::endl;
-   ie=0;
+  if ( iinc != 1 and sab[0][0] > sab[0][1]){
+    cliq=(sab[0][0]-sab[0][1])*alpha[0]/(beta[1]*beta[1]);
+  }
 
-   // Loop over incident energy (green line in my drawing)
-   bool loopE = true;
-   while (loopE){
+  // loop over given incident energy grid.
+  // 305 continue
+  std::cout << 305 << std::endl;
+  ie=0;
 
-     // 310 continue
-     do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, 
-         p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid );
+  // Loop over incident energy (green line in my drawing)
+  bool loopE = true;
+  while (loopE){
 
-     return;
+    // 310 continue
+    do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, 
+      p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid );
 
-     bool moreBeta = true;
-     while (moreBeta) {
-       // set up next panel
-       // 311 continue
-       std::cout << 311 << std::endl;
-       x[2-1]=x[1-1];
-       for (int il = 0; il < nl; ++il ){
-          y[il][2-1] = y[il][1-1];
-       } // enddo
-       bool do313 = true;
-       while ( do313 ){
-         // 313 continue
-         std::cout << 313 << std::endl;
-         if (jbeta == 0) jbeta=1;
-         if (jbeta <= 0) {
-            if (lat == 1) {
-               ep=enow-beta[-jbeta-1]*tevz;
-            }
-            else {
-               ep=enow-beta[-jbeta-1]*tev;
-            } // endif
-          } 
-          else {
-            if (lat == 1) {
-               ep=enow+beta[jbeta-1]*tevz;
-            }
-            else {
-               ep=enow+beta[jbeta-1]*tev;
-            } // endif
-         } // endif
-         // if (ep > x(2)) go to 316
-         if (ep > x[2-1]) { moreBeta = false; }
-         jbeta=jbeta+1;
-       // go to 313
-       }
 
-       // 316 continue
-       std::cout << 316 << std::endl;
-       // ep=sigfig(ep,8,0)
-       x[1-1]=ep;
-       // call sigl(enow,ep,nnl,tev,nalpha,alpha,nbeta,beta,&
-       // sab,yt,nlmax,tol)
-       for (int il = 0; il < nl; ++il ){
-         y[il][1-1]=yt[il];
-       } // enddo
+    bool moreBeta = true;
+    while (moreBeta) {
+      // set up next panel
+      // 311 continue
+      std::cout << 311 << std::endl;
+      x[2-1]=x[1-1];
 
-       // adaptive subdivision of panel
-       i=2;
-       // compare linear approximation to true function
-       return;
-      } 
+      for (int il = 0; il < y.size(); ++il ){
+        y[il][2-1] = y[il][1-1];
+      } // enddo
+
+
+      // do 313
+      do313( jbeta, lat, ep, enow, beta, tev, tevz, x);
+
+
+
+      std::cout << 316 << std::endl;
+      x[1-1]=ep;
+
+
+
+      sigl( nnl, nlmax, enow, ep, tev, alpha, beta, sab, yt, tol, az, 
+        tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
+      for ( auto entry : yt ){ std::cout << entry << std::endl; }
+
+      for (int il = 0; il < yt.size(); ++il ){
+        y[il][1-1]=yt[il];
+      } // enddo
+        std::cout << std::setw(15) << x[0] << std::setw(15) << x[1] << std::setw(15) << x[2] << std::setw(15) << x[3] << std::setw(15) << x[4] << std::endl;
+      std::cout << std::setw(15) << y[0][0] << std::setw(15) << y[0][1] << std::setw(15) << y[0][2] << std::setw(15) << y[0][3] << std::setw(15) << y[0][4] << std::endl;
+
+      return;
+
+
+      // adaptive subdivision of panel
+      i=2;
+      // compare linear approximation to true function
+  
       bool passedTest = false;
       while (not passedTest){
         std::cout << 330 << std::endl;
         // 330 continue
-        if (i == imax) go to 360
-        if (iskip == 1) {
-          iskip=0;
-          // go to 360
-          std::cout << "go to 360" << std::endl;
-         } // endif
-         if (0.5*(y[0][i-1-1]+y[0][i-1])*(x[i-1-1]-x[i-1]) < tolmin) {
-           std::cout << "go to 360" << std::endl; 
-         }
-         xm=0.5*(x[i-1-1]+x[i-1]);
-         if (xm <= x[i-1] or xm >= x(i-1)) {
-           std::cout << "go to 360" << std::endl;
-         }
-         // call sigl(enow,xm,nnl,tev,nalpha,alpha,nbeta,beta,&
-         //  sab,yt,nlmax,tol)
-         uu=0;
-         uum=0;
-         do 350 k=1,nl
-           call terp1(x(i),y(k,i),x(i-1),y(k,i-1),xm,ym,2)
-           if (k > 1) uu=uu+yt(k)
-           if (k > 1) uum=uum+ym
-           test=tol*abs(yt(k))
-           test2=test
-           if (k > 1) test2=tol
-           if (abs(yt(k)-ym) > test2) go to 410
-           350 continue
-           test=2*tol*abs(uu)+uumin
-           if (abs(uu-uum) > test) go to 410
-           // point passes.  save top point in stack and continue.
-
-             do360()
 
 
+
+        if ( i != imax ){
+          if ( iskip != 1 ){
+            std::cout << i << std::endl;
+            std::cout << std::setw(15) << x[i-1] << std::setw(15) << x[i-2] << std::endl;
+            std::cout << std::setw(15) << y[0][i-1] << std::setw(15) << y[0][i-2] << std::endl;
+            if (0.5*(y[0][i-1-1]+y[0][i-1])*(x[i-1-1]-x[i-1]) >= tolmin) {
+              xm=0.5*(x[i-1-1]+x[i-1]);
+
+              if (xm > x[i-1] and xm < x[i-1-1]) {
+
+                sigl( nnl, nlmax, enow, ep, tev, alpha, beta, sab, yt, tol, az, 
+                    tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
+
+
+                // call sigl(enow,xm,nnl,tev,nalpha,alpha,nbeta,beta,&
+                //  sab,yt,nlmax,tol)
+                uu=0;
+                uum=0;
+                for ( int k = 1; k <= nl; ++k ){
+                  ym = terp1(x[i-1],y[k-1][i-1],x[i-1-1],y[k-1][i-1-1],xm,2);
+
+                  if (k > 1) uu=uu+yt[k-1];
+                  if (k > 1) uum=uum+ym;
+                  test=tol*abs(yt[k-1]);
+                  test2=test;
+                  if (k > 1) test2=tol;
+                  std::cout << "-----  " << yt[k-1] << "    " << ym << "    " << test2 << std::endl;
+                  if (abs(yt[k-1]-ym) > test2) std::cout << "go to 410" << std::endl;
+                } 
+                std::cout << 350 << std::endl;  // 350 continue
+                test=2*tol*abs(uu-1)+uumin;
+                if (abs(uu-uum) > test) std::cout << "go to 410" << std::endl;
+                // point passes.  save top point in stack and continue.
+
+              } 
+            } 
+          } // iskip
+          else {
+            iskip = 0;
+          }
+        } 
+      
+        do360(j, jmax, xsi, x, xlast, ylast, ulast, u2last, u3last, tolmin, y, 
+          p2, p3, uu, u2, u3, nll, nl, p, ubar, ie, i );
+
+
+     return;
+
+      } // passedTest (going back to 330)
+    } // moreBeta (311)
+  } //  loopE (310)
+
+         /*
           380 continue
            jscr=7+(j-1)*(nl+1)
            scr(jscr)=x(i)
@@ -339,7 +391,9 @@ auto e_ep_mu(double& math, double& matdp, double& teff, double& teff2,
            } // enddo
            go to 430
            // test fails.  add point to stack and continue.
-      } // Loops through all times that 
+      */
+ //     } // Loops through all times that 
+      /*
           410 continue
            i=i+1
            x(i)=x(i-1)
@@ -428,6 +482,6 @@ auto e_ep_mu(double& math, double& matdp, double& teff, double& teff2,
    go to 610
 
    */
-   } // While looking over incident energies E
+//   } // While looking over incident energies E
 
 }

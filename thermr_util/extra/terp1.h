@@ -1,5 +1,6 @@
-#include <iostream> 
-#include <vector>
+
+#ifndef THERMR_TERP1_HH
+#define THERMR_TERP1_HH
 
 auto terp1( const double& x1, const double& y1, const double& x2, 
   const double& y2, const double& x, int i ){
@@ -63,3 +64,4 @@ auto terp1( const double& x1, const double& y1, const double& x2,
 }
 
 
+#endif
