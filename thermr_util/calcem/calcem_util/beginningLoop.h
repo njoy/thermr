@@ -22,6 +22,7 @@ auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y,
 
   // prime stack for equally-probable angles
   // 130 continue
+  std::cout << 130 << std::endl;
   // adaptive linearization
   // Consider a cosine mu equal to -1. What's the cross section?
   x[2] = -1;
@@ -92,6 +93,7 @@ auto do_110(int& i, std::vector<double>& x, std::vector<double>& y,
   double xm, ym, yt;
   while ( i < x.size() ){ 
     // 110 continue
+    // std::cout << 110 << std::endl;
     
     xm = 0.5*( x[i-2] + x[i-1] );
     ym = 0.5*( y[i-2] + y[i-1] );
@@ -138,11 +140,6 @@ auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y,
    * a and b being fixed, and mu corresponding to the values in x). The grid
    * is chosen adaptively. So let's consider x = [2, -8, -16, 0, 0, 0, ... ]
    * (in reality 2-->1 and -16 --> -1, but this is just good for discussion now)
-   *
-   *
-   *
-   *
-   *
    */
 
 

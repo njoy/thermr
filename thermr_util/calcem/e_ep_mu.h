@@ -9,10 +9,12 @@ auto do313( int& jbeta, const int& lat, double& ep, double& enow,
   bool do_313 = true;
   std::cout << 313 << std::endl;
   while ( do_313 ){
+    std::cout << std::setprecision(20) << "E'     " << ep << std::endl;
     // 313 continue
     if (jbeta == 0) jbeta=1;
     if (jbeta <= 0) {
       if (lat == 1) {
+        std::cout << enow << "    " << beta[-jbeta-1] << "    " << tevz << "    " << jbeta << std::endl;
         ep=enow-beta[-jbeta-1]*tevz;
       }
       else {
@@ -31,6 +33,8 @@ auto do313( int& jbeta, const int& lat, double& ep, double& enow,
     jbeta=jbeta+1;
     // go to 313
   }
+
+  std::cout << std::setprecision(20) << "E'     " << ep << std::endl;
 }
 
 
@@ -255,10 +259,17 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
       x[1-1]=ep;
 
 
+      //std::cout << "\n\n\n\n\n\n\n\n\n" << std::endl;
 
+      //std::cout << nnl << std::endl;
+      //std::cout << nlmax << std::endl;
+      //std::cout << std::setprecision(20) << enow << std::endl;
+      //std::cout << ep << std::endl;
+      //std::cout << tev << std::endl;
+
+      std::cout << std::endl;
       sigl( nnl, nlmax, enow, ep, tev, alpha, beta, sab, yt, tol, az, 
         tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
-      for ( auto entry : yt ){ std::cout << entry << std::endl; }
 
       for (int il = 0; il < yt.size(); ++il ){
         y[il][1-1]=yt[il];

@@ -20,6 +20,7 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
       }
     }
 
+    std::setprecision(15);
 
     e_ep_mu(math, matdp, teff, teff2, scr, mtref, za, awr, ncds, emax, cliq, iinc, lat, esi, xsi, lasym, alpha, beta, sab, t, tol, az, az2, sb, sb2, nnl );
 
