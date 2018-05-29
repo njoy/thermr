@@ -1,4 +1,7 @@
 
+#ifndef THERMR_SIGFIG_HH
+#define THERMR_SIGFIG_HH
+
    auto sigfig(double x, int ndig, int idig){
   /*--------------------------------------------------------------------
    * Adjust x to have ndig signficant figures.  If idig is not zero,
@@ -26,4 +29,4 @@
    return xx;
 }
 
-
+#endif

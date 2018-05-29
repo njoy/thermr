@@ -1,4 +1,5 @@
 #include "sig.h"
+#include "sigfig.h"
 
 double maxOf3Vals( const double& a, const double& b, const double& c ){
   return (a < b) ? (b < c ? c : b) : (a < c ? c : a);
@@ -21,8 +22,7 @@ auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y,
    */
 
   // prime stack for equally-probable angles
-  // 130 continue
-  std::cout << 130 << std::endl;
+  //std::cout << 130 << std::endl;
   // adaptive linearization
   // Consider a cosine mu equal to -1. What's the cross section?
   x[2] = -1;
@@ -32,6 +32,7 @@ auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y,
   // What's the cross section?
   x[1] = 0.5 * seep * ( e + ep - (s1bb-1) * az * tev );
   if (abs(x[1]) > 1-eps) x[1] = 0.99;
+  x[1] = sigfig(x[1],8,0);
   y[1] = sig(e,ep,x[1],tev,alpha,beta,sab,az,tevz,lasym,
     az2,teff2,lat,cliq,sb,sb2,teff,iinc);
 
@@ -92,10 +93,10 @@ auto do_110(int& i, std::vector<double>& x, std::vector<double>& y,
 
   double xm, ym, yt;
   while ( i < x.size() ){ 
-    // 110 continue
     // std::cout << 110 << std::endl;
     
     xm = 0.5*( x[i-2] + x[i-1] );
+    xm = sigfig(xm,8,0);
     ym = 0.5*( y[i-2] + y[i-1] );
     yt = sig(e, ep, xm, tev, alpha, beta, sab, az, tevz, lasym, az2, teff2,
       lat, cliq, sb, sb2, teff, iinc);
@@ -161,7 +162,7 @@ auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y,
 
     while ( true ){
 
-      // 120 continue
+      // std::cout << 120 << std::endl;
       
       // Sum is meant to be the integral of cross section across all values of
       // mu. 

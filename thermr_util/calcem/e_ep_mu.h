@@ -1,25 +1,33 @@
 
 #include "../extra/terp1.h"
 #include "calcem_util/sigl.h"
+#include "calcem_util/sigfig.h"
 
 
 auto do313( int& jbeta, const int& lat, double& ep, double& enow, 
   const std::vector<double>& beta, const double& tev, const double& tevz,
-  const std::vector<double>& x){
+  const std::vector<double>& x, int& iskip){
   bool do_313 = true;
   std::cout << 313 << std::endl;
   while ( do_313 ){
-    std::cout << std::setprecision(20) << "E'     " << ep << std::endl;
+    //std::cout << std::setprecision(20) << "E'     " << ep << std::endl;
     // 313 continue
     if (jbeta == 0) jbeta=1;
     if (jbeta <= 0) {
       if (lat == 1) {
-        std::cout << enow << "    " << beta[-jbeta-1] << "    " << tevz << "    " << jbeta << std::endl;
+   //     std::cout << enow << "    " << beta[-jbeta-1] << "    " << tevz << "    " << jbeta << std::endl;
         ep=enow-beta[-jbeta-1]*tevz;
       }
       else {
         ep=enow-beta[-jbeta-1]*tev;
       } // endif
+      if (ep == enow) {
+         ep=sigfig(enow,8,-1);
+      }
+      else {
+         ep=sigfig(ep,8,0);
+      }
+
     } 
     else {
       if (lat == 1) {
@@ -28,13 +36,21 @@ auto do313( int& jbeta, const int& lat, double& ep, double& enow,
       else {
         ep=enow+beta[jbeta-1]*tev;
       } // endif
+      if (ep == enow) {
+         ep=sigfig(enow,8,+1);
+         iskip=1;
+      }
+      else { 
+         ep=sigfig(ep,8,0);
+      }
+
     } // endif
     if (ep > x[2-1]) { do_313 = false; } // go to 316
     jbeta=jbeta+1;
     // go to 313
   }
 
-  std::cout << std::setprecision(20) << "E'     " << ep << std::endl;
+  //std::cout << std::setprecision(20) << "E'     " << ep << std::endl;
 }
 
 
@@ -251,7 +267,7 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
 
 
       // do 313
-      do313( jbeta, lat, ep, enow, beta, tev, tevz, x);
+      do313( jbeta, lat, ep, enow, beta, tev, tevz, x, iskip);
 
 
 
@@ -259,23 +275,41 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
       x[1-1]=ep;
 
 
-      //std::cout << "\n\n\n\n\n\n\n\n\n" << std::endl;
+      std::cout << "\n\n\n\n\n\n\n\n\n" << std::endl;
 
-      //std::cout << nnl << std::endl;
-      //std::cout << nlmax << std::endl;
-      //std::cout << std::setprecision(20) << enow << std::endl;
-      //std::cout << ep << std::endl;
-      //std::cout << tev << std::endl;
-
+      /*
+      std::cout << nnl << std::endl;
+      std::cout << nlmax << std::endl;
+      std::cout << std::setprecision(12) << enow << std::endl;
+      std::cout << ep << std::endl;
       std::cout << std::endl;
+
+      std::cout << tev << std::endl;
+      std::cout << tevz << std::endl;
+      std::cout << az << std::endl;
+      std::cout << az2 << std::endl;
+      std::cout << teff << std::endl;
+      std::cout << teff2 << std::endl;
+      */
+
+      std::cout << tol << std::endl;
+      std::cout << iinc << std::endl;
+      std::cout << lat << std::endl;
+      std::cout << lasym << std::endl;
+      std::cout << cliq << std::endl;
+      std::cout << sb << std::endl;
+      std::cout << sb2 << std::endl;
+      
+
       sigl( nnl, nlmax, enow, ep, tev, alpha, beta, sab, yt, tol, az, 
         tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
 
       for (int il = 0; il < yt.size(); ++il ){
         y[il][1-1]=yt[il];
       } // enddo
-        std::cout << std::setw(15) << x[0] << std::setw(15) << x[1] << std::setw(15) << x[2] << std::setw(15) << x[3] << std::setw(15) << x[4] << std::endl;
-      std::cout << std::setw(15) << y[0][0] << std::setw(15) << y[0][1] << std::setw(15) << y[0][2] << std::setw(15) << y[0][3] << std::setw(15) << y[0][4] << std::endl;
+        std::cout << std::setw(20) << yt[0] << std::setw(20) << yt[1] << std::setw(20) << yt[2] << std::setw(20) << yt[3] << std::setw(20) << yt[4] << std::endl;
+      //  std::cout << std::setw(20) << x[0] << std::setw(20) << x[1] << std::setw(20) << x[2] << std::setw(20) << x[3] << std::setw(20) << x[4] << std::endl;
+      //std::cout << std::setw(20) << y[0][0] << std::setw(20) << y[0][1] << std::setw(20) << y[0][2] << std::setw(20) << y[0][3] << std::setw(20) << y[0][4] << std::endl;
 
       return;
 
@@ -294,19 +328,20 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
         if ( i != imax ){
           if ( iskip != 1 ){
             std::cout << i << std::endl;
-            std::cout << std::setw(15) << x[i-1] << std::setw(15) << x[i-2] << std::endl;
-            std::cout << std::setw(15) << y[0][i-1] << std::setw(15) << y[0][i-2] << std::endl;
+            std::cout << std::setw(10) << x[i-2] << std::setw(35) << x[i-1] << std::endl;
+            std::cout << std::setw(10) << y[0][i-2] << std::setw(35) << y[0][i-1] << std::endl;
             if (0.5*(y[0][i-1-1]+y[0][i-1])*(x[i-1-1]-x[i-1]) >= tolmin) {
               xm=0.5*(x[i-1-1]+x[i-1]);
 
               if (xm > x[i-1] and xm < x[i-1-1]) {
 
-                sigl( nnl, nlmax, enow, ep, tev, alpha, beta, sab, yt, tol, az, 
+                std::cout << ":)   " << yt[0] << "    " << yt[1] << "    " << yt[2]<< std::endl;
+                sigl( nnl, nlmax, enow, xm, tev, alpha, beta, sab, yt, tol, az, 
                     tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
 
+                std::cout << ":)   " << yt[0] << "    " << yt[1] << std::endl;
 
-                // call sigl(enow,xm,nnl,tev,nalpha,alpha,nbeta,beta,&
-                //  sab,yt,nlmax,tol)
+                   std::cout << "HERE" << std::endl; return;
                 uu=0;
                 uum=0;
                 for ( int k = 1; k <= nl; ++k ){
@@ -317,7 +352,7 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
                   test=tol*abs(yt[k-1]);
                   test2=test;
                   if (k > 1) test2=tol;
-                  std::cout << "-----  " << yt[k-1] << "    " << ym << "    " << test2 << std::endl;
+                   std::cout << yt[k-1] << "    "  << ym << "    " << test2<< std::endl; return;
                   if (abs(yt[k-1]-ym) > test2) std::cout << "go to 410" << std::endl;
                 } 
                 std::cout << 350 << std::endl;  // 350 continue

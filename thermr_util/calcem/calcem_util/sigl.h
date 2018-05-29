@@ -6,17 +6,12 @@
 auto do170(int& j, double& fract, double& sum, std::vector<double>& y,
   std::vector<double>& x, double& yl, double& xn, double& xl, double& f, double& disc,
   double& ytol, double& rf, int& i, double& xil, const double& sigmin){
-  // 170 continue
-  std::cout << 170 << std::endl;
+ //std::cout << 170 << std::endl;
   j=j+1;
-  double test;
 
-  if (abs(test) > ytol){ 
-    test=(fract-sum)*(y[i-1]-yl)/((x[i-1]-xl)*yl*yl);
-  }
+  double test=(fract-sum)*(y[i-1]-yl)/((x[i-1]-xl)*yl*yl);
   if (abs(test) > ytol or yl < sigmin ){
-    std::cout << 175 << std::endl;
-    // 175 continue
+    //std::cout << 175 << std::endl;
     f=(y[i-1]-yl)*xil;
     rf=1/f;
     disc=(yl*rf)*(yl*rf)+2*(fract-sum)*rf;
@@ -33,7 +28,7 @@ auto do170(int& j, double& fract, double& sum, std::vector<double>& y,
     }
     if (xn > xl and xn < (x[i-1]+ytol*(x[i-1]-xl))) {
       // go to 180
-      std::cout << 180 << std::endl;
+      //std::cout << 180 << std::endl;
       // 180 continue
       xn=x[i-1];
       // go to 190
@@ -45,9 +40,7 @@ auto do170(int& j, double& fract, double& sum, std::vector<double>& y,
 
   xn=xl+(fract-sum)/yl;
   if (xn > x[i-1]) {
-    // go to 180
-    std::cout << 180 << std::endl;
-    // 180 continue
+    //std::cout << 180 << std::endl;
     xn=x[i-1];
     // go to 190
     return;
@@ -66,27 +59,17 @@ auto do170(int& j, double& fract, double& sum, std::vector<double>& y,
 
 int do250( std::vector<double>& x, std::vector<double>& y, double& xl, double& yl,
   int& i ){
-   std::cout << "250" << std::endl;
-  // go to 250
-  //  250 continue
+   //std::cout << "250" << std::endl;
   xl=x[i-1];
   yl=y[i-1];
   i=i-1;
   if (i > 1) {
-    // go to 150
-    // std::cout << "go to 150 from 250" << std::endl;
     return 150;
-    //continue;
   }
   if (i == 1) {
-    // go to 160
-    // std::cout << "go to 160 from 250" << std::endl;
     return 160;
   }
 
-  // std::cout << "go to 260 from 250" << std::endl;
-  // 260 continue
-  std::cout << 260 << std::endl;
   return 260;
 
 }
@@ -97,7 +80,7 @@ int do160(double add, std::vector<double>& x, std::vector<double>& y, double& xl
   double& gral, double& xn, double& shade ){
 
   while ( true ){
-    std::cout << "160" << std::endl;
+    //std::cout << "160" << std::endl;
     add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
 
     if (x[i-1] == xl) {
@@ -110,21 +93,16 @@ int do160(double add, std::vector<double>& x, std::vector<double>& y, double& xl
     xil=1/(x[i-1]-xl);
    
     if (i == 1 and j == nbin-1) {
-      // go to 165
-      std::cout << "165" << std::endl;
-      // 165 continue
+      //std::cout << "165" << std::endl;
       xn=x[i-1];
       j=j+1;
-      // go to 190
       return 190;
 
     }
 
     if (sum+add >= fract*shade and j < nbin-1){ 
-      // go to 170
       return 170;
 
-      std::cout << "go to 190" << std::endl;
        
     }
     sum=sum+add;
@@ -207,6 +185,7 @@ auto sigl( int nlin, int nlmax, double e, double ep,
   ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, az2, 
       lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, eps, seep, s1bb );
 
+
   auto out = do_110_120_130( i, x, y, e, ep, tev, tevz, alpha, beta, sab,  
       az, az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
       nbin, fract, xl, j, ymax, eps, seep, yl, s1bb, tol, xtol );
@@ -223,9 +202,7 @@ auto sigl( int nlin, int nlmax, double e, double ep,
   bool go_straight_to_150_from_190 = true;
   while ( true ){ 
     if (go_straight_to_150_from_190){
-      //  do150( x, y, e, ep, tev, alpha, beta, sab, i, ymax, iinc, teff, tol, 
-      //     teff2, az2, xtol, lasym, tevz, az, lat, cliq, sb, sb2 );
-      std::cout << "150" << std::endl;
+      //std::cout << "150" << std::endl;
       do_110(i, x, y, e, ep, tev, alpha, beta, sab, az, tevz, lasym, az2, 
           teff2, lat, cliq, sb, sb2, teff, iinc, xtol, tol, ymax);
 
@@ -242,7 +219,6 @@ auto sigl( int nlin, int nlmax, double e, double ep,
         ytol, rf, i, xil, sigmin); }
 
     //190 continue
-    std::cout << "190" << std::endl;
     yn = yl + (y[i-1]-yl) * (xn-xl) * xil;
     gral = gral + (xn-xl)*( yl*0.5*(xn+xl) + (y[i-1]-yl)*xil*(-xl*0.5*(xn+xl) +
       (xn*xn+xn*xl+xl*xl)/3.0) );
@@ -257,7 +233,7 @@ auto sigl( int nlin, int nlmax, double e, double ep,
     }
     // output equally probable angles
     else {
-       s[j+1]=xbar;
+       s[j]=xbar;
     } // end if
 
     // continue bin loop and linearization loop

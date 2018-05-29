@@ -25,6 +25,7 @@ auto do155( int ia, int ib, const std::vector<double>& alpha,
    if (ib+1 == beta.size())  ib -= 1;
    ia -= 1;
    ib -= 1;
+    //std::cout << a << "     " << s2 << "     " << s3 << std::endl;
    double s1 = terpq( alpha[ia],     alpha[ia+1],     alpha[ia+2], a, 
                       sab[ia][ib],   sab[ia+1][ib],   sab[ia+2][ib] );
    double s2 = terpq( alpha[ia],     alpha[ia+1],     alpha[ia+2], a, 
@@ -91,6 +92,7 @@ auto sig( const double& e, const double& ep, const double& u,
   double a_tevz  = (e+ep-2*u*sqrt(e*ep))/(az*tevz);
   double bb_tev  = (ep-e)/tev;     
   double bb_tevz = (ep-e)/tevz;
+  if ( a_tev < amin ){ a_tev = amin; a_tevz = amin * tev / tevz; }
 
 
   // free-gas scattering. Plug Eq. 229 into Eq. 225, solve.
