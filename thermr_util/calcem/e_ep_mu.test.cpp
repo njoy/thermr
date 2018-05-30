@@ -6,7 +6,7 @@
 TEST_CASE( "Branch to handle E-E'-mu ordering" ){
   GIVEN( "inputs" ){
     int math = 1065, matdp = 1306, mtref = 229, ncds = 0, iinc = 2, lat = 1, 
-        lasym = 0, nnl = -9;
+        lasym = 0, nnl = -9, nl = 9;
     double teff = 713.39, teff2 = 0.0, za = 6000.0, awr = 11.8969, emax = 1.2, 
         cliq = 0.0, t = 296.0, tol = 5e-2, az = 11.9, az2 = 0.0, 
         sb = 5.5348570016241778, sb2 = 0.0;
@@ -22,7 +22,7 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
 
     std::setprecision(15);
 
-    e_ep_mu(math, matdp, teff, teff2, scr, mtref, za, awr, ncds, emax, cliq, iinc, lat, esi, xsi, lasym, alpha, beta, sab, t, tol, az, az2, sb, sb2, nnl );
+    e_ep_mu(math, matdp, teff, teff2, scr, mtref, za, awr, ncds, emax, cliq, iinc, lat, esi, xsi, lasym, alpha, beta, sab, t, tol, az, az2, sb, sb2, nnl, nl );
 
 
     REQUIRE( true );
