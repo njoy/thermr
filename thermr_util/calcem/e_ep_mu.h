@@ -77,7 +77,12 @@ auto do310( int& ie, double& enow, std::vector<double>& egrid, const double& tem
   std::vector<double>& p2, std::vector<double>& p3, double& ep, int& jbeta,
   int& nbeta, int& iskip, int& j, std::vector<std::vector<double>>& y, 
   std::vector<double>& yt, const int nl, const int& lasym, std::vector<double>& x,
-  const int& ngrid){
+  const int& ngrid, const int& nnl, const int& nlmax, 
+  const double& tev, const std::vector<double>& alpha, const std::vector<double>& beta,
+  const std::vector<std::vector<double>>& sab, const double& tol,
+  const double& az, const double& tevz, int iinc, int lat, const double& az2,
+  const double& teff2, const double& cliq, const double& sb, const double& sb2, 
+  const double& teff ){
      std::cout << 310 << std::endl;
      double tone, elo;
      ie=ie+1;
@@ -94,8 +99,12 @@ auto do310( int& ie, double& enow, std::vector<double>& egrid, const double& tem
      p3[ie-1]=0;
      ep=0.0;
      x[0]=ep;
-     //call sigl(enow,ep,nnl,tev,nalpha,alpha,nbeta,beta,&
-     //  sab,yt,nlmax,tol)
+     // std::cout << jbeta << std::endl;
+      sigl( nnl, nlmax, enow, ep, tev, alpha, beta, sab, yt, tol, az, 
+        tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
+     // std::cout << jbeta << std::endl;
+
+
      for ( int il = 0; il < nl; ++il ){
         y[il][0] = yt[il];
      } // enddo
@@ -154,11 +163,11 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
   std::vector<double>& alpha, std::vector<double>& beta, 
   std::vector<std::vector<double>>& sab, const double t, const double& tol,
   const double& az, const double& az2, const double& sb, const double& sb2, 
-  int& nnl, const int& nl, const int& jmax ){
+  int& nnl, const int& nl, const int& jmax, const int& nne, int iprint ){
 
   int itemp,iold,inew,ne,nex;
   double temp;
-  int nr,np,nwtab,nlt,nlp,nlp1,nne;
+  int nr,np,nwtab,nlt,nlp,nlp1;
   int i,ia,nl1,ltt,loc,l,jscr,ilog;
   int matd,itprnt,nb,nw,ni,nbeta=beta.size(),lt,it,nalpha=alpha.size();
   int itrunc,ib,ip,ir,idis,ie,nmu,nep,istart,iend;
@@ -174,6 +183,7 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
   const int nemax=5000;
   const int mumax=300;
   const int imax=20;
+  int numIters = 0;
   std::vector<double> ex(imax,0.0),x(imax,0.0),yt(nlmax,0.0);
   std::vector<std::vector<double>> y(nlmax,std::vector<double> (imax,0.0));
   std::vector<double> yy(imax,0.0),yu(2*nemax,0.0),ubar(ngrid,0.0),p2(ngrid,0.0),p3(ngrid,0.0),p(4,0.0),uj(mumax,0.0),sj(mumax,0.0);
@@ -264,8 +274,10 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
   while (loopE){
 
     // 310 continue
-    do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, 
-      p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid );
+    //do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, 
+    //  p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid );
+    do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid, nnl, nlmax, tev, alpha, beta, sab, tol, az, tevz, iinc, lat, az2, teff2, cliq, sb, sb2, teff );
+
 
 
     bool moreBeta = true;
@@ -279,40 +291,45 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
         y[il][2-1] = y[il][1-1];
       } // enddo
 
-      //std::cout << std::setprecision(15) << std::setw(25) << x[0] << std::setw(25) << x[1] << std::setw(25) << x[2] << std::endl;
-      //std::cout << std::setprecision(15) << std::setw(25) << x[3] << std::setw(25) << x[4] << std::setw(25) << x[5] << std::endl;
-      //std::cout << std::setprecision(15) << std::setw(25) << x[6] << std::setw(25) << x[7] << std::setw(25) << x[8] << std::endl;
-      //std::cout << std::endl;
-      //std::cout << std::setprecision(15) << std::setw(25) << y[0][0] << std::setw(25) << y[0][1] << std::setw(25) << y[0][2] << std::endl;
-      //std::cout << std::setprecision(15) << std::setw(25) << y[0][3] << std::setw(25) << y[0][4] << std::setw(25) << y[0][5] << std::endl;
-      //std::cout << std::setprecision(15) << std::setw(25) << y[0][6] << std::setw(25) << y[0][7] << std::setw(25) << y[0][8] << std::endl;
-      //std::cout << "jbeta:  " << jbeta << std::endl;
+      /*
+      std::cout << std::setprecision(15) << std::setw(25) << x[0] << std::setw(25) << x[1] << std::setw(25) << x[2] << std::endl;
+      std::cout << std::setprecision(15) << std::setw(25) << x[3] << std::setw(25) << x[4] << std::setw(25) << x[5] << std::endl;
+      std::cout << std::setprecision(15) << std::setw(25) << x[6] << std::setw(25) << x[7] << std::setw(25) << x[8] << std::endl;
+      std::cout << std::endl;
+      std::cout << std::setprecision(15) << std::setw(25) << y[0][0] << std::setw(25) << y[0][1] << std::setw(25) << y[0][2] << std::endl;
+      std::cout << std::setprecision(15) << std::setw(25) << y[0][3] << std::setw(25) << y[0][4] << std::setw(25) << y[0][5] << std::endl;
+      std::cout << std::setprecision(15) << std::setw(25) << y[0][6] << std::setw(25) << y[0][7] << std::setw(25) << y[0][8] << std::endl;
+      std::cout << "jbeta:  " << jbeta << std::endl;
+      */
 
 
 
       // do 313
       do313( jbeta, lat, ep, enow, beta, tev, tevz, x, iskip);
 
-      //std::cout << std::setprecision(15) << jbeta << "    " << ep << std::endl;
+      //std::cout << std::setprecision(15) << jbeta << "         " << ep << std::endl;
+
       std::cout << 316 << std::endl;
       ep = sigfig(ep,8,0);
       x[1-1]=ep;
 
-    for ( auto entry : yt ){ std::cout << entry << std::endl;  }
-      /*
+    //for ( auto entry : yt ){ std::cout << entry << std::endl;  }
+    /*
       std::cout << std::setprecision(15) << nnl << "     " << nlmax << "    " << enow << std::endl;
       std::cout << std::setprecision(15) << ep << "     " << tev << std::endl;
       std::cout << std::setprecision(15) << tol << "     " << az << "    " << tevz << std::endl;
       std::cout << std::setprecision(15) << iinc << "     " << lat << "    " << lasym << std::endl;
       std::cout << std::setprecision(15) << az2 << "     " << teff2 << "    " << cliq<< std::endl;
       std::cout << std::setprecision(15) << sb << "     " << sb2 << "    " << teff << std::endl;
-      */
+    */
+
       sigl( nnl, nlmax, enow, ep, tev, alpha, beta, sab, yt, tol, az, 
         tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
 
-      //std::cout << std::setprecision(15) << std::setw(25) << yt[0] << std::setw(25) << yt[1] << std::setw(25) << yt[2] << std::endl;
-      //std::cout << std::setprecision(15) << std::setw(25) << yt[3] << std::setw(25) << yt[4] << std::setw(25) << yt[5] << std::endl;
-      //std::cout << std::setprecision(15) << std::setw(25) << yt[6] << std::setw(25) << yt[7] << std::setw(25) << yt[8] << std::endl;
+//    if (numIters == 85 and i == 1 and j == 171 ){ return; }
+    //  std::cout << std::setprecision(15) << std::setw(25) << yt[0] << std::setw(25) << yt[1] << std::setw(25) << yt[2] << std::endl;
+    //  std::cout << std::setprecision(15) << std::setw(25) << yt[3] << std::setw(25) << yt[4] << std::setw(25) << yt[5] << std::endl;
+    //  std::cout << std::setprecision(15) << std::setw(25) << yt[6] << std::setw(25) << yt[7] << std::setw(25) << yt[8] << std::endl;
 
 
       for (int il = 0; il < nl; ++il ){
@@ -323,6 +340,7 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
       //std::cout << std::setprecision(15) << std::setw(25) << y[0][0] << std::setw(25) << y[0][1] << std::setw(25) << y[0][2] << std::endl;
       //std::cout << std::setprecision(15) << std::setw(25) << y[0][3] << std::setw(25) << y[0][4] << std::setw(25) << y[0][5] << std::endl;
       //std::cout << std::setprecision(15) << std::setw(25) << y[0][6] << std::setw(25) << y[0][7] << std::setw(25) << y[0][8] << std::endl;
+      //std::cout << std::setprecision(15) << jbeta << "    " << ep << std::endl;
 
 
      // if (i == 1 and j == 85) { std::cout << "\nalmost got there" << std::endl; return; }
@@ -337,7 +355,8 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
 
       bool passedTest = false;
       while (not passedTest){
-        std::cout << 330 << "     " << i << "     " << j << std::endl;
+
+        std::cout << 330 << "     " << i << "     " << j << "       " << jbeta << "     " << numIters << std::endl;
         //std::cout << 330 << std::endl;
 
 
@@ -347,8 +366,7 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
               xm=0.5*(x[i-1-1]+x[i-1]);
               xm = sigfig(xm,8,0);
 
-         //     std::cout << std::setprecision(15) << xm << std::endl;
-        //if ( i == 2 and j == 110 ) return;
+        std::cout << std::setprecision(15)<<"xm     " << xm<<  std::endl;
               if (xm > x[i-1] and xm < x[i-1-1]) {
                 sigl( nnl, nlmax, enow, xm, tev, alpha, beta, sab, yt, tol, az, 
                     tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
@@ -368,17 +386,22 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
                   if (abs(yt[k-1]-ym) > test2){
                     do410( i, x, xm, nl, y, yt, j );
 
-                    //std::cout << std::setprecision(15) << xsi[0] << "    " << xsi[1] << "     " << xsi[2] << std::endl;
-                    //std::cout << std::setprecision(15) << xsi[3] << "    " << xsi[4] << "     " << xsi[5] << std::endl;
-                    //std::cout << std::setprecision(15) << xsi[6] << "    " << xsi[7] << "     " << xsi[8] << std::endl;
+                    /*
+                    std::cout<<std::setprecision(15)<<ubar[0]<<"    "<<ubar[1]<<"     "<<ubar[2]<<std::endl;
+                    std::cout<<std::setprecision(15)<<ubar[3]<<"    "<<ubar[4]<<"     "<<ubar[5]<<std::endl;
+                    std::cout<<std::setprecision(15)<<ubar[6]<<"    "<<ubar[7]<<"     "<<ubar[8]<<std::endl;
 
-                    //std::cout << std::setprecision(15) << x[0] << "    " << x[1] << "     " << x[2] << std::endl;
-                    //std::cout << std::setprecision(15) << x[3] << "    " << x[4] << "     " << x[5] << std::endl;
-                    //std::cout << std::setprecision(15) << x[6] << "    " << x[7] << "     " << x[8] << std::endl;
+                    std::cout<<std::setprecision(15)<<xsi[0]<<"    "<<xsi[1]<<"     "<<xsi[2]<<std::endl;
+                    std::cout<<std::setprecision(15)<<xsi[3]<<"    "<<xsi[4]<<"     "<<xsi[5]<<std::endl;
+                    std::cout<<std::setprecision(15)<<xsi[6]<<"    "<<xsi[7]<<"     "<<xsi[8]<<std::endl;
 
-                    //std::cout << std::setprecision(15) << y[0][0] << "    " << y[0][1] << "     " << y[0][2] << std::endl;
-                    //std::cout << std::setprecision(15) << y[0][3] << "    " << y[0][4] << "     " << y[0][5] << std::endl;
-                    //std::cout << std::setprecision(15) << y[0][6] << "    " << y[0][7] << "     " << y[0][8] << std::endl;
+                    std::cout<<std::setprecision(15)<<x[0]<<"    "<<x[1]<<"     "<<x[2]<<std::endl;
+                    std::cout<<std::setprecision(15)<<x[3]<<"    "<<x[4]<<"     "<<x[5]<<std::endl;
+                    std::cout<<std::setprecision(15)<<x[6]<<"    "<<x[7]<<"     "<<x[8]<<std::endl;
+                    std::cout<<std::setprecision(15)<<y[0][0]<<"    "<<y[0][1]<<"     "<<y[0][2]<<std::endl;
+                    std::cout<<std::setprecision(15)<<y[0][3]<<"    "<<y[0][4]<<"     "<<y[0][5]<<std::endl;
+                    std::cout<<std::setprecision(15)<<y[0][6]<<"    "<<y[0][7]<<"     "<<y[0][8]<<std::endl;
+                    */
 
                     goto330 = true;
                     break;
@@ -404,31 +427,33 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
       
         do360(j, jmax, xsi, x, xlast, ylast, ulast, u2last, u3last, tolmin, y, 
           p2, p3, uu, u2, u3, nll, nl, p, ubar, ie, i );
-
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<ubar[0]<<std::setw(25)<<ubar[1]<<std::setw(25)<<ubar[2]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<ubar[3]<<std::setw(25)<<ubar[4]<<std::setw(25)<<ubar[5]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<ubar[6]<<std::setw(25)<<ubar[7]<<std::setw(25)<<ubar[8]<<std::endl;
-        //std::cout<<std::endl; 
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<p3[0]<<std::setw(25)<<p3[1]<<std::setw(25)<<p3[2]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<p3[3]<<std::setw(25)<<p3[4]<<std::setw(25)<<p3[5]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<p3[6]<<std::setw(25)<<p3[7]<<std::setw(25)<<p3[8]<<std::endl;
-        //std::cout<<std::endl; 
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<p2[0]<<std::setw(25)<<p2[1]<<std::setw(25)<<p2[2]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<p2[3]<<std::setw(25)<<p2[4]<<std::setw(25)<<p2[5]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<p2[6]<<std::setw(25)<<p2[7]<<std::setw(25)<<p2[8]<<std::endl;
-        //std::cout<<std::endl; 
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<x[0]<<std::setw(25)<<x[1]<<std::setw(25)<<x[2]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<x[3]<<std::setw(25)<<x[4]<<std::setw(25)<<x[5]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<x[6]<<std::setw(25)<<x[7]<<std::setw(25)<<x[8]<<std::endl;
-        //std::cout<<std::endl; 
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<y[0][0]<<std::setw(25)<<y[0][1]<<std::setw(25)<<y[0][2]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<y[0][3]<<std::setw(25)<<y[0][4]<<std::setw(25)<<y[0][5]<<std::endl;
-        //std::cout<<std::setprecision(18)<<std::setw(25)<<y[0][6]<<std::setw(25)<<y[0][7]<<std::setw(25)<<y[0][8]<<std::endl;
-        //std::cout<<std::endl; 
-        //std::cout<<std::setprecision(15)<<xsi[0]<<"      "<<xsi[1]<<"      "<<xsi[2]<<std::endl;
-        //std::cout<<std::setprecision(15)<<xsi[3]<<"      "<<xsi[4]<<"      "<<xsi[5]<<std::endl;
-        //std::cout<<std::setprecision(15)<<xsi[6]<<"      "<<xsi[7]<<"      "<<xsi[8]<<std::endl;
-        
+ 
+        /*
+        std::cout<<std::setprecision(18)<<std::setw(25)<<ubar[0]<<std::setw(25)<<ubar[1]<<std::setw(25)<<ubar[2]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<ubar[3]<<std::setw(25)<<ubar[4]<<std::setw(25)<<ubar[5]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<ubar[6]<<std::setw(25)<<ubar[7]<<std::setw(25)<<ubar[8]<<std::endl;
+        std::cout<<std::endl; 
+        std::cout<<std::setprecision(18)<<std::setw(25)<<p3[0]<<std::setw(25)<<p3[1]<<std::setw(25)<<p3[2]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<p3[3]<<std::setw(25)<<p3[4]<<std::setw(25)<<p3[5]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<p3[6]<<std::setw(25)<<p3[7]<<std::setw(25)<<p3[8]<<std::endl;
+        std::cout<<std::endl; 
+        std::cout<<std::setprecision(18)<<std::setw(25)<<p2[0]<<std::setw(25)<<p2[1]<<std::setw(25)<<p2[2]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<p2[3]<<std::setw(25)<<p2[4]<<std::setw(25)<<p2[5]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<p2[6]<<std::setw(25)<<p2[7]<<std::setw(25)<<p2[8]<<std::endl;
+        std::cout<<std::endl; 
+        std::cout<<std::setprecision(18)<<std::setw(25)<<x[0]<<std::setw(25)<<x[1]<<std::setw(25)<<x[2]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<x[3]<<std::setw(25)<<x[4]<<std::setw(25)<<x[5]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<x[6]<<std::setw(25)<<x[7]<<std::setw(25)<<x[8]<<std::endl;
+        std::cout<<std::endl; 
+        std::cout<<std::setprecision(18)<<std::setw(25)<<y[0][0]<<std::setw(25)<<y[0][1]<<std::setw(25)<<y[0][2]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<y[0][3]<<std::setw(25)<<y[0][4]<<std::setw(25)<<y[0][5]<<std::endl;
+        std::cout<<std::setprecision(18)<<std::setw(25)<<y[0][6]<<std::setw(25)<<y[0][7]<<std::setw(25)<<y[0][8]<<std::endl;
+        std::cout<<std::endl; 
+        std::cout<<std::setprecision(15)<<xsi[0]<<"      "<<xsi[1]<<"      "<<xsi[2]<<std::endl;
+        std::cout<<std::setprecision(15)<<xsi[3]<<"      "<<xsi[4]<<"      "<<xsi[5]<<std::endl;
+        std::cout<<std::setprecision(15)<<xsi[6]<<"      "<<xsi[7]<<"      "<<xsi[8]<<std::endl;
+       
+        */
 
         std::cout << 380 << std::endl;
         jscr=7+(j-1)*(nl+1);
@@ -484,11 +509,104 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
         for ( int il = 0; il < nl; ++il ){
           y[il][i-1]=0;
         } // enddo
-        std::cout << "go to 430" << std::endl;
-        // test fails.  add point to stack and continue.
-        for ( auto entry : x ){ std::cout << std::setprecision(15) << "   -        " << entry << std::endl; }
-        return;
 
+
+
+
+
+
+
+
+
+
+        // test fails.  add point to stack and continue.
+        //for ( auto entry : x ){ std::cout << std::setprecision(15) << "   -        " << entry << std::endl; }
+        //return;
+        std::cout << 430 << "         " << ie << std::endl;
+        numIters += 1;
+        std::cout << "-----------------------------------------------" << std::endl;
+        j=j+1;
+        xsi[ie-1]=xsi[ie-1]+(x[i-1]-xlast)*(y[1-1][i-1]+ylast)*0.5;
+        uu=0;
+        u2=0;
+        u3=0;
+        ubar[ie-1]=ubar[ie-1]+0.5*(x[i-1]-xlast)*(uu+ulast);
+        p2[ie-1]=p2[ie-1]+0.5*(x[i-1]-xlast)*(u2+u2last);
+        p3[ie-1]=p3[ie-1]+0.5*(x[i-1]-xlast)*(u3+u3last);
+        xsi[ie-1]=sigfig(xsi[ie-1],9,0);
+        scr[7+(nl+1)*(j-1)-1]=x[i-1];
+        jscr=7+(j-1)*(nl+1);
+        if (y[1-1][i-1] >= em9) {
+          scr[1+jscr-1]=sigfig(y[1-1][i-1],9,0);
+        }
+        else {
+          scr[1+jscr-1]=sigfig(y[1-1][i-1],8,0);
+        }
+        for ( int il = 1; il < nl; ++il ){
+          scr[il+jscr]=sigfig(y[il][i-1],9,0);
+          if (scr[il+jscr] > 1.0 ) {
+            // only warn for big miss, but always fix the overflow
+            if (scr[il+jscr] > 1+0.0005) {
+              // write(strng,'("2cos",f7.4,", set to 1.&&  enow,e''=",2(1pe12.5))')&scr(il+jscr),enow,scr(jscr)
+              std::cout << "call mess('calcem',strng,'')" << std::endl;
+            }
+          scr[il+jscr]=1.0;
+          }
+          if (scr[il+jscr] < -1.0) {
+            // only warn for big miss, but always fix the underflow
+            if (scr[il+jscr] < -(1+0.0005)) {
+              // write(strng,'("2cos",f7.4,", set to -1.&&  enow,e''=",2(1pe12.5),i3)')&scr(il+jscr),enow,scr(jscr)
+              std::cout << "call mess('calcem',strng,'')" << std::endl;
+            }
+            scr[il+jscr]=-1.0;
+          }
+        }
+        if (y[1-1][1-1] != 0.0) jnz=j;
+        if (jnz < j) j=jnz+1;
+
+        if (iprint == 2) {
+          ubar[ie-1]=ubar[ie-1]/xsi[ie-1];
+          p2[ie-1]=p2[ie-1]/xsi[ie-1];
+          p3[ie-1]=p3[ie-1]/xsi[ie-1];
+          //write(nsyso,'(/,1x,"incident energy =",1pe13.6,&
+          //             &  5x,"cross section =",1pe13.6,&
+          //             &  5x,"mubar,p2,p3 =",3(1pe12.4))')&
+          //                    enow,xsi(ie),ubar(ie),p2(ie),p3(ie)
+          //write(nsyso,'(/,5x,"exit energy",11x,"pdf",7x,"cosines")')
+          //write(nsyso,'(  3x,"---------------",5x,"-----------",2x,88("-"))')
+          ll=6;
+          for ( int jj = 1; jj <= j; ++jj ){
+            //write(nsyso,'(2x,1pe15.8,5x,1pe12.5,0p,8f11.6)')&
+            // (scr(ll+ii),ii=1,nlp)
+            // if (nl1.gt.nlp) write(nsyso,'(34x,8f11.6)')&
+            // (scr(ll+ii),ii=nlp1,nl1)
+            ll=ll+nl1;
+          }
+        }
+        scr[1-1]=0;
+        scr[2-1]=enow;
+        scr[3-1]=0;
+        scr[4-1]=0;
+        scr[5-1]=(nl+1)*j;
+        scr[6-1]=nl+1;
+        ncds=ncds+1+(j*(nl+1)+5)/6;
+        //std::cout << "ie   " << ie << "      " << nne  << std::endl;
+
+        //std::cout << "call listio(0,0,nscr,scr,nb,nw)" << std::endl;
+        loc=1;
+        //while (nb != 0){
+        //  loc=loc+nw;
+        //  std::cout << "call moreio(0,0,nscr,scr(loc),nb,nw)" << std::endl;
+        //}
+        if (ie < nne) {
+          // std::cout << "go to 310" << std::endl;
+          passedTest = true;
+          moreBeta = false;
+        }
+        else {
+          std::cout << "go to 610" << std::endl;
+          return; 
+        }
 
       } // passedTest (going back to 330)
     } // moreBeta (311)

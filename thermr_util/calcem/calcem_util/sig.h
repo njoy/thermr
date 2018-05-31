@@ -166,8 +166,8 @@ auto sig( const double& e, const double& ep, const double& u,
           bb_tev, sabflg, sigmin );
     }
     if ( a*az >= test2 or b >= test2 ){
-      if ( sab[ia][ib]   <= sabflg or sab[ia+1][ib]   <= sabflg or 
-           sab[ia][ib+1] <= sabflg or sab[ia+1][ib+1] <= sabflg ) {
+      if ( sab[ia-1][ib-1]   <= sabflg or sab[ia+1-1][ib-1]   <= sabflg or 
+           sab[ia-1][ib+1-1] <= sabflg or sab[ia+1-1][ib+1-1] <= sabflg ) {
         return doSCTApproximation( lat, a_tev, tevz, teff, 
          teff2, az, az2, sigc, s2, u, sb2, e, tev, 
           sigmin, sabflg, bb_tev, s, sb );
