@@ -25,7 +25,6 @@ auto do155( int ia, int ib, const std::vector<double>& alpha,
    if (ib+1 == beta.size())  ib -= 1;
    ia -= 1;
    ib -= 1;
-    //std::cout << a << "     " << s2 << "     " << s3 << std::endl;
    double s1 = terpq( alpha[ia],     alpha[ia+1],     alpha[ia+2], a, 
                       sab[ia][ib],   sab[ia+1][ib],   sab[ia+2][ib] );
    double s2 = terpq( alpha[ia],     alpha[ia+1],     alpha[ia+2], a, 
@@ -173,6 +172,10 @@ auto sig( const double& e, const double& ep, const double& u,
          teff2, az, az2, sigc, s2, u, sb2, e, tev, 
           sigmin, sabflg, bb_tev, s, sb );
       } 
+      else { 
+        return do155( ia, ib, alpha, beta, sab, a, b, sigc, sb,
+          bb_tev, sabflg, sigmin );
+      }
     }
   }
 
