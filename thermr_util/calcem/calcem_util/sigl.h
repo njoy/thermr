@@ -146,7 +146,7 @@ auto sigl( int nlin, int nlmax, double e, double ep,
   double tol,s1bb;
   int imax=20;
   int length_p = nlin > 0 ? nlin : 0;
-  std::vector<double> x(imax), y(imax), p(length_p);
+  std::vector<double> x(imax,0.0), y(imax,0.0), p(length_p,0.0);
   // character(60)::strng
   double xtol = 0.00001;
   double ytol = 0.001;
@@ -184,6 +184,7 @@ auto sigl( int nlin, int nlmax, double e, double ep,
   // mu3 = 1
   ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, az2, 
       lasym, teff, teff2, lat, cliq, sb, sb2, iinc, xl, eps, seep, s1bb );
+  //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )return;
 
 
   auto out = do_110_120_130( i, x, y, e, ep, tev, tevz, alpha, beta, sab,  

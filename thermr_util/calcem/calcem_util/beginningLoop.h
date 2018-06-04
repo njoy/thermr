@@ -26,7 +26,10 @@ auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y,
   // adaptive linearization
   // Consider a cosine mu equal to -1. What's the cross section?
   x[2] = -1;
+//  if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "going into sig     " << y[2] << std::endl;
   y[2] = sig(e,ep,x[2],tev,alpha,beta,sab,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
+//  if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "finished sig     " << y[2] << std::endl;
+//  if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 ) return 0.0;
 
   // Consider a cosine mu that corresponds to an alpha value of sqrt(1+beta^2).
   // What's the cross section?
@@ -41,6 +44,7 @@ auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y,
   y[0] = sig(e,ep,x[0],tev,alpha,beta,sab,az,tevz,lasym,az2,teff2,lat,cliq,sb,sb2,teff,iinc);
 
   double ymax = maxOf3Vals(y[0],y[1],y[2]);
+  //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "in sigl     " << y[1] << "     " << y[2] << std::endl;
   return ( ymax < eps ) ? eps : ymax;
 
 }
@@ -104,7 +108,9 @@ auto do_110(int& i, std::vector<double>& x, std::vector<double>& y,
     if ( ( abs(yt-ym) <= tol*abs(yt)+tol*ymax/50.0 and 
            abs(y[i-2]-y[i-1]) <= ym+ymax/100.0 and 
            (x[i-2]-x[i-1]) < 0.5 ) or
-         ( x[i-2]-x[i-1] < xtol ) ) { return; }
+         ( x[i-2]-x[i-1] < xtol ) ) { 
+      return; 
+    }
 
     // If the spacing isn't fine enough, we'll bisect the grid
     //
@@ -154,8 +160,10 @@ auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y,
     // x = [   mu1      mu2      mu3     ...    mu_i     0    0   0 ... ]
     // y = [ s(mu1)   s(mu2)   s(mu3)    ...  s(mu_i)    0    0   0 ... ]
 
+        //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "SUM         " << i << "     "<< (y[i-1]+yl) << "       " << (x[i-1]-xl) << std::endl;
     do_110(i, x, y, e, ep, tev, alpha, beta, sab, az, tevz, lasym, az2, 
         teff2, lat, cliq, sb, sb2, teff, iinc, xtol, tol, ymax);
+        //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "SUM         " << i << std::endl;
 
     // When do_100 returns, we x and y both have i-many nonzero entries
     // On the first iteration, xl = -1, and yl = S(a,b,mu=-1)
@@ -191,13 +199,15 @@ auto do_110_120_130( int& i, std::vector<double>& x, std::vector<double>& y,
           j     = 0;
           xl    = -1;
           gral  = 0;
+          for ( int il = 1; il < nl; ++il ){ s[il] = 0; } 
+          return std::tuple<double,double,bool> { gral, sum, false };
         } 
         else { 
           s[0] = 0; 
+          for ( int il = 1; il < nl; ++il ){ s[il] = 0; } 
+          return std::tuple<double,double,bool> { gral, sum, true };
         }
 
-        for ( int il = 1; il < nl; ++il ){ s[il] = 0; } 
-        return std::tuple<double,double,bool> { gral, sum, false };
 
       } // don't go to 120
     } // go to 120

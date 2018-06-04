@@ -3,6 +3,7 @@
 #define THERMR_SIG
 
 #include "../../extra/terpq.h"
+#include "sigfig.h"
 
 double do160(double sigc, double sb, double s, double bb, double sabflg,
   double sigmin ){
@@ -123,6 +124,8 @@ auto sig( const double& e, const double& ep, const double& u,
   else {
     b = abs(bb_tev); a = a_tev;
   }
+  b = sigfig(b,8,0);
+  //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "in sig     " << b <<  std::endl;
 
   if (a > alpha[alpha.size()-1]) {
     // go to 170

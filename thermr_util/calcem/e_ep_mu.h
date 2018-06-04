@@ -309,6 +309,7 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
 
       //std::cout << std::setprecision(15) << jbeta << "         " << ep << std::endl;
 
+//    std::cout << "-------------  " << y[0][0] << std::endl;
       std::cout << 316 << std::endl;
       ep = sigfig(ep,8,0);
       x[1-1]=ep;
@@ -323,11 +324,12 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
       std::cout << std::setprecision(15) << sb << "     " << sb2 << "    " << teff << std::endl;
     */
 
+      //std::cout << std::setprecision(15) << std::setw(25) << yt[0] << std::setw(25) << yt[1] << std::setw(25) << yt[2] << std::endl;
       sigl( nnl, nlmax, enow, ep, tev, alpha, beta, sab, yt, tol, az, 
         tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
 
 //    if (numIters == 85 and i == 1 and j == 171 ){ return; }
-    //  std::cout << std::setprecision(15) << std::setw(25) << yt[0] << std::setw(25) << yt[1] << std::setw(25) << yt[2] << std::endl;
+      std::cout << std::setprecision(15) << std::setw(25) << yt[0] << std::setw(25) << yt[1] << std::setw(25) << yt[2] << std::endl;
     //  std::cout << std::setprecision(15) << std::setw(25) << yt[3] << std::setw(25) << yt[4] << std::setw(25) << yt[5] << std::endl;
     //  std::cout << std::setprecision(15) << std::setw(25) << yt[6] << std::setw(25) << yt[7] << std::setw(25) << yt[8] << std::endl;
 
@@ -358,6 +360,8 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
 
         std::cout << 330 << "     " << i << "     " << j << "       " << jbeta << "     " << numIters << std::endl;
         //std::cout << 330 << std::endl;
+    //    std::cout << i << "       " << y[0].size() << "      " << y[0][i-1-1] << "    " << y[0][0] << std::endl;
+        //if (numIters == 91 ) return;
 
 
         if ( i != imax ){
@@ -366,11 +370,12 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
               xm=0.5*(x[i-1-1]+x[i-1]);
               xm = sigfig(xm,8,0);
 
-        std::cout << std::setprecision(15)<<"xm     " << xm<<  std::endl;
+     //   std::cout << std::setprecision(15)<<"xm     " << xm<<  std::endl;
               if (xm > x[i-1] and xm < x[i-1-1]) {
                 sigl( nnl, nlmax, enow, xm, tev, alpha, beta, sab, yt, tol, az, 
                     tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
                 //std::cout << std::setprecision(15) << enow << "    " << xm << std::endl;
+                //if (numIters == 92 ) return;
                 uu = 0; uum = 0;
                 bool goto330 = false;
                 for ( int k = 1; k <= nl; ++k ){
@@ -605,6 +610,17 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
         }
         else {
           std::cout << "go to 610" << std::endl;
+          std::cout<<std::setprecision(18)<<std::setw(25)<<scr[0]<<std::setw(25)<<scr[1]<<std::setw(25)<<scr[2]<<std::endl;
+          std::cout<<std::setprecision(18)<<std::setw(25)<<scr[3]<<std::setw(25)<<scr[4]<<std::setw(25)<<scr[5]<<std::endl;
+          std::cout<<std::setprecision(18)<<std::setw(25)<<scr[6]<<std::setw(25)<<scr[7]<<std::setw(25)<<scr[8]<<std::endl;
+          std::cout<<std::setprecision(18)<<std::setw(25)<<x[0]<<std::setw(25)<<x[1]<<std::setw(25)<<x[2]<<std::endl;
+          std::cout<<std::setprecision(18)<<std::setw(25)<<x[3]<<std::setw(25)<<x[4]<<std::setw(25)<<x[5]<<std::endl;
+          std::cout<<std::setprecision(18)<<std::setw(25)<<x[6]<<std::setw(25)<<x[7]<<std::setw(25)<<x[8]<<std::endl;
+          std::cout<<std::setprecision(18)<<std::setw(25)<<y[0][0]<<std::setw(25)<<y[1][1]<<std::setw(25)<<y[2][2]<<std::endl;
+          std::cout<<std::setprecision(18)<<std::setw(25)<<y[3][3]<<std::setw(25)<<y[4][4]<<std::setw(25)<<y[5][5]<<std::endl;
+          std::cout<<std::setprecision(18)<<std::setw(25)<<y[6][6]<<std::setw(25)<<y[7][7]<<std::setw(25)<<y[8][8]<<std::endl;
+
+
           return; 
         }
 
