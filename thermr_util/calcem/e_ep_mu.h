@@ -75,43 +75,41 @@ auto do310( int& ie, double& enow, const std::vector<double>& egrid, const doubl
   const double& bk, const double& break_val, const double& therm, 
   std::vector<double>& esi, std::vector<double>& xsi, std::vector<double>& ubar,
   std::vector<double>& p2, std::vector<double>& p3, double& ep, int& jbeta,
-  const int& nbeta, int& iskip, int& j, std::vector<std::vector<double>>& y, 
+  int& iskip, int& j, std::vector<std::vector<double>>& y, 
   std::vector<double>& yt, const int nl, const int& lasym, std::vector<double>& x,
-  const int& ngrid, const int& nnl, const int& nlmax, 
+  const int& ngrid, const int& nnl, 
   const double& tev, const std::vector<double>& alpha, const std::vector<double>& beta,
   const std::vector<std::vector<double>>& sab, const double& tol,
   const double& az, const double& tevz, const int iinc, const int lat, const double& az2,
   const double& teff2, const double& cliq, const double& sb, const double& sb2, 
   const double& teff ){
-     std::cout << 310 << std::endl;
-     double tone, elo;
-     ie=ie+1;
-     enow=egrid[ie-1];
+     //std::cout << 310 << std::endl;
      if (temp > break_val) {
-       tone=therm/bk;
-       elo=egrid[0];
-       enow=elo*exp(log(enow/elo)*log((temp/tone)*egrid[ngrid-1]/elo)/log(egrid[ngrid-1]/elo));
+       enow = egrid[0] * 
+              exp( log(                             egrid[ie] / egrid[0] ) * 
+                   log( (temp*bk/therm)*egrid[egrid.size()-1] / egrid[0] ) / 
+                   log(                 egrid[egrid.size()-1] / egrid[0] )
+                 );
      } // endif
-     esi[ie-1]=enow;
-     xsi[ie-1]=0;
-     ubar[ie-1]=0;
-     p2[ie-1]=0;
-     p3[ie-1]=0;
-     ep=0.0;
-     x[0]=ep;
-     // std::cout << jbeta << std::endl;
-      sigl( nnl, nlmax, enow, ep, tev, alpha, beta, sab, yt, tol, az, 
-        tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
-     // std::cout << jbeta << std::endl;
+     else {
+       enow = egrid[ie];
+     }
+     esi[ie]  = enow;
+     xsi[ie]  = 0.0;
+     ubar[ie] = 0.0;
+     p2[ie]   = 0.0;
+     p3[ie]   = 0.0;
+     x[0]     = 0.0;
+     ep       = 0.0;
+     j        = 0;
+     iskip    = 0;
+     jbeta = lasym > 0 ? 1 : -beta.size();
+     ++ie;
 
+     sigl( nnl, yt.size(), enow, ep, tev, alpha, beta, sab, yt, tol, az, tevz, iinc, 
+         lat, lasym, az2, teff2, cliq, sb, sb2, teff );
 
-     for ( int il = 0; il < nl; ++il ){
-        y[il][0] = yt[il];
-     } // enddo
-     jbeta=-nbeta;
-     if (lasym > 0) jbeta=1;
-     j=0;
-     iskip=0;
+     for ( int il = 0; il < nl; ++il ){ y[il][0] = yt[il]; } // enddo
 }
 
 auto do360(int& j, const int& jmax, std::vector<double>& xsi, 
@@ -177,7 +175,6 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
   double uu,uum,ym,test2,xlast,ulast,xs;
   double b,diff,enow,ep,sabmin,tev,tevz,ylast;
   double u,xl,yl,sum;
-  double tone,elo;
   const int ngrid=118;
   const int nlmax=65;
   const int nemax=5000;
@@ -276,7 +273,7 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
     // 310 continue
     //do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, 
     //  p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid );
-    do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid, nnl, nlmax, tev, alpha, beta, sab, tol, az, tevz, iinc, lat, az2, teff2, cliq, sb, sb2, teff );
+    do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, p3, ep, jbeta, iskip, j, y, yt, nl, lasym, x, ngrid, nnl, tev, alpha, beta, sab, tol, az, tevz, iinc, lat, az2, teff2, cliq, sb, sb2, teff );
 
 
 
