@@ -6,13 +6,10 @@ auto do313( int& jbeta, const int& lat, double& ep, double& enow,
   const std::vector<double>& x, int& iskip){
   bool do_313 = true;
   while ( do_313 ){
-    std::cout << 313 << std::endl;
-    //std::cout << std::setprecision(20) << "E'     " << ep << std::endl;
-    // 313 continue
+    //std::cout << 313 << std::endl;
     if (jbeta == 0) jbeta=1;
     if (jbeta <= 0) {
       if (lat == 1) {
-   //     std::cout << enow << "    " << beta[-jbeta-1] << "    " << tevz << "    " << jbeta << std::endl;
         ep=enow-beta[-jbeta-1]*tevz;
       }
       else {
