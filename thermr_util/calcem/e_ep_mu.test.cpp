@@ -1,7 +1,161 @@
-#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_MAIN 
 #include "../../catch.hpp"
 #include "e_ep_mu.h"
 
+void checkVecHasZeros(std::vector<double>& v, int index_0, int index_1 ){
+  for ( size_t i = index_0; i < index_1; ++i ){
+    REQUIRE( 0.0 == Approx(v[i]).epsilon(1e-6) );
+  }
+}
+void checkVecHasLin(std::vector<double>& v, int index_0, int index_1 ){
+  for ( size_t i = index_0; i < index_1; ++i ){
+    REQUIRE( i == Approx(v[i]).epsilon(1e-6) );
+  }
+}
+
+void initializeLin(std::vector<double>& v){
+  for ( size_t i = 0; i < v.size(); ++i ){ 
+    v[i] = i;
+  }
+}
+
+
+TEST_CASE( "310" ){
+  std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
+    1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 0.000253, 0.000297, 0.000350, 0.00042, 
+    0.000506, 0.000615, 0.00075, 0.00087, 0.001012, 0.00123, 0.0015, 0.0018, 
+    0.00203, 0.002277, 0.0026, 0.003, 0.0035, 0.004048, 0.0045, 0.005, 0.0056, 
+    0.006325, 0.0072, 0.0081, 0.009108, 0.01, 0.01063, 0.0115, 0.012397, 
+    0.0133, 0.01417, 0.015, 0.016192, 0.0182, 0.0199, 0.020493, 0.0215, 0.0228, 
+    0.0253, 0.028, 0.030613, 0.0338, 0.0365, 0.0395, 0.042757, 0.0465, 0.050, 
+    0.056925, 0.0625, 0.069, 0.075, 0.081972, 0.09, 0.096, 0.1035, 0.111573, 
+    0.120, 0.128, 0.1355, 0.145728, 0.160, 0.172, 0.184437, 0.20, 0.2277, 
+    0.2510392, 0.2705304, 0.2907501, 0.3011332, 0.3206421, 0.3576813, 0.39, 
+    0.4170351, 0.45, 0.5032575, 0.56, 0.625, 0.70, 0.78, 0.86, 0.95, 1.05, 
+    1.16, 1.28, 1.42, 1.55, 1.70, 1.855, 2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 
+    3.42, 3.75, 4.07, 4.46, 4.90, 5.35, 5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 
+    9.85, 10.00 };
+    int ie = 0, jbeta = 0, nbeta = 80, iskip = 0, j = 0, nl = 9, lasym = 0,
+        ngrid = 118, nnl = -9, nlmax = 65;
+    double enow = 0.0, temp = 296.0, bk = 8.617385e-5, break_val = 3000.0,
+           therm = 2.53e-2, ep = 0.0, tev = 2.55074596e-2, tol = 5.0e-2,
+           az = 11.9, tevz = 2.53e-2, iinc = 2, lat = 1, az2 = 0.0, teff2 = 0.0, 
+           cliq = 0.0, sb = 5.5348570016241778, sb2 = 0.0, teff = 6.1475562851499993E-2;
+
+
+  GIVEN( "inputs" ){
+    std::vector<double> esi(95,0.0), xsi(95,0.0), ubar(118,0.0), x(20,0.0), 
+      p2(118,0.0), p3(118,0.0), alpha(40,0.0), beta(80,0.0), yt(65,0.0);
+    std::vector<std::vector<double>> sab(40,std::vector<double>(80,0.0)),
+    y(nlmax,std::vector<double> (20,0.0));
+  for ( int i = 0; i < 40; ++i ){ alpha[i] = 0.1*i; }
+  for ( int j = 0; j < 80; ++j ){ beta[j] = 0.2*j + 0.05; }
+  for ( int i = 0; i < 40; ++i ){
+    for ( int j = 0; j < 80; ++j ){
+      sab[i][j] = 0.01*(ie+iskip);
+    }
+  }
+
+  do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid, nnl, nlmax, tev, alpha, beta, sab, tol, az, tevz, iinc, lat, az2, teff2, cliq, sb, sb2, teff );
+
+
+  REQUIRE( 1 == ie );
+  REQUIRE( 1e-5 == Approx(enow).epsilon(1e-6) );
+  REQUIRE( 0.0 == Approx(ep).epsilon(1e-6) );
+  REQUIRE( -80 == jbeta );
+  REQUIRE( 0  == iskip );
+  REQUIRE( 0 == j );
+  REQUIRE( 1.0e-5 == Approx(esi[0]).epsilon(1e-6) );
+
+  checkVecHasZeros( esi, 1, esi.size() );
+  checkVecHasZeros( xsi, 0, xsi.size() );
+  checkVecHasZeros( ubar, 0, ubar.size() );
+  for ( size_t i = 0; i < y.size(); ++i ){ 
+    checkVecHasZeros( y[i], 0, y[i].size() );
+  }
+
+  } // GIVEN
+
+
+
+
+
+  GIVEN( "inputs" ){
+    ie = 3, jbeta = 10, iskip = 2, j = 8, lasym = 1;
+    enow = 0.5, ep = 1.0, tol = 5.0e-2;
+  std::vector<double> esi(95), xsi(95), ubar(118), x(20), p2(118), p3(118), alpha(40), beta(80), yt(65);
+  std::vector<std::vector<double>> sab(40,std::vector<double>(80,0.0)),
+    y(nlmax,std::vector<double> (20,0.0));
+  for ( int i = 0; i < 40; ++i ){ alpha[i] = 0.1*i; }
+  for ( int j = 0; j < 80; ++j ){ beta[j] = 0.2*j + 0.05; }
+  for ( int i = 0; i < 40; ++i ){
+    for ( int j = 0; j < 80; ++j ){
+      sab[i][j] = 0.01*(ie+iskip);
+    }
+  }
+  initializeLin(esi);
+  initializeLin(xsi);
+  initializeLin(ubar);
+  initializeLin(x);
+  initializeLin(p2);
+  initializeLin(p3);
+  initializeLin(yt);
+
+  do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, p3, ep, jbeta, nbeta, iskip, j, y, yt, nl, lasym, x, ngrid, nnl, nlmax, tev, alpha, beta, sab, tol, az, tevz, iinc, lat, az2, teff2, cliq, sb, sb2, teff );
+
+
+  REQUIRE( 4 == ie );
+  REQUIRE( 3.5e-5 == Approx(enow).epsilon(1e-6) );
+  REQUIRE( 0.0 == Approx(ep).epsilon(1e-6) );
+  REQUIRE( 1 == jbeta );
+  REQUIRE( 0  == iskip );
+  REQUIRE( 0 == j );
+  checkVecHasLin(esi, 0, 3 );
+  REQUIRE( 3.5e-5 == Approx(esi[3]).epsilon(1e-6) );
+  checkVecHasLin(esi, 4, esi.size() );
+  checkVecHasLin(xsi, 0, 3 );
+  REQUIRE( 0.0 == Approx(xsi[3]).epsilon(1e-6) );
+  checkVecHasLin(xsi, 4, xsi.size() );
+  checkVecHasLin(ubar, 0, 3 );
+  REQUIRE( 0.0 == Approx(ubar[3]).epsilon(1e-6) );
+  checkVecHasLin(ubar, 4, ubar.size() );
+  REQUIRE( 0.0 == Approx(x[0]).epsilon(1e-6) );
+  checkVecHasLin(x, 1, x.size() );
+  checkVecHasZeros(yt, 0, 9 );
+  checkVecHasLin(yt, 9, yt.size() );
+
+
+
+  /*
+  for ( size_t i = 0; i < x.size(); ++i ){ 
+    REQUIRE( 0.0 == Approx(x[i]).epsilon(1e-6) ); 
+  }
+  for ( size_t i = 0; i < yt.size(); ++i ){ 
+    REQUIRE( 0.0 == Approx(yt[i]).epsilon(1e-6) ); 
+  }
+
+
+  for ( size_t i = 0; i < y.size(); ++i ){ 
+    for ( size_t j = 0; j < y[0].size(); ++j ){
+      REQUIRE( 0.0 == Approx(y[i][j]).epsilon(1e-6) );
+    } 
+  }
+
+
+  */
+
+
+
+
+
+  } // GIVEN
+} // TEST CASE
+
+
+
+
+
+/*
 
 TEST_CASE( "Branch to handle E-E'-mu ordering" ){
   GIVEN( "inputs" ){
@@ -48,4 +202,4 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
 
   } // GIVEN
 } // TEST CASE
-
+*/

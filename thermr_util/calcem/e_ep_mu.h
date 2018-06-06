@@ -71,16 +71,16 @@ auto do313( int& jbeta, const int& lat, double& ep, double& enow,
 
 
 
-auto do310( int& ie, double& enow, std::vector<double>& egrid, const double& temp,
+auto do310( int& ie, double& enow, const std::vector<double>& egrid, const double& temp,
   const double& bk, const double& break_val, const double& therm, 
   std::vector<double>& esi, std::vector<double>& xsi, std::vector<double>& ubar,
   std::vector<double>& p2, std::vector<double>& p3, double& ep, int& jbeta,
-  int& nbeta, int& iskip, int& j, std::vector<std::vector<double>>& y, 
+  const int& nbeta, int& iskip, int& j, std::vector<std::vector<double>>& y, 
   std::vector<double>& yt, const int nl, const int& lasym, std::vector<double>& x,
   const int& ngrid, const int& nnl, const int& nlmax, 
   const double& tev, const std::vector<double>& alpha, const std::vector<double>& beta,
   const std::vector<std::vector<double>>& sab, const double& tol,
-  const double& az, const double& tevz, int iinc, int lat, const double& az2,
+  const double& az, const double& tevz, const int iinc, const int lat, const double& az2,
   const double& teff2, const double& cliq, const double& sb, const double& sb2, 
   const double& teff ){
      std::cout << 310 << std::endl;
