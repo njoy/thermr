@@ -44,7 +44,5 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
 
 
 
-
-
   } // GIVEN
 } // TEST CASE

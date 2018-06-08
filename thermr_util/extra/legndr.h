@@ -1,4 +1,5 @@
-
+#ifndef THERMR_LEGNDR_H
+#define THERMR_LEGNDR_H
 void legndr( const double& x, std::vector<double>& p ){
   /*--------------------------------------------------------------------
    * Generate Legendre polynomials at x by recursion.
@@ -14,4 +15,5 @@ void legndr( const double& x, std::vector<double>& p ){
    }
 }
 
+#endif
 
