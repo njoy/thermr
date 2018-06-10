@@ -1,11 +1,13 @@
 
 #include "../../extra/legndr.h"
+#include "../calcem_util/sigfig.h"
 
-auto do380( int& jscr, int& i, int& j, const int& nl, int& nll, std::vector<double>& scr, 
-  std::vector<double>& x, std::vector<std::vector<double>>& y, const double& em9,
-  double& xlast, double& ylast, int& jnz, double& ulast, double& u2last, 
-  double& u3last, std::vector<double>& p ){
-        std::cout << 380 << std::endl;
+auto do380( int& jscr, int& i, int& j, const int& nl, int& nll, 
+  std::vector<double>& scr, std::vector<double>& x, 
+  std::vector<std::vector<double>>& y, const double& em9, double& xlast, 
+  double& ylast, int& jnz, double& ulast, double& u2last, double& u3last, 
+  std::vector<double>& p ){
+        //std::cout << 380 << std::endl;
         jscr=7+(j-1)*(nl+1);
         scr[jscr-1]=x[i-1];
         if (y[1-1][i-1] >= em9) {
@@ -22,7 +24,7 @@ auto do380( int& jscr, int& i, int& j, const int& nl, int& nll, std::vector<doub
             if (scr[il+jscr] > 1+0.0005) {
               std::cout << "call mess('calcem',strng,'')" << std::endl;
             } // endif
-            scr[il+jscr-1]=1;
+            scr[il+jscr]=1;
           } // endif
           if (scr[il+jscr] < -1) {
             // only warn for big miss, but always fix the underflow

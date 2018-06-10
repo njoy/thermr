@@ -1,48 +1,125 @@
 #define CATCH_CONFIG_MAIN 
 #include "../../../catch.hpp"
-#include "410.h"
+#include "380.h"
 
-TEST_CASE( "410" ){
+TEST_CASE( "380" ){
   GIVEN( " " ){
-    int i = 2, nl = 4, j = 0;
-    double xm = 5.0e-5;
-    std::vector<double> x (20,0.0), yt (65,0.0);
+    int jscr = -1, i = 4, nl = 9, j = 66, nll, jnz = 0;
+    double em9 = 1.0e-9, xlast, ylast, ulast, u2last, u3last;
+    std::vector<double> p (4,0.0), x(20,0.0), scr(500000);
     std::vector<std::vector<double>> y (65,std::vector<double>(20)); 
     for ( int i = 0; i < y.size(); ++i ){
       for ( size_t j = 0; j < y[0].size(); ++j ){
         y[i][j] = 0.01*(i+j);
       }
     }
-    yt[0] =  0.3; yt[1] = -0.9; yt[2] = -0.7; yt[3] = -0.5; yt[4] = -0.4; 
-    yt[5] = -0.2; yt[6] = 0.08; yt[7] =  0.2; yt[8] =  0.6;
-
-    x[0] = 1e-5;
-    WHEN( "lat = 1" ){
-      do410(i,x,xm,nl,y,yt,j);
-      std::vector<std::tuple<double,double,double,double,double>> output { 
-        { 0.00, 0.30, 0.01, 0.03, 0.04 }, { 0.01,-0.90, 0.02, 0.04, 0.05 },
-        { 0.02,-0.70, 0.03, 0.05, 0.06 }, { 0.03,-0.50, 0.04, 0.06, 0.07 },
-        { 0.04, 0.05, 0.06, 0.07, 0.08 } };
-      THEN( "E' is rounded slightly up" ){
-        for ( size_t i = 0; i < output.size(); ++i ){
-          REQUIRE( std::get<0>(output[i]) == Approx(y[i][0]).epsilon(1e-6) );
-          REQUIRE( std::get<1>(output[i]) == Approx(y[i][1]).epsilon(1e-6) );
-          REQUIRE( std::get<2>(output[i]) == Approx(y[i][2]).epsilon(1e-6) );
-          REQUIRE( std::get<3>(output[i]) == Approx(y[i][3]).epsilon(1e-6) );
-          REQUIRE( std::get<4>(output[i]) == Approx(y[i][4]).epsilon(1e-6) );
-        }
+    for ( int i = 0; i < scr.size(); ++i ){
+      scr[i] = 1.2*(i%3)+0.01*i;
+    }
+    x[0] = 1.0e-5; x[1] = 5.0e-6; x[2] = 2.5e-6;
 
 
-        std::vector<double> correctX { 1.0e-5, 5.0e-5, 0.0, 0.0, 0.0, 0.0, 0.0, 
-          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-        for ( size_t i = 0; i < x.size(); ++i ){ 
-          REQUIRE( correctX[i] == Approx(x[i]).epsilon(1e-6) ); 
-        }
-
+    WHEN( "" ){
+      THEN( "scr is not changed" ){
+        do380( jscr, i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
         REQUIRE( 3 == i );
+        REQUIRE( 0.0     == Approx(xlast).epsilon(1e-6) );
+        REQUIRE( 3.0e-2  == Approx(ylast).epsilon(1e-6) );
+        REQUIRE( 2.25e-3 == Approx(ulast).epsilon(1e-6) );
+        REQUIRE( -1.4723249e-2 == Approx(u2last).epsilon(1e-6) );
+        REQUIRE( -3.3344998e-3 == Approx(u3last).epsilon(1e-6) );
+        std::vector<double> scr_645_to_670 {6.45, 7.66, 8.87, 6.48, 7.69, 8.9, 
+          6.51, 7.72, 8.93, 6.54, 7.75, 0.0, 3.0e-2, 4.0e-2, 5.0e-2, 6.0e-2, 
+          7.0e-2, 8.0e-2, 9.0e-2, 0.1, 0.11, 6.66, 7.87, 9.08, 6.69, 7.9 };
+        for ( int i = 0; i < 645; ++i ){
+          REQUIRE( 1.2*(i%3)+0.01*i == Approx(scr[i]).epsilon(1e-6) );
+        }
+        for ( int i = 0; i < scr_645_to_670.size(); ++i ){
+          REQUIRE( scr_645_to_670[i] == Approx(scr[i+645]).epsilon(1e-6) );
+        }
+        for ( int i = 670; i < scr.size(); ++i ){
+          REQUIRE( 1.2*(i%3)+0.01*i == Approx(scr[i]).epsilon(1e-6) );
+        }
 
 
       } // THEN
     } // WHEN
   } // GIVEN
+  GIVEN( " " ){
+    int jscr = -1, i = 4, nl = 9, j = 30, nll, jnz = 0;
+    double em9 = 1.0e-9, xlast, ylast, ulast, u2last, u3last;
+    std::vector<double> p (4,0.0), x(20,0.0), scr(500000);
+    std::vector<std::vector<double>> y (65,std::vector<double>(20)); 
+    for ( int i = 0; i < y.size(); ++i ){
+      for ( size_t j = 0; j < y[0].size(); ++j ){
+        y[i][j] = 0.2*(i+j);
+      }
+    }
+    for ( int i = 0; i < scr.size(); ++i ){
+      scr[i] = 1.2*(i%3)+0.01*i;
+    }
+    x[0] = 1.0e-5; x[1] = 5.0e-6; x[2] = 2.5e-6;
+
+
+    WHEN( "scr value is greater than 1" ){
+      THEN( "overflow is fixed, plus warning" ){
+        do380( jscr, i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
+        REQUIRE( 3 == i );
+        REQUIRE( 0.0 == Approx(xlast).epsilon(1e-6) );
+        REQUIRE( 0.6 == Approx(ylast).epsilon(1e-6) );
+        REQUIRE( 0.9 == Approx(ulast).epsilon(1e-6) );
+        REQUIRE( 1.914 == Approx(u2last).epsilon(1e-6) );
+        REQUIRE( 5.13  == Approx(u3last).epsilon(1e-6) );
+
+        std::vector<double> scr_295_to_306 { 4.15, 0.0, 0.6, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.06 };
+          
+        for ( int i = 0; i < 295; ++i ){
+          REQUIRE( 1.2*(i%3)+0.01*i == Approx(scr[i]).epsilon(1e-6) );
+        }
+        for ( int i = 0; i < scr_295_to_306.size(); ++i ){
+          REQUIRE( scr_295_to_306[i] == Approx(scr[i+295]).epsilon(1e-6) );
+        }
+        for ( int i = 306; i < scr.size(); ++i ){
+          REQUIRE( 1.2*(i%3)+0.01*i == Approx(scr[i]).epsilon(1e-6) );
+        }
+
+
+      } // THEN
+    } // WHEN
+
+    WHEN( "scr value is lesser than 1" ){
+    for ( int i = 0; i < y.size(); ++i ){
+      for ( size_t j = 0; j < y[0].size(); ++j ){
+        y[i][j] = -0.2*(i+j);
+      }
+    }
+
+      j = 3;
+      THEN( "overflow is fixed, plus warning" ){
+        do380( jscr, i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
+        REQUIRE( 3 == i );
+        REQUIRE( 0.0 == Approx(xlast).epsilon(1e-6) );
+        REQUIRE( -0.6 == Approx(ylast).epsilon(1e-6) );
+        REQUIRE( 0.9 == Approx(ulast).epsilon(1e-6) );
+        REQUIRE( -1.914 == Approx(u2last).epsilon(1e-6) );
+        REQUIRE( 5.13  == Approx(u3last).epsilon(1e-6) );
+
+        std::vector<double> scr_25_to_39 { 1.45, 0.0, -0.6, -0.8, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 0.36, 1.57, 2.78, 0.39 };
+          
+        for ( int i = 0; i < 25; ++i ){
+          REQUIRE( 1.2*(i%3)+0.01*i == Approx(scr[i]).epsilon(1e-6) );
+        }
+        for ( int i = 0; i < scr_25_to_39.size(); ++i ){
+          REQUIRE( scr_25_to_39[i] == Approx(scr[i+25]).epsilon(1e-6) );
+        }
+        for ( int i = 39; i < scr.size(); ++i ){
+          REQUIRE( 1.2*(i%3)+0.01*i == Approx(scr[i]).epsilon(1e-6) );
+        }
+
+
+      } // THEN
+    } // WHEN
+
+  } // GIVEN
+
 } // TEST CASE
