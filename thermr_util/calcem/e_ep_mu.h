@@ -9,9 +9,8 @@
 #include "e_ep_mu_util/410.h"
 
 
-
-auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2, 
-  std::vector<double>& scr, const int& mtref, double& za, double& awr,
+auto e_ep_mu( double& teff, double& teff2, 
+  std::vector<double>& scr, double& za, double& awr,
   int& ncds, double& emax, double& cliq, int iinc, int lat,
   std::vector<double>& esi, std::vector<double>& xsi, const int& lasym,
   std::vector<double>& alpha, std::vector<double>& beta, 
@@ -21,44 +20,35 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
 
   int itemp,iold,inew,ne,nex;
   double temp;
-  int nr,np,nwtab,nlt,nlp,nlp1;
-  int i,ia,nl1,ltt,loc,l,jscr,ilog;
-  int matd,itprnt,nb,nw,ni,nbeta=beta.size(),lt,it,nalpha=alpha.size();
-  int itrunc,ib,ip,ir,idis,ie,nmu,nep,istart,iend;
-  int jbeta=0,j=0,iskip,il,k,jnz,ll,jj,ii,nexn,ien,isave;
-  int nll;
-  double smz,t1,tmax,test,tempt,tt1,ttn,tnxt,xm;
-  double uu,uum,ym,test2,xlast,ulast,xs;
-  double b,diff,enow,ep,sabmin,tev,tevz,ylast;
-  double u,xl,yl,sum;
-  const int ngrid=118;
-  const int nlmax=65;
-  const int nemax=5000;
-  const int mumax=300;
-  const int imax=20;
+  int nr,np,nwtab,nlt,nlp,nlp1,i,ia,nl1,ltt,loc,l,jscr,ilog,matd,itprnt,nb,nw,
+    ni,nbeta=beta.size(),lt,it,nalpha=alpha.size(),itrunc,ib,ip,ir,idis,ie,
+    nmu,nep,istart,iend,jbeta=0,j=0,iskip,il,k,jnz,ll,jj,ii,nexn,ien,isave,nll;
+  double smz,t1,tmax,test,tempt,tt1,ttn,tnxt,xm,uu,uum,ym,test2,xlast,ulast,xs,
+         b,diff,enow,ep,sabmin,tev,tevz,ylast,u,xl,yl,sum;
+  const int ngrid=118, nlmax=65, nemax=5000, mumax=300, imax=20;
   int numIters = 0;
-  std::vector<double> ex(imax,0.0),x(imax,0.0),yt(nlmax,0.0);
   std::vector<std::vector<double>> y(nlmax,std::vector<double> (imax,0.0));
-  std::vector<double> yy(imax,0.0),yu(2*nemax,0.0),ubar(ngrid,0.0),p2(ngrid,0.0),p3(ngrid,0.0),p(4,0.0),uj(mumax,0.0),sj(mumax,0.0);
-  double u2=0,u2last=0,u3=0,u3last=0;
+  std::vector<double> ex(imax,0.0), x(imax,0.0), yt(nlmax,0.0), yy(imax,0.0),
+    yu(2*nemax,0.0), ubar(ngrid,0.0), p2(ngrid,0.0), p3(ngrid,0.0), p(4,0.0),
+    uj(mumax,0.0), sj(mumax,0.0);
+  double u2 = 0,u2last = 0,u3 = 0,u3last = 0;
   std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
-    1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 0.000253, 0.000297, 0.000350, 0.00042, 
-    0.000506, 0.000615, 0.00075, 0.00087, 0.001012, 0.00123, 0.0015, 0.0018, 
-    0.00203, 0.002277, 0.0026, 0.003, 0.0035, 0.004048, 0.0045, 0.005, 0.0056, 
-    0.006325, 0.0072, 0.0081, 0.009108, 0.01, 0.01063, 0.0115, 0.012397, 
-    0.0133, 0.01417, 0.015, 0.016192, 0.0182, 0.0199, 0.020493, 0.0215, 0.0228, 
-    0.0253, 0.028, 0.030613, 0.0338, 0.0365, 0.0395, 0.042757, 0.0465, 0.050, 
-    0.056925, 0.0625, 0.069, 0.075, 0.081972, 0.09, 0.096, 0.1035, 0.111573, 
-    0.120, 0.128, 0.1355, 0.145728, 0.160, 0.172, 0.184437, 0.20, 0.2277, 
-    0.2510392, 0.2705304, 0.2907501, 0.3011332, 0.3206421, 0.3576813, 0.39, 
-    0.4170351, 0.45, 0.5032575, 0.56, 0.625, 0.70, 0.78, 0.86, 0.95, 1.05, 
-    1.16, 1.28, 1.42, 1.55, 1.70, 1.855, 2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 
-    3.42, 3.75, 4.07, 4.46, 4.90, 5.35, 5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 
-    9.85, 10.00 };
+    1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 2.53e-4, 2.97e-4, 3.5e-4, 4.2e-4, 5.06e-4, 
+    6.15e-4, 7.5e-4, 8.7e-4, 1.012e-3, 1.23e-3, 1.5e-3, 1.8e-3, 2.03e-3, 
+    2.277e-3, 2.6e-3, 3e-3, 3.5e-3, 4.048e-3, 4.5e-3, 5e-3, 5.6e-3, 6.325e-3, 
+    7.2e-3, 8.1e-3, 9.108e-3, 0.01, 0.01063, 0.0115, 0.012397, 0.0133, 0.01417, 
+    0.015, 0.016192, 0.0182, 0.0199, 0.020493, 0.0215, 0.0228, 0.0253, 0.028, 
+    0.030613, 0.0338, 0.0365, 0.0395, 0.042757, 0.0465, 0.05, 0.056925, 0.0625, 
+    0.069, 0.075, 0.081972, 0.09, 0.096, 0.1035, 0.111573, 0.12, 0.128, 0.1355, 
+    0.145728, 0.16, 0.172, 0.184437, 0.2, 0.2277, 0.2510392, 0.2705304, 
+    0.2907501, 0.3011332, 0.3206421, 0.3576813, 0.39, 0.4170351, 0.45, 
+    0.5032575, 0.56, 0.625, 0.7, 0.78, 0.86, 0.95, 1.05, 1.16, 1.28, 1.42, 1.55, 
+    1.7, 1.855, 2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 3.42, 3.75, 4.07, 4.46, 
+    4.9, 5.35, 5.85, 6.4, 7.0, 7.65, 8.4, 9.15, 9.85, 10.0 };
   const double sabflg = -225, eps = 1.e-4, tolmin = 5.e-7, therm = 0.0253, 
-    break_val = 3000, em9 = 1e-9, up = 1.1, dn = 0.9, uumin = 0.00001, yumin = 2e-7, 
-    nlpmx = 10, bk =8.617385e-5;
-  int mth, mfh;
+    break_val = 3000, em9 = 1e-9, up = 1.1, dn = 0.9, uumin = 1e-5, 
+    yumin = 2e-7, nlpmx = 10, bk =8.617385e-5;
+  //int mth, mfh;
   // save nwtab,sabmin,nl,nlt,nlp,nlp1,nl1,nnl,jmax,nne
   tevz = therm;
 
@@ -70,12 +60,12 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
   // ^^ Take care of this in the upstairs function
   // This will go to the other branch ( the E-mu-E' branch )
   ltt=5;
-  math=matdp;
-  mfh=6;
-  mth=mtref;
+  //math=matdp;
+  //mfh=6;
+  //mth=mtref;
   tev=t*bk;
-  teff=teff*bk;
-  teff2=teff2*bk;
+  teff  *= bk;
+  teff2 *= bk;
   scr[1-1]=za;
   scr[2-1]=awr;
   scr[3-1]=0;
@@ -169,32 +159,30 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
       bool passedTest = false;
       while (not passedTest){
 
-        std::cout << 330 << std::endl;
+        //std::cout << 330 << std::endl;
+        std::cout << std::setprecision(15) << 330 << "   " << i << "   " << j << "   " << jbeta << "    " << numIters <<  "     " << scr[4] << std::endl;
 
         if ( i != imax ){
           if ( iskip != 1 ){
-            if (0.5*(y[0][i-1-1]+y[0][i-1])*(x[i-1-1]-x[i-1]) >= tolmin) {
-              xm=0.5*(x[i-1-1]+x[i-1]);
-              xm = sigfig(xm,8,0);
+            if (0.5*(y[0][i-2]+y[0][i-1])*(x[i-2]-x[i-1]) >= tolmin) {
+              xm = sigfig(0.5*(x[i-2]+x[i-1]),8,0);
 
-              if (xm > x[i-1] and xm < x[i-1-1]) {
+              if (xm > x[i-1] and xm < x[i-2]) {
                 sigl( nnl, nlmax, enow, xm, tev, alpha, beta, sab, yt, tol, az, 
                     tevz, iinc, lat, lasym, az2, teff2, cliq, sb, sb2, teff );
                 uu = 0; uum = 0;
                 bool goto330 = false;
                 for ( int k = 1; k <= nl; ++k ){
-                  ym = terp1(x[i-1],y[k-1][i-1],x[i-1-1],y[k-1][i-1-1],xm,2);
+                  ym = terp1(x[i-1],y[k-1][i-1],x[i-2],y[k-1][i-2],xm,2);
 
-                  if (k > 1) uu=uu+yt[k-1];
-                  if (k > 1) uum=uum+ym;
-                  test=tol*abs(yt[k-1]);
-                  test2=test;
-                  if (k > 1) test2=tol;
+                  if (k > 1) { 
+                    uu  += yt[k-1];
+                    uum += ym;
+                  }
+                  test2 = (k > 1) ? tol : tol*abs(yt[k-1]);
 
                   if (abs(yt[k-1]-ym) > test2){
                     do410( i, x, xm, nl, y, yt, j );
-
-
                     goto330 = true;
                     break;
                   } 
@@ -202,8 +190,7 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
                 if (goto330){ continue; }
                 if (not goto330){
                   std::cout << 350 << std::endl;  // 350 continue
-                  test=2*tol*abs(uu-1)+uumin;
-                  if (abs(uu-uum) > test){
+                  if (abs(uu-uum) > 2*tol*abs(uu)+uumin){
                     // point passes.  save top point in stack and continue.
                     do410( i, x, xm, nl, y, yt, j );
                     continue;
@@ -220,20 +207,9 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
         do360(j, jmax, xsi, x, xlast, ylast, ulast, u2last, u3last, tolmin, y, 
           p2, p3, nll, nl, p, ubar, ie, i );
 
+        do380( i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, 
+            u3last, p );
 
-
-        do380( jscr, i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
- 
-
-
-
-
-
-
-
-
-
- 
         if (i >= 2) continue;
         jbeta=jbeta+1;
 
@@ -244,52 +220,27 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
         } // enddo
 
 
-
-
         // test fails.  add point to stack and continue.
         std::cout << 430 << "         " << ie << std::endl;
         numIters += 1;
+        //if (numIters > 1 )return;
         std::cout << "-----------------------------------------------" << std::endl;
-        j=j+1;
-        xsi[ie-1]=xsi[ie-1]+(x[i-1]-xlast)*(y[1-1][i-1]+ylast)*0.5;
-        uu=0;
-        u2=0;
-        u3=0;
-        ubar[ie-1]=ubar[ie-1]+0.5*(x[i-1]-xlast)*(uu+ulast);
-        p2[ie-1]=p2[ie-1]+0.5*(x[i-1]-xlast)*(u2+u2last);
-        p3[ie-1]=p3[ie-1]+0.5*(x[i-1]-xlast)*(u3+u3last);
-        xsi[ie-1]=sigfig(xsi[ie-1],9,0);
-        scr[7+(nl+1)*(j-1)-1]=x[i-1];
-        jscr=7+(j-1)*(nl+1);
-        if (y[1-1][i-1] >= em9) {
-          scr[1+jscr-1]=sigfig(y[1-1][i-1],9,0);
-        }
-        else {
-          scr[1+jscr-1]=sigfig(y[1-1][i-1],8,0);
-        }
-        for ( int il = 1; il < nl; ++il ){
-          scr[il+jscr]=sigfig(y[il][i-1],9,0);
-          if (scr[il+jscr] > 1.0 ) {
-            // only warn for big miss, but always fix the overflow
-            if (scr[il+jscr] > 1+0.0005) {
-              // write(strng,'("2cos",f7.4,", set to 1.&&  enow,e''=",
-              // 2(1pe12.5))')&scr(il+jscr),enow,scr(jscr)
-              std::cout << "call mess('calcem',strng,'')" << std::endl;
-            }
-          scr[il+jscr]=1.0;
-          }
-          if (scr[il+jscr] < -1.0) {
-            // only warn for big miss, but always fix the underflow
-            if (scr[il+jscr] < -(1+0.0005)) {
-              // write(strng,'("2cos",f7.4,", set to -1.&&  enow,e''=",
-              // 2(1pe12.5),i3)')&scr(il+jscr),enow,scr(jscr)
-              std::cout << "call mess('calcem',strng,'')" << std::endl;
-            }
-            scr[il+jscr]=-1.0;
-          }
-        }
-        if (y[1-1][1-1] != 0.0) jnz=j;
+        ++j;
+        uu = 0;
+        u2 = 0;
+        u3 = 0;
+        xsi[ie-1]  += 0.5 * (x[i-1]-xlast) * (y[0][i-1]+ylast);
+
+        ubar[ie-1] += 0.5 * (x[i-1]-xlast) * (uu+ulast);
+        p2[ie-1]   += 0.5 * (x[i-1]-xlast) * (u2+u2last);
+        p3[ie-1]   += 0.5 * (x[i-1]-xlast) * (u3+u3last);
+        xsi[ie-1]   = sigfig(xsi[ie-1],9,0);
+
+
+        do380(i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
+        if (y[0][0] != 0.0) jnz=j;
         if (jnz < j) j=jnz+1;
+ 
 
         if (iprint == 2) {
           ubar[ie-1]=ubar[ie-1]/xsi[ie-1];
@@ -318,6 +269,8 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
         scr[6-1]=nl+1;
         ncds=ncds+1+(j*(nl+1)+5)/6;
 
+        //std::cout << "--------------       " << j << "    " << scr[4] << std::endl;
+        //if (numIters > 0 )return;
         //std::cout << "call listio(0,0,nscr,scr,nb,nw)" << std::endl;
         loc=1;
         //while (nb != 0){
@@ -331,7 +284,6 @@ auto e_ep_mu(int& math, int& matdp, double& teff, double& teff2,
         }
         else {
           std::cout << "go to 610" << std::endl;
-
           return; 
         }
 

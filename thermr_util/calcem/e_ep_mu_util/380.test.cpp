@@ -4,7 +4,7 @@
 
 TEST_CASE( "380" ){
   GIVEN( " " ){
-    int jscr = -1, i = 4, nl = 9, j = 66, nll, jnz = 0;
+    int i = 4, nl = 9, j = 66, nll, jnz = 0;
     double em9 = 1.0e-9, xlast, ylast, ulast, u2last, u3last;
     std::vector<double> p (4,0.0), x(20,0.0), scr(500000);
     std::vector<std::vector<double>> y (65,std::vector<double>(20)); 
@@ -21,7 +21,7 @@ TEST_CASE( "380" ){
 
     WHEN( "" ){
       THEN( "scr is not changed" ){
-        do380( jscr, i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
+        do380( i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
         REQUIRE( 3 == i );
         REQUIRE( 0.0     == Approx(xlast).epsilon(1e-6) );
         REQUIRE( 3.0e-2  == Approx(ylast).epsilon(1e-6) );
@@ -46,7 +46,7 @@ TEST_CASE( "380" ){
     } // WHEN
   } // GIVEN
   GIVEN( " " ){
-    int jscr = -1, i = 4, nl = 9, j = 30, nll, jnz = 0;
+    int i = 4, nl = 9, j = 30, nll, jnz = 0;
     double em9 = 1.0e-9, xlast, ylast, ulast, u2last, u3last;
     std::vector<double> p (4,0.0), x(20,0.0), scr(500000);
     std::vector<std::vector<double>> y (65,std::vector<double>(20)); 
@@ -63,7 +63,7 @@ TEST_CASE( "380" ){
 
     WHEN( "scr value is greater than 1" ){
       THEN( "overflow is fixed, plus warning" ){
-        do380( jscr, i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
+        do380( i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
         REQUIRE( 3 == i );
         REQUIRE( 0.0 == Approx(xlast).epsilon(1e-6) );
         REQUIRE( 0.6 == Approx(ylast).epsilon(1e-6) );
@@ -96,7 +96,7 @@ TEST_CASE( "380" ){
 
       j = 3;
       THEN( "overflow is fixed, plus warning" ){
-        do380( jscr, i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
+        do380( i, j, nl, nll, scr, x, y, em9, xlast, ylast, jnz, ulast, u2last, u3last, p );
         REQUIRE( 3 == i );
         REQUIRE( 0.0 == Approx(xlast).epsilon(1e-6) );
         REQUIRE( -0.6 == Approx(ylast).epsilon(1e-6) );
