@@ -19,11 +19,27 @@ void e_mu_ep( int ltt, int math, int matdp, int mfh, int mtref, double& tev,
 
   int nalpha = alpha.size(), nbeta = beta.size(), i, j, mumax, ie, nmu, nep, k, istart, iend, isave, npage, ib, nw, nexn, nb, ien, nex, ne, mth;
   double sum, u, xl, yl, xm, ym, tolmin, xs, yumin;
-  std::vector<double> yy, yu, sj, uj, ubar, ex,egrid;
+  std::vector<double> yy(20,0.0), yu(10000,0.0), sj(300,0.0), uj(300,0.0), 
+    ubar(118,0.0), ex(20,0.0),
+    egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
+    1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 2.53e-4, 2.97e-4, 3.5e-4, 4.2e-4, 5.06e-4, 
+    6.15e-4, 7.5e-4, 8.7e-4, 1.012e-3, 1.23e-3, 1.5e-3, 1.8e-3, 2.03e-3, 
+    2.277e-3, 2.6e-3, 3e-3, 3.5e-3, 4.048e-3, 4.5e-3, 5e-3, 5.6e-3, 6.325e-3, 
+    7.2e-3, 8.1e-3, 9.108e-3, 0.01, 0.01063, 0.0115, 0.012397, 0.0133, 0.01417, 
+    0.015, 0.016192, 0.0182, 0.0199, 0.020493, 0.0215, 0.0228, 0.0253, 0.028, 
+    0.030613, 0.0338, 0.0365, 0.0395, 0.042757, 0.0465, 0.05, 0.056925, 0.0625, 
+    0.069, 0.075, 0.081972, 0.09, 0.096, 0.1035, 0.111573, 0.12, 0.128, 0.1355, 
+    0.145728, 0.16, 0.172, 0.184437, 0.2, 0.2277, 0.2510392, 0.2705304, 
+    0.2907501, 0.3011332, 0.3206421, 0.3576813, 0.39, 0.4170351, 0.45, 
+    0.5032575, 0.56, 0.625, 0.7, 0.78, 0.86, 0.95, 1.05, 1.16, 1.28, 1.42, 1.55, 
+    1.7, 1.855, 2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 3.42, 3.75, 4.07, 4.46, 
+    4.9, 5.35, 5.85, 6.4, 7.0, 7.65, 8.4, 9.15, 9.85, 10.0 };
+
 
 
    // compute kernel and write in mf6/law7 angle-energy format
    // 510 continue
+  std::cout << 510 << std::endl;
    ltt=4;
    math=matdp;
    mfh=6;
@@ -66,16 +82,20 @@ void e_mu_ep( int ltt, int math, int matdp, int mfh, int mtref, double& tev,
    // call tab2io(0,0,nscr,scr,nb,nw)
    ncds=ncds+2;
    cliq=0;
-   if (iinc == 1) std::cout << "go to 515" << std::endl;
-   if (sab[1-1][1-1] > sab[2-1][1-1]) cliq=(sab[1-1][1-1]-sab[1-1][2-1])*alpha[1-1]/(beta[2-1]*beta[2-1]);
+   //if (iinc == 1) std::cout << "go to 515" << std::endl;
+   if (iinc != 1) {
+     if (sab[1-1][1-1] > sab[2-1][1-1]) cliq=(sab[1-1][1-1]-sab[1-1][2-1])*alpha[1-1]/(beta[2-1]*beta[2-1]);
+   }
 
    // loop over given incident energy grid.
    // the first pass computes the cross section and mu grid
   
    // 515 continue
+   std::cout << 515 << std::endl;
    ie=0;
 
   // 520 continue
+   std::cout << 520 << std::endl;
    ie=ie+1;
    enow=egrid[ie-1];
    if (ie > 1 and temp > break_val) enow=enow*temp/break_val;
@@ -98,6 +118,7 @@ void e_mu_ep( int ltt, int math, int matdp, int mfh, int mtref, double& tev,
 
    // adaptive reconstruction
  // 530 continue
+   std::cout << 530 << std::endl;
    if (i == imax) std::cout << "go to 560" << std::endl;
    xm=0.5*(x[i-1-1]+x[i-1]);
    xm=sigfig(xm,7,0);
@@ -122,6 +143,7 @@ void e_mu_ep( int ltt, int math, int matdp, int mfh, int mtref, double& tev,
    std::cout << "go to 580" << std::endl;
    // test fails.  add point to stack and continue.
    // 575 continue
+   std::cout << 575 << std::endl;
    i=i+1;
    x[i-1]=x[i-1-1];
    x[i-1-1]=xm;
@@ -130,6 +152,7 @@ void e_mu_ep( int ltt, int math, int matdp, int mfh, int mtref, double& tev,
    std::cout << "go to 530" << std::endl;
    // linearization complete.  write out result.
    // 580 continue
+   std::cout << 580 << std::endl;
    j=j+1;
    uj[j-1]=x[1-1];
    sj[j-1]=yy[1-1];
@@ -224,6 +247,7 @@ void e_mu_ep( int ltt, int math, int matdp, int mfh, int mtref, double& tev,
 
    // calculate incoherent inelastic scattering cross sections
    
+   return;
    // 610 continue
    for (int ie = 0; ie < 20; ++ie ){ 
       ex[ie]=0;
