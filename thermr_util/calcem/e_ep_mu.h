@@ -9,22 +9,18 @@
 #include "e_ep_mu_util/410.h"
 
 
-auto e_ep_mu( double& teff, double& teff2, 
-  std::vector<double>& scr, double& za, double& awr,
-  int& ncds, double& emax, double& cliq, int iinc, int lat,
-  std::vector<double>& esi, std::vector<double>& xsi, const int& lasym,
+auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za, 
+  double& awr, int& ncds, double& emax, double& cliq, int iinc, int lat, 
+  std::vector<double>& esi, std::vector<double>& xsi, const int& lasym, 
   std::vector<double>& alpha, std::vector<double>& beta, 
-  std::vector<std::vector<double>>& sab, const double t, const double& tol,
+  std::vector<std::vector<double>>& sab, const double t, const double& tol, 
   const double& az, const double& az2, const double& sb, const double& sb2, 
   int& nnl, const int& nl, const int& jmax, const int& nne, int iprint ){
 
   int itemp,iold,inew,ne,nex;
   double temp;
-  int nr,np,nwtab,nlt,nlp,nlp1,i,ia,nl1,ltt,loc,l,jscr,ilog,matd,itprnt,nb,nw,
-    ni,nbeta=beta.size(),lt,it,nalpha=alpha.size(),itrunc,ib,ip,ir,idis,ie,
-    nmu,nep,istart,iend,jbeta=0,j=0,iskip,il,k,jnz,ll,jj,ii,nexn,ien,isave,nll;
-  double smz,t1,tmax,test,tempt,tt1,ttn,tnxt,xm,uu,uum,ym,test2,xlast,ulast,xs,
-         b,diff,enow,ep,sabmin,tev,tevz,ylast,u,xl,yl,sum;
+  int nr,np,nwtab,i,nl1,ltt,loc,l,nb,nw,lt,it,ie,jbeta=0,j=0,iskip,il,k,jnz,ll,jj,ii,nll;
+  double uu,uum,test2,xlast,ulast,xs,b,enow,ep,tev,tevz,ylast,u,xl,yl;
   const int ngrid=118, nlmax=65, nemax=5000, mumax=300, imax=20;
   int numIters = 0;
   std::vector<std::vector<double>> y(nlmax,std::vector<double> (imax,0.0));
@@ -118,7 +114,7 @@ auto e_ep_mu( double& teff, double& teff2,
 
     // 310 continue
     do310( ie, enow, egrid, temp, bk, break_val, therm, esi, xsi, ubar, p2, p3, 
-        ep, jbeta, iskip, j, nbeta, lasym, x );
+        ep, jbeta, iskip, j, beta.size(), lasym, x );
      sigl( nnl, yt.size(), enow, ep, tev, alpha, beta, sab, yt, tol, az, tevz, iinc, 
          lat, lasym, az2, teff2, cliq, sb, sb2, teff );
 
@@ -165,7 +161,7 @@ auto e_ep_mu( double& teff, double& teff2,
         if ( i != imax ){
           if ( iskip != 1 ){
             if (0.5*(y[0][i-2]+y[0][i-1])*(x[i-2]-x[i-1]) >= tolmin) {
-              xm = sigfig(0.5*(x[i-2]+x[i-1]),8,0);
+              double xm = sigfig(0.5*(x[i-2]+x[i-1]),8,0);
 
               if (xm > x[i-1] and xm < x[i-2]) {
                 sigl( nnl, nlmax, enow, xm, tev, alpha, beta, sab, yt, tol, az, 
@@ -173,7 +169,7 @@ auto e_ep_mu( double& teff, double& teff2,
                 uu = 0; uum = 0;
                 bool goto330 = false;
                 for ( int k = 1; k <= nl; ++k ){
-                  ym = terp1(x[i-1],y[k-1][i-1],x[i-2],y[k-1][i-2],xm,2);
+                  double ym = terp1(x[i-1],y[k-1][i-1],x[i-2],y[k-1][i-2],xm,2);
 
                   if (k > 1) { 
                     uu  += yt[k-1];
@@ -213,7 +209,7 @@ auto e_ep_mu( double& teff, double& teff2,
         if (i >= 2) continue;
         jbeta=jbeta+1;
 
-        if (jbeta <= nbeta) break; // go to 311
+        if (jbeta <= int(beta.size())) break; // go to 311
 
         for ( int il = 0; il < nl; ++il ){
           y[il][i-1]=0;
