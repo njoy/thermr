@@ -4,7 +4,6 @@
 
 
 TEST_CASE( "begin sigu (113,116)" ){
-  /*
   GIVEN( "inputs" ){
   int jbeta = -7, lat = 1, iinc = 2, 
       lasym = 0;
@@ -12,7 +11,7 @@ TEST_CASE( "begin sigu (113,116)" ){
   std::cout << std::setprecision(10) ;
   double e = 1.0e-3, tev = 1.5e-5, az = 11.9,
     tevz = 2.2e-1, az2 = 0.0, teff2 = 0.0, cliq = 1.0, sb = 5.53, sb2 = 0.0,
-    teff = 6.14e-2, tolin = 5e-2, u, root1 = 2.9e-2*2.9e-2;
+    teff = 6.14e-2, tolin = 5e-2, u, root1 = 2.9e-2;
 
   std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
     beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 }, x(20,0.0), y(20,0.0);
@@ -50,7 +49,7 @@ TEST_CASE( "begin sigu (113,116)" ){
     std::cout << std::setprecision(10) ;
     double e = 1.0e-3, tev = 1.5e-5, az = 11.9,
       tevz = 2.2e-1, az2 = 0.0, teff2 = 0.0, cliq = 1.0, sb = 5.53, sb2 = 0.0,
-      teff = 6.14e-2, tolin = 5e-2, u = 0.05, root1 = 2.9e-2*2.9e-2;
+      teff = 6.14e-2, tolin = 5e-2, u = 0.05, root1 = 2.9e-2;
 
     std::vector<double> alpha(40), beta(80), x(20,0.0), y(20,0.0);
     for ( size_t j = 0; j < alpha.size(); ++j ){ alpha[j] = 0.1*(j+1); }
@@ -81,7 +80,6 @@ TEST_CASE( "begin sigu (113,116)" ){
 
   } // GIVEN
 
-*/
 
 
   GIVEN( "inputs 3" ){
@@ -91,7 +89,7 @@ TEST_CASE( "begin sigu (113,116)" ){
     std::cout << std::setprecision(10) ;
     double e = 1.0e-6, tev = 1.5e-4, az = 11.9,
       tevz = 2.2e-4, az2 = 0.0, teff2 = 0.0, cliq = 1.0, sb = 5.53, sb2 = 0.0,
-      teff = 6.14e-2, tolin = 5e-2, u = 0.1, root1 = 8.5933336372749159e-7;
+      teff = 6.14e-2, tolin = 5e-2, u = 0.1, root1 = 0.00092700235;
 
     std::vector<double> alpha(40),beta(80),x(20,0.0), y(20,0.0);
     for ( int i = 0; i < 40;     ++i ){ alpha[i] = 0.1*i + i%6 + 0.001; }

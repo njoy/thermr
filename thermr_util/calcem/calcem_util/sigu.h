@@ -26,7 +26,7 @@ auto sigu( int nemax, double& e, double& u, double& tev,
      s[i] = 0;
    }
 
-   root1 = std::pow((u*sqrt(e)+sqrt(u*u*e+(az-1)*(az+1)*e))/(az+1),2);
+   root1 = (u*sqrt(e)+sqrt(u*u*e+(az-1)*(az+1)*e))/(az+1);
    root2 = (u*sqrt(e)-sqrt(u*u*e+(az-1)*(az+1)*e))/(az+1);
 
    // adaptive calculation of cross section
@@ -54,7 +54,7 @@ auto sigu( int nemax, double& e, double& u, double& tev,
      i = 2;
 
      std::cout << std::setprecision(15) << x[0] << "    " << x[1] << "     " << x[2] << std::endl;
-     return;
+     std::cout << std::setprecision(15) << y[0] << "    " << y[1] << "     " << y[2] << std::endl;
 
      // compare linear approximation to true function
      // 150 continue
@@ -63,19 +63,20 @@ auto sigu( int nemax, double& e, double& u, double& tev,
      while (do150){
        // if (i == imax) go to 160
        if ( i != imax and goTo150 ){
-         std::cout << 150 << std::endl;
+         std::cout << std::setprecision(20) << 150 << "     " << y[0] << std::endl;
          // if (i > 3 and half*(y[i-1-1]+y[i-1])*(x[i-1-1]-x[i-1]) < tolmin) go to 160
          if (i <= 3 or 0.5*(y[i-1-1]+y[i-1])*(x[i-1-1]-x[i-1]) >= tolmin) {
            xm=0.5*(x[i-1-1]+x[i-1]);
+           xm = sigfig(xm,8,0);
+           //std::cout << "xm        " << xm << std::endl;
            // if (xm <= x[i-1] or xm.ge.x[i-1-1]) go to 160
-           std::cout << std::fixed << std::setprecision(15);
-           std::cout << xm << "    " << x[i-2] << "     " << x[0]<< std::endl;
-           if ( y[0] < 200000 ){ return; }
+           // if ( y[0] < 200000 ){ return; }
            if (xm > x[i-1] and xm < x[i-1-1]){
              ym=0.5*(y[i-1-1]+y[i-1]);
-             // yt=sig(e,xm,u,tev,nalpha,alpha,nbeta,beta,sab)
+             //std::cout << "ym        " << ym << "         "<< y[0]<< std::endl;
              yt = sig( e, xm, u, tev, alpha, beta, sab, az, tevz, lasym, 
                  az2, teff2, lat, cliq, sb, sb2, teff, iinc );
+             //std::cout << "yt        " << yt << std::endl;
              test = tol*abs(yt);
       
              //if (abs(yt-ym) <= test) { std::cout << "go to 160" << std::endl; }
@@ -87,6 +88,7 @@ auto sigu( int nemax, double& e, double& u, double& tev,
                x[i-1-1]=xm;
                y[i-1-1]=yt;
                // go to 150
+              // return;
                continue;
              }
            }
@@ -96,7 +98,8 @@ auto sigu( int nemax, double& e, double& u, double& tev,
   
        // point passes
        // 160 continue
-       std::cout << 160 << "    " << j << "    " << i << "      " << x[i-1] << std::endl;
+       std::cout << 160 << "    " << i << "    " << j << "      " << sum << std::endl;
+       if ( j == 20 )return;
        j=j+1;
        s[2*j+1-1]=x[i-1];
        s[2*j+2-1]=y[i-1];
