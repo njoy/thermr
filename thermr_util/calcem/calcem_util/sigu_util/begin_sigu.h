@@ -1,4 +1,6 @@
 #include "../sig.h"
+#include "../sigfig.h"
+
 auto do_113_116( int& jbeta, const int& lat, std::vector<double>& x, 
   std::vector<double>& y, const double& e, const double& tev, const double& tevz,
   const double& root1sq, const double& u,
@@ -11,12 +13,12 @@ auto do_113_116( int& jbeta, const int& lat, std::vector<double>& x,
     // 113 continue
     std::cout << 113 << std::endl;
     if (jbeta == 0) jbeta=1;
-    std::cout << e << "      " << beta[abs(jbeta)-1] * tevz+e  << std::endl;
-
-    if (lat == 1) { x[0] = e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tevz; }
+    if (lat == 1) { 
+      x[0] = e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tevz; }
     else {          x[0] = e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tev;  }
-
-    jbeta=jbeta+1;
+    if ( jbeta <= 0 and x[0] == e ){ x[0] = sigfig(e,8,-1); }
+        
+    ++jbeta;
 
   } while(x[0] <= x[1]);
 
@@ -27,6 +29,8 @@ auto do_113_116( int& jbeta, const int& lat, std::vector<double>& x,
     x[0]=root1sq;
   }
 
+  x[0] = sigfig(x[0],8,0);
+  std::cout << x[0] << std::endl;
   y[0] = sig( e, x[0], u, tev, alpha, beta, sab, az, tevz, lasym, az2,
       teff2, lat, cliq, sb, sb2, teff, iinc );
 } 

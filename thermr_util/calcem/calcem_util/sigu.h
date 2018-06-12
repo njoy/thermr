@@ -2,7 +2,7 @@
 #include "sigu_util/begin_sigu.h"
 
 
-auto sigu( int nlin, int nemax, double& e, double& u, double& tev, 
+auto sigu( int nemax, double& e, double& u, double& tev, 
   std::vector<double>& alpha, std::vector<double>& beta, 
   std::vector<std::vector<double>>&sab, std::vector<double>&s, double& tolin, 
   double& az, double& tevz, int iinc, int lat, int lasym, 
@@ -48,14 +48,13 @@ auto sigu( int nlin, int nemax, double& e, double& u, double& tev,
      y[2-1]=y[1-1];
 
 
-     std::cout << "\n\n\n" << std::endl;
-     std::cout << x[0] << "      " << y[0] << std::endl;
      do_113_116( jbeta, lat, x, y, e, tev, tevz, root1, u, alpha, beta, 
          sab, az, lasym, az2, teff, teff2, cliq, sb, sb2, iinc );
-     std::cout << x[0] << "      " << y[0] << std::endl;
 
      i = 2;
 
+     std::cout << std::setprecision(15) << x[0] << "    " << x[1] << "     " << x[2] << std::endl;
+     return;
 
      // compare linear approximation to true function
      // 150 continue
