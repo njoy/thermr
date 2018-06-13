@@ -124,6 +124,7 @@ auto sig( const double& e, const double& ep, const double& u,
   else {
     b = abs(bb_tev); a = a_tev;
   }
+  //std::cout << a << std::endl;
   b = sigfig(b,8,0);
   //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "in sig     " << b <<  std::endl;
 
@@ -162,6 +163,8 @@ auto sig( const double& e, const double& ep, const double& u,
           beta.cend(), b));
     ia = ia1 > 1 ? ia1 : 1;
     ib = ib1 > 1 ? ib1 : 1;
+    //std::cout << "-----  " << ia << "   " << ib  << std::endl;
+    //std::cout << "-----  " << a << "   " << b  << std::endl;
 
     // 150 continue
     if (a*az < test2 and b < test2) { 
