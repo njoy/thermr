@@ -1,0 +1,480 @@
+{
+  "compiler": {
+    "apple clang++": {
+      "minimum version": "8.0",
+      "osx": {
+        "flags": {
+          "base project": [],
+          "common": [
+            "-stdlib=libc++"
+          ],
+          "coverage": [
+            "--coverage"
+          ],
+          "debug": [
+            "-O0",
+            "-g",
+            "-gdwarf-3"
+          ],
+          "link time optimization": [
+            "-flto"
+          ],
+          "nonportable optimization": [
+            "-march=native"
+          ],
+          "optimization": [
+            "-O3",
+            "-DNDEBUG"
+          ],
+          "profile generate": [
+            "-fprofile-generate='{profile_path}'"
+          ],
+          "profile use": [
+            "-fprofile-use='{profile_path}'"
+          ],
+          "static": [
+            "-static"
+          ],
+          "strict": [
+            "-Werror"
+          ],
+          "subproject": [],
+          "warning": [
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic"
+          ]
+        },
+        "standard": {
+          "c++11": "-std=c++11",
+          "c++14": "-std=c++14",
+          "c++98": "-std=c++98"
+        }
+      }
+    },
+    "g++": {
+      "linux": {
+        "flags": {
+          "base project": [],
+          "common": [],
+          "coverage": [
+            "--coverage"
+          ],
+          "debug": [
+            "-O0",
+            "-g",
+            "-gdwarf-3",
+            "-fsignaling-nans"
+          ],
+          "link time optimization": [
+            "-flto"
+          ],
+          "nonportable optimization": [
+            "-march=native"
+          ],
+          "optimization": [
+            "-O3",
+            "-DNDEBUG"
+          ],
+          "profile generate": [
+            "-fprofile-generate='{profile_path}'"
+          ],
+          "profile use": [
+            "-fprofile-use='{profile_path}'"
+          ],
+          "static": [
+            "-static"
+          ],
+          "strict": [
+            "-Werror"
+          ],
+          "subproject": [],
+          "warning": [
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic"
+          ]
+        },
+        "standard": {
+          "c++11": "-std=c++11",
+          "c++14": "-std=c++14",
+          "c++98": "-std=c++98"
+        }
+      },
+      "minimum version": "6.2",
+      "osx": {
+        "flags": {
+          "base project": [],
+          "common": [],
+          "coverage": [
+            "--coverage"
+          ],
+          "debug": [
+            "-O0",
+            "-g",
+            "-gdwarf-3",
+            "-fsignaling-nans"
+          ],
+          "link time optimization": [
+            "-flto"
+          ],
+          "nonportable optimization": [
+            "-march=native"
+          ],
+          "optimization": [
+            "-O3",
+            "-DNDEBUG"
+          ],
+          "profile generate": [
+            "-fprofile-generate='{profile_path}'"
+          ],
+          "profile use": [
+            "-fprofile-use='{profile_path}'"
+          ],
+          "static": [
+            "-static"
+          ],
+          "strict": [
+            "-Werror"
+          ],
+          "subproject": [],
+          "warning": [
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic"
+          ]
+        },
+        "standard": {
+          "c++11": "-std=c++11",
+          "c++14": "-std=c++14",
+          "c++98": "-std=c++98"
+        }
+      },
+      "windows": {
+        "flags": {
+          "base project": [],
+          "common": [],
+          "coverage": [
+            "--coverage"
+          ],
+          "debug": [
+            "-O0",
+            "-g",
+            "-gdwarf-3",
+            "-fsignaling-nans"
+          ],
+          "link time optimization": [
+            "-flto"
+          ],
+          "nonportable optimization": [
+            "-march=native"
+          ],
+          "optimization": [
+            "-O3",
+            "-DNDEBUG"
+          ],
+          "profile generate": [
+            "-fprofile-generate='{profile_path}'"
+          ],
+          "profile use": [
+            "-fprofile-use='{profile_path}'"
+          ],
+          "static": [
+            "-static"
+          ],
+          "strict": [
+            "-Werror"
+          ],
+          "subproject": [],
+          "warning": [
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic"
+          ]
+        },
+        "standard": {
+          "c++11": "-std=c++11",
+          "c++14": "-std=c++14",
+          "c++98": "-std=c++98"
+        }
+      }
+    },
+    "llvm clang++": {
+      "linux": {
+        "flags": {
+          "base project": [],
+          "common": [
+            "-stdlib=libstdc++"
+          ],
+          "coverage": [
+            "--coverage"
+          ],
+          "debug": [
+            "-O0",
+            "-g",
+            "-gdwarf-3"
+          ],
+          "link time optimization": [
+            "-flto"
+          ],
+          "nonportable optimization": [
+            "-march=native"
+          ],
+          "optimization": [
+            "-O3",
+            "-DNDEBUG"
+          ],
+          "profile generate": [
+            "-fprofile-generate='{profile_path}'"
+          ],
+          "profile use": [
+            "-fprofile-use='{profile_path}'"
+          ],
+          "static": [
+            "-static"
+          ],
+          "strict": [
+            "-Werror"
+          ],
+          "subproject": [],
+          "warning": [
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic"
+          ]
+        },
+        "standard": {
+          "c++11": "-std=c++11",
+          "c++14": "-std=c++14",
+          "c++98": "-std=c++98"
+        }
+      },
+      "minimum version": "3.8",
+      "osx": {
+        "flags": {
+          "base project": [],
+          "common": [
+            "-stdlib=libc++"
+          ],
+          "coverage": [
+            "--coverage"
+          ],
+          "debug": [
+            "-O0",
+            "-g",
+            "-gdwarf-3"
+          ],
+          "link time optimization": [
+            "-flto"
+          ],
+          "nonportable optimization": [
+            "-march=native"
+          ],
+          "optimization": [
+            "-O3",
+            "-DNDEBUG"
+          ],
+          "profile generate": [
+            "-fprofile-generate='{profile_path}'"
+          ],
+          "profile use": [
+            "-fprofile-use='{profile_path}'"
+          ],
+          "static": [
+            "-static"
+          ],
+          "strict": [
+            "-Werror"
+          ],
+          "subproject": [],
+          "warning": [
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic"
+          ]
+        },
+        "standard": {
+          "c++11": "-std=c++11",
+          "c++14": "-std=c++14",
+          "c++98": "-std=c++98"
+        }
+      },
+      "windows": {
+        "flags": {
+          "base project": [],
+          "common": [
+            "-stdlib=libc++"
+          ],
+          "coverage": [
+            "--coverage"
+          ],
+          "debug": [
+            "-O0",
+            "-g",
+            "-gdwarf-3"
+          ],
+          "link time optimization": [
+            "-flto"
+          ],
+          "nonportable optimization": [
+            "-march=native"
+          ],
+          "optimization": [
+            "-O3",
+            "-DNDEBUG"
+          ],
+          "profile generate": [
+            "-fprofile-generate='{profile_path}'"
+          ],
+          "profile use": [
+            "-fprofile-use='{profile_path}'"
+          ],
+          "static": [
+            "-static"
+          ],
+          "strict": [
+            "-Werror"
+          ],
+          "subproject": [],
+          "warning": [
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic"
+          ]
+        },
+        "standard": {
+          "c++11": "-std=c++11",
+          "c++14": "-std=c++14",
+          "c++98": "-std=c++98"
+        }
+      }
+    }
+  },
+  "file extension": {
+    "header files": [
+      "h++",
+      "hxx",
+      "hpp",
+      "hh",
+      "h"
+    ],
+    "implementation files": [
+      "c++",
+      "cxx",
+      "cpp",
+      "cc",
+      "C"
+    ]
+  },
+  "header files": [
+    "src/temp_eff/temp_eff.h",
+    "src/temp_eff/temp_eff_util/gatef2.h",
+    "src/temp_eff/temp_eff_util/gateff.h",
+    "src/iel/iel.h",
+    "src/iel/iel_util/terpa.h",
+    "src/iel/iel_util/terp1.h",
+    "src/coh/coh.h",
+    "src/coh/coh_util/upstk.h",
+    "src/coh/coh_util/sigcoh.h",
+    "src/coh/coh_util/readWrite_util/repoz.h",
+    "src/coh/coh_util/readWrite_util/loada.h",
+    "src/coh/coh_util/readWrite_util/finda.h",
+    "src/coh/coh_util/sigcoh_util/form.h",
+    "src/coh/coh_util/sigcoh_util/terp.h",
+    "src/coh/coh_util/sigcoh_util/legndr.h",
+    "src/general_util/sigfig.h",
+    "src/calcem/calcem.h",
+    "src/calcem/calcem_util/sig.h",
+    "src/calcem/calcem_util/sigu.h",
+    "src/calcem/calcem_util/e_ep_mu.h",
+    "src/calcem/calcem_util/sigl.h",
+    "src/calcem/calcem_util/sigl_util/beginningLoop.h",
+    "src/calcem/calcem_util/sigu_util/begin_sigu.h",
+    "src/calcem/calcem_util/sigu_util/do150.h",
+    "src/calcem/calcem_util/sig_util/terpq.h",
+    "src/calcem/calcem_util/e_ep_mu_util/380.h",
+    "src/calcem/calcem_util/e_ep_mu_util/410.h",
+    "src/calcem/calcem_util/e_ep_mu_util/310.h",
+    "src/calcem/calcem_util/e_ep_mu_util/313.h",
+    "src/calcem/calcem_util/e_ep_mu_util/360.h"
+  ],
+  "ignore pattern": "$^",
+  "implementation files": [
+    "src/thermr.cpp"
+  ],
+  "include path": "src/include",
+  "initialized": true,
+  "is external project": false,
+  "language": "c++",
+  "name": "thermr",
+  "standards": [
+    "c++98",
+    "c++11",
+    "c++14"
+  ],
+  "strict": true,
+  "test pattern": "test$",
+  "tests": {
+    "calcem": [
+      "src/calcem/test/calcem.test.cpp"
+    ],
+    "calcem.calcem_util": [
+      "src/calcem/calcem_util/test/sigl.test.cpp",
+      "src/calcem/calcem_util/test/sigu.test.cpp",
+      "src/calcem/calcem_util/test/sig.test.cpp",
+      "src/calcem/calcem_util/test/e_ep_mu.test.cpp"
+    ],
+    "calcem.calcem_util.e_ep_mu_util": [
+      "src/calcem/calcem_util/e_ep_mu_util/test/310.test.cpp",
+      "src/calcem/calcem_util/e_ep_mu_util/test/360.test.cpp",
+      "src/calcem/calcem_util/e_ep_mu_util/test/410.test.cpp",
+      "src/calcem/calcem_util/e_ep_mu_util/test/380.test.cpp",
+      "src/calcem/calcem_util/e_ep_mu_util/test/313.test.cpp"
+    ],
+    "calcem.calcem_util.sig_util": [
+      "src/calcem/calcem_util/sig_util/test/terpq.test.cpp"
+    ],
+    "calcem.calcem_util.sigl_util": [
+      "src/calcem/calcem_util/sigl_util/test/beginningLoop.test.cpp"
+    ],
+    "calcem.calcem_util.sigu_util": [
+      "src/calcem/calcem_util/sigu_util/test/do150.test.cpp",
+      "src/calcem/calcem_util/sigu_util/test/begin_sigu.test.cpp"
+    ],
+    "coh": [
+      "src/coh/test/coh.test.cpp"
+    ],
+    "coh.coh_util": [
+      "src/coh/coh_util/test/upstk.test.cpp",
+      "src/coh/coh_util/test/sigcoh.test.cpp"
+    ],
+    "coh.coh_util.readWrite_util": [
+      "src/coh/coh_util/readWrite_util/test/loada.test.cpp",
+      "src/coh/coh_util/readWrite_util/test/finda.test.cpp",
+      "src/coh/coh_util/readWrite_util/test/repoz.test.cpp"
+    ],
+    "coh.coh_util.sigcoh_util": [
+      "src/coh/coh_util/sigcoh_util/test/legndr.test.cpp",
+      "src/coh/coh_util/sigcoh_util/test/form.test.cpp",
+      "src/coh/coh_util/sigcoh_util/test/terp.test.cpp"
+    ],
+    "general_util": [
+      "src/general_util/test/sigfig.test.cpp"
+    ],
+    "iel": [
+      "src/iel/test/iel.test.cpp"
+    ],
+    "iel.iel_util": [
+      "src/iel/iel_util/test/terp1.test.cpp",
+      "src/iel/iel_util/test/terpa.test.cpp"
+    ],
+    "temp_eff": [
+      "src/temp_eff/test/temp_eff.test.cpp"
+    ],
+    "temp_eff.temp_eff_util": [
+      "src/temp_eff/temp_eff_util/test/gateff.test.cpp",
+      "src/temp_eff/temp_eff_util/test/gatef2.test.cpp"
+    ]
+  },
+  "update": true
+}
