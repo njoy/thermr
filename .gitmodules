@@ -1,0 +1,12 @@
+[submodule "catch-adapter"]
+	path = catch-adapter
+	url = https://github.com/njoy/catch-adapter
+[submodule "eigen-adapter"]
+	path = eigen-adapter
+	url = https://github.com/njoy/eigen-adapter
+[submodule "dependencies/catch-adapter"]
+	path = dependencies/catch-adapter
+	url = https://github.com/njoy/catch-adapter
+[submodule "dependencies/eigen-adapter"]
+	path = dependencies/eigen-adapter
+	url = https://github.com/njoy/eigen-adapter
