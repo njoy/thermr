@@ -76,10 +76,11 @@ inline int do250( std::vector<double>& x, std::vector<double>& y, double& xl, do
 }
 
 
-inline int do160(double add, std::vector<double>& x, std::vector<double>& y, double& xl,
+inline int do160(std::vector<double>& x, std::vector<double>& y, double& xl,
   double& yl, int& i, double& xil, int& j, double& fract, int& nbin, double& sum,
   double& gral, double& xn, double& shade ){
 
+  double add;
   while ( true ){
     //std::cout << "160" << std::endl;
     add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
@@ -143,7 +144,7 @@ inline auto sigl( int nlin, double e, double ep,
   */
   int nl,i,j,il,nbin;
   double b,seep,sum,xl,yl,ymax;
-  double fract,gral,add,xil,xn,f,rf,disc,yn,xbar;
+  double fract,gral,xil,xn,f,rf,disc,yn,xbar;
   double tol,s1bb;
   int imax=20;
   int length_p = nlin > 0 ? nlin : 0;
@@ -213,7 +214,7 @@ inline auto sigl( int nlin, double e, double ep,
 
     // check bins for this panel
 
-    int what_next = do160(add, x, y, xl, yl, i, xil, j, fract, nbin, sum, gral, 
+    int what_next = do160(x, y, xl, yl, i, xil, j, fract, nbin, sum, gral, 
         xn, shade );
     if (what_next == 150){ continue; }
     if (what_next == 260){ return; }

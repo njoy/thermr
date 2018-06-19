@@ -1,5 +1,5 @@
+#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-/*
 #include "iel/iel_util/terpa.h"
 
 
@@ -55,4 +55,3 @@ TEST_CASE( "terpa" ){
   } // GIVEN
 
 } // TEST CASE
-*/

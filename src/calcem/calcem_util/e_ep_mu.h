@@ -15,7 +15,7 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
   std::vector<double>& esi, std::vector<double>& xsi, const int& lasym, 
   std::vector<double>& alpha, std::vector<double>& beta, 
   std::vector<std::vector<double>>& sab, const double t, const double& tol, 
-  const double& az, const double& az2, const double& sb, const double& sb2, 
+  const double& az, /*const double& az2,*/ const double& sb, const double& sb2, 
   int& nnl, const int& nl, const int& jmax, const int& nne, int iprint ){
 
   int itemp,iold,inew,ne,nex;

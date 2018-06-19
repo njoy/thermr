@@ -6,7 +6,6 @@
 TEST_CASE( "sigcoh" ){
   int k = 0;
   std::vector<double> p(6);
-  double scon;
   GIVEN( "input energy is 0" ){
     std::vector<double> wrk_1_100 (100), s (6, 0.0), fl {};
     double e = 0, enext = 0, temp = 296, emax;
@@ -39,7 +38,7 @@ TEST_CASE( "sigcoh" ){
     WHEN( "smal value for emax" ){
       emax = 0.05;
       THEN ( "loops ranges are small (~4)" ){
-       auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+       auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( wrk_1_100[i] == Approx( wrk[i] ).epsilon(1e-6) );
         }
@@ -74,7 +73,7 @@ TEST_CASE( "sigcoh" ){
     WHEN( "Medium value for emax" ){
       emax = 1.2;
       THEN ( "loops ranges are moderate (~17)" ){
-       auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+       auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
 
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( wrk_1_100[i] == Approx( wrk[i] ).epsilon(1e-6) );
@@ -114,7 +113,7 @@ TEST_CASE( "sigcoh" ){
     WHEN( "large value for emax" ){
       emax = 5.5;
       THEN ( "loops ranges are large (~35)" ){
-       auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+       auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
   
 
         for ( size_t i = 0; i < 100; ++i ){ 
@@ -182,10 +181,9 @@ TEST_CASE( "sigcoh" ){
     std::vector<double> s (10, 0.0), fl (588);
     int nl = 1, lat = 1, natom = 1, k = 294;
     for ( int i = 0; i < 588; ++i ){ fl[i] = i + 1; }
-    scon = 321038.24532333424;
     p[0] = 1.0; p[1] = -1.0;
 
-    auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+    auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
 
 
 

@@ -54,7 +54,7 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
    double e = 0, scon = 0;
    std::vector<double> p;
 
-   auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+   auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
  
    ix = 1;
    j  = 0;
@@ -99,7 +99,7 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
    
    // prime stack with first bragg edge
    e = enext;
-   wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+   wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
    
    stk[0][0] = e;
    
@@ -112,7 +112,7 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
    
   // 120 continue
    e = enext;
-   wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+   wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
    upstk(e, s, stk, nl, i );
    // make sure input grid points are included
    
@@ -123,7 +123,7 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
       // 135 continue
       if (x[ix] >= stk[0][i-1]*(1-small)){ // go to 140
         e = x[ix];
-        wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k, scon );
+        wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
         upstk(e, s, stk, nl, i );
       }
     }

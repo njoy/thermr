@@ -6,7 +6,7 @@ TEST_CASE( "sig" ){
   int nalpha = 5, nbeta = 7, lasym = 0, lat = 1, iinc;
 
   double e = 1.0e-5, ep = 0.0, u = -1.0, tev = 2.5e-2, az = 11.9,
-    tevz = 2.53e-2, az2 = 0.0, teff2 = 0.0, cliq = 0.0, sb = 5.53, sb2 = 0.0,
+    tevz = 2.53e-2, /*az2 = 0.0, teff2 = 0.0,*/ cliq = 0.0, sb = 5.53, sb2 = 0.0,
     teff = 6.14e-2;
 
   double sigVal1, sigVal2;
@@ -191,7 +191,7 @@ TEST_CASE( "sig" ){
 
       e = 1e-6; ep = 1e-3; u = 0.1;
       tev = 1.5e-4; az = 11.9; tevz = 2.2e-4;
-      lasym = 0; az2 = 0; teff2 = 0;
+      lasym = 0; /*az2 = 0; teff2 = 0;*/
       lat = 0; cliq = 1; sb = 5.53;
       sb2 = 0; teff = 6.14e-2; iinc = 2;
       THEN( "" ){
@@ -233,7 +233,7 @@ TEST_CASE( "sig" ){
       
       e = 1e-5; ep = 9.999999e-06; u = 0.99;
       tev = 0.0255074596; az = 11.9; tevz = 0.0253;
-      lasym = 0; az2 = 0; teff2 = 0;
+      lasym = 0; /*az2 = 0; teff2 = 0;*/
       lat = 1; cliq = 0; sb = 5.53486;
       sb2 = 0; teff = 0.0614755628515; iinc = 2;
       THEN( "" ){
@@ -260,7 +260,7 @@ TEST_CASE( "sig" ){
 
       e = 1e-6; ep = 0.0005345; u = 0.1;
       tev = 0.00015; az = 11.9; tevz = 0.00022;
-      lasym = 0; az2 = 0; teff2 = 0;
+      lasym = 0; /*az2 = 0; teff2 = 0;*/
       lat = 1; cliq = 0; sb = 5.53;
       sb2 = 0; teff = 6.14e-1; iinc = 2;
       THEN( "" ){
@@ -278,15 +278,15 @@ TEST_CASE( "sig" ){
     for ( int i = 0; i < 80; ++i ){ beta[i]  = 0.2*i + 0.025; }
 
     std::vector<std::vector<double>> sab(alpha.size(), std::vector<double>(beta.size(),0));
-    for ( int i = 0; i < alpha.size(); ++i ){
-      for ( int j = 0; j < beta.size(); ++j ){
+    for ( size_t i = 0; i < alpha.size(); ++i ){
+      for ( size_t j = 0; j < beta.size(); ++j ){
         sab[i][j] = 0.2*i + 0.4*j + (i+j)%5;
       } 
     } 
 
       e = 1e-6; ep = 6.5e-6; u = 0.1;
       tev = 0.00015; az = 11.9; tevz = 0.00022;
-      lasym = 0; az2 = 0; teff2 = 0;
+      lasym = 0; /*az2 = 0; teff2 = 0;*/
       lat = 1; cliq = 0; sb = 5.53;
       sb2 = 0; teff = 6.14e-1; iinc = 2;
       THEN( "" ){

@@ -1,7 +1,6 @@
 
 #include "catch.hpp" 
 #include "iel/iel_util/terp1.h"
-/*
 
 void terpa1_equal( double a, double b ){
   if (b == 0.0){ 
@@ -45,4 +44,3 @@ TEST_CASE( "terp1" ){
   } // GIVEN
 
 } // TEST CASE
-*/

@@ -5,7 +5,7 @@
 #ifndef THERMR_FINDA_HH
 #define THERMR_FINDA_HH
 
-void finda( int i, int na, std::fstream& ntape, std::vector<double>& a, 
+inline void finda( int i, int na, std::fstream& ntape, std::vector<double>& a, 
     std::vector<double>& buf, int nbuf ){
   /*--------------------------------------------------------------------
    * Buffered sequential i/o routine.

@@ -2,7 +2,7 @@
 #ifndef THERMR_LOADA_HH
 #define THERMR_LOADA_HH
 
-void loada( int& i, int& na, std::fstream& ntape, int nbuf, std::vector<double>& a, 
+inline void loada( int& i, int& na, std::fstream& ntape, int nbuf, std::vector<double>& a, 
     std::vector<double>& buf ){
  /*--------------------------------------------------------------------
   * Buffered sequential i/o routine.

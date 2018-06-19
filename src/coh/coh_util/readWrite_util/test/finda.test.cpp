@@ -1,6 +1,5 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-/*
 #include "coh/coh_util/readWrite_util/finda.h"
 
 
@@ -91,4 +90,3 @@ TEST_CASE( "finda" ){
   } // GIVEN
 
 } // TEST CASE
-*/

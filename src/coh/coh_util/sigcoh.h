@@ -72,7 +72,7 @@ auto computeCrossSections( double e, std::vector<double>& fl,
 
 auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat, 
   double temp, double emax, int natom, std::vector<double>& fl, 
-  std::vector<double>& p, int k, double scon ){
+  std::vector<double>& p, int k ){
  /*-------------------------------------------------------------------
   * Compute the first nl Legendre components of the coherent scatter-
   * ing at energy e from lattice type lat.  Here enext is the next
@@ -89,7 +89,7 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   */
   int nw, i1m, l1, i2m, i3m;
   double amne, econ, tsqx, a, c, amsc, scoh, wal2, wint, w1, w2, w3, tau_sq, 
-    tau, w, f, t2, ulim, phi, c1, c2;
+    tau, w, f, t2, ulim, phi, c1, c2, scon;
   
   // These are lattice factors. Apparently they were borrowed directly from
   // HEXSCAT code. 
@@ -123,28 +123,6 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   // save k,recon,scon
 
 
- /* If this is the first entry (E=0) for an ENDF-III type material, the 
-  * appropriate lattice constants are selected and the Debye-Waller coefficient 
-  * is obtained for the desired temperature by interpolation. Then the 
-  * reciprocal lattice wave vectors and structure factors are computed, 
-  * sorted into shells, and stored for later use.
-  */
-  amne = amassn * amu;     // mass of neutron in grams
-  econ = ev * 8 * ( amne / hbar ) / hbar;
-  tsqx = econ / 20;
-
-
- /* If energy is greater than zero, the stored list is used to compute the 
-  * cross section. For ENDF-6 format materials, the initialization step is 
-  * used to organize the data already read from MF=7/MT=2 by rdelas, and 
-  * subsequent entries are used to compute the cross section.
-  */
-  if (e > 0) {
-    double recon = 1.0/econ;
-    computeCrossSections( e, fl, s, emax, scon, recon, nl, p, k );
-    return std::vector<double> {};
-  }
- 
 
   // Temperatures interpolated over when trying to get correct Debye-Waller
   // Coefficient.
@@ -177,6 +155,34 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   }
 
 
+
+
+ /* If this is the first entry (E=0) for an ENDF-III type material, the 
+  * appropriate lattice constants are selected and the Debye-Waller coefficient 
+  * is obtained for the desired temperature by interpolation. Then the 
+  * reciprocal lattice wave vectors and structure factors are computed, 
+  * sorted into shells, and stored for later use.
+  */
+  amne = amassn * amu;     // mass of neutron in grams
+  econ = ev * 8 * ( amne / hbar ) / hbar;
+  tsqx = econ / 20;
+  scon = scoh * ( 16.0 * M_PI*M_PI )/( 2.0 * a * a * c * sqrt(3) * econ );
+
+
+ /* If energy is greater than zero, the stored list is used to compute the 
+  * cross section. For ENDF-6 format materials, the initialization step is 
+  * used to organize the data already read from MF=7/MT=2 by rdelas, and 
+  * subsequent entries are used to compute the cross section.
+  */
+  if (e > 0) {
+    double recon = 1.0/econ;
+    computeCrossSections( e, fl, s, emax, scon, recon, nl, p, k );
+    return std::vector<double> {};
+  }
+ 
+
+
+
   // wal2 is (supposed to be) equal to
   //
   //       1   |' f(w)        
@@ -197,7 +203,6 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
 
   c1 = 4.0 / ( 3.0 * a * a );
   c2 = 1.0 / ( c * c );
-  scon = scoh * ( 16.0 * M_PI*M_PI )/( 2.0 * a * a * c * sqrt(3) * econ );
   wint = cw * amsc * wal2;
   t2 = hbar / ( 2.0 * amu * amsc );
 
