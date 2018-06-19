@@ -402,7 +402,7 @@
   "implementation files": [
     "src/thermr.cpp"
   ],
-  "include path": "src/include",
+  "include path": "src/",
   "initialized": true,
   "is external project": false,
   "language": "c++",
