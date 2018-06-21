@@ -1,37 +1,41 @@
 
-auto convol( const std::vector<double>& t1, const std::vector<double>& t2, 
-             const double& delta ){
+#include <map>
+inline auto gatef2( const std::vector<double>& temp, 
+  std::vector<double>& eftmp2, int mat ){ 
+  /* 
+   *-------------------------------------------------------------------
+   * Default effective temperatures for second atom in mixed
+   * moderators from GA report:
+   *       1095      benzine (c6h6)
+   *       1099      beo
+   *-------------------------------------------------------------------
+   */
 
-  std::vector<double> t3(t2.size(),0.0);
+  std::vector<double> tabl1, tabl2, tabl3;
+  tabl1 = { 1095, 1095, 1095, 1095, 1095, 1095, 1095, 1095, 1099, 1099, 1099, 
+            1099, 1099, 1099, 1099, 1099 };
+  tabl2 = { 296, 350, 400, 450, 500, 600, 800, 1000, 296, 400, 500, 600, 700, 
+            800, 1000, 1200 };
+  tabl3 = { 685.54, 712.02, 738.97, 768.10, 799.22, 866.63, 1017.3,  1182.3, 
+            427.8, 502.8, 584.3, 671.3, 761.6, 854.2, 1043.7, 1236.6 };
 
-  int i1, i2;
-  int len_t1 = int(t1.size());
-  int len_t2 = int(t2.size());
-  double f1, f2;
+  std::map<int, std::vector<double>> c { 
+    { 1095, { 0.00000000000, 2.71841971e-4, 3.58624831e-1, 5.53282468e2 } },
+    { 1099, { 0.00000000000, 1.32622103e-4, 7.04607881e-1, 2.02821917e2 } }
+  };
 
-  for ( int i = 0; i < len_t2; ++i ){    // i iterates through t3
-    for ( int j = 0; j < len_t1; ++j ){  // j iterates through t1, t2
-      i1 = i + j;
-      i2 = i - j;
-      if ( t1[j] <= 0 ){ continue; }
-      // Convolution will only be significant if t1[j] is not zero
-    
-      f1 = ( i1 - 1 > len_t1 ) ? 0 : t2[i1]*exp(-j*delta);
-
-      if      ( i2 >= 0 and  i2-1 < len_t1 ){ f2 = t2[ i2];                   }
-      else if ( i2 <  0 and -i2-3 < len_t1 ){ f2 = t2[-i2] * exp( i2*delta ); }
-      else                                  { f2 = 0;                         }
-
-      // If at one of the endpoints, only give half contribution
-      t3[i] += ( j == 0 or j == len_t1 - 1 ) ? t1[j] * ( f1 + f2 ) * 0.5 :
-                                               t1[j] * ( f1 + f2 );
-
-    } // for
-
-    t3[i] = ( t3[i] * delta < 1e-30 ) ? 0 : t3[i] * delta;
-
-  } // for
-  return t3;
+  for ( size_t i = 0; i < temp.size(); ++i ){
+    if (eftmp2[i] == 0) {
+      for ( auto j = 0; j < tabl2.size(); ++j ){
+        if (tabl1[j] == mat and std::abs(tabl2[j] - temp[i]) <= 5 ) {
+          eftmp2[i] = tabl3[j];
+        } // end if 
+      } // end for
+      if (eftmp2[i] == 0) { eftmp2[i] = temp[i]; }
+    } // end if 
+  } // end for 
 }
+
+
 
 

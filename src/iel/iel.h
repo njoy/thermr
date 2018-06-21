@@ -27,7 +27,8 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
      dwh { 8.4795, 9.0854, 9.8196, 10.676, 11.625, 12.643, 14.822, 17.125 },
      dwz { 1.9957, 2.6546, 3.2946, 4.5835, 5.2302, 6.5260, 7.8236 };
    
-   double c11a=162.88, c11b=296, c11c=34.957, c11d=350, c11e=40.282, c12a=81.44, c13a=6.3366, up=1.1, dn=.9;
+   double c11a=162.88, c11b=296, c11c=34.957, c11d=350, c11e=40.282, c12a=81.44,
+	  c13a=6.3366, up=1.1, dn=.9;
 
    dwa = 0; // This is just to fix uninitialized warning. NJOY doesn't 
             // initialize dwa. No real reason why...?
@@ -144,7 +145,7 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
       //x1=exp(-4*e*dwa);
 
       // This is the incoh. elastic xs sigma from Eq. 232. This is assuming
-      // equiprobable angles.
+      // equiprobable angles. This is also the same as leapr's Eq. 547
       xsec = (sb*0.5) * ( 1.0 - exp(-4.0*e*dwa) ) / ( 2.0*e*dwa );
 
       scr[1] = 0;     scr[2] = e; scr[3] = 0; scr[4] = 0; scr[5] = n + 2;

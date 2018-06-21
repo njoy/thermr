@@ -1,51 +1,79 @@
-#include <iostream>
+#include <vector>
+#include <cmath>
+#include <map>
 
-auto checkMoments( const double& sc, const std::vector<double>& alpha,
-  const std::vector<double>& beta, const std::vector<int>& maxt,
-  int itemp, double f0, double tbeta, double arat, double tbar, 
-  std::vector<std::vector<std::vector<double>>>& ssm ){
+inline auto gateff( std::vector<double>& temp, std::vector<double>& eftemp, 
+  int mat){ 
+  /*-------------------------------------------------------------------
+   * Default effective temperatures to values from General Atomic
+   * report, if available.
+   *       1002      h(h2o)
+   *       1004      d(d2o)
+   *       1064      be
+   *       1065      graphite
+   *       1095      benzine (c6h6)
+   *       1096      zr(zrh)
+   *       1097      h(zrh)
+   *       1099      beo
+   *       1114      h(ch2)
+   *-------------------------------------------------------------------
+   * 
+   * All of these values can be found in 
+   *     Reference Manual for ENDF Thermal Neutron Scattering Data
+   *     by Koppel and Houton (December 16, 1968)
+   *     [ https://www.osti.gov/servlets/purl/4075168 ]
+   *
+   */
 
-  double bel, /*ff0,*/ ff1, ff1l, ff2, ff2l, sum0, sum1, be, alp, ssct, ex, al, alw;
+  int i, j, jmat, ntabl = 67;
+  std::vector<double> tabl1, tabl2, tabl3;
+  tabl1 = { 1002, 1002, 1002, 1002, 1002, 1002, 1002, 1002, 1004, 1004, 1004, 
+            1004, 1004, 1004, 1004, 1004, 1064, 1064, 1064, 1064, 1064, 1064, 
+	    1064, 1064, 1065, 1065, 1065, 1065, 1065, 1065, 1065, 1065, 1065, 
+	    1065, 1095, 1095, 1095, 1095, 1095, 1095, 1095, 1095, 1096, 1096, 
+	    1096, 1096, 1096, 1096, 1096, 1096, 1097, 1097, 1097, 1097, 1097, 
+	    1097, 1097, 1097, 1099, 1099, 1099, 1099, 1099, 1099, 1099, 1114, 
+	    1114, 350, 1239 };
 
-  int naint = 1, nbint = 1;
-  // check the moments of s(alpha,beta)
-  for ( size_t a = 0; a < alpha.size(); ++a ){
-    if ( ( a % naint == 0 ) or ( a == alpha.size() - 1) ){
-      al = alpha[a]*sc/arat;
-      bel = 0;
-      ff1l = 0;
-      ff2l = 0;
-      sum0 = 0;
-      sum1 = 0;
-      for ( size_t b = 0; b < beta.size(); ++b ){
-        //int jprt=(b)%nbint+1;               // This doesn't seem to do
-        //if (b == beta.size()-1) jprt=1;     // anything
-        be = beta[b]*sc;
-        alw = al*tbeta;
-        alp = alw*tbar;
-        ex = -(alw-be)*(alw-be)/(4*alp);
-        ssct = ex > -250.0 ? exp(ex)/sqrt(4*M_PI*alp) : 0;
-        if (int(a)+1 >= maxt[b]) {
-          ssm[a][b][itemp] = ssct;
-        }
-        ff2 = ssm[a][b][itemp];
-        ff1 = ssm[a][b][itemp]*exp(-be);
-        //ff0 = ssm[a][b][itemp]*exp(-be/2);   // This isn't used either
-        if (b > 1) {
-          sum0 = sum0+(be-bel)*(ff1l+ff2l+ff1+ff2)/2;
-          sum1 = sum1+(be-bel)*(ff2l*bel+ff2*be-ff1l*bel-ff1*be)/2;
-        }
-        else {
-          sum0 = 0;
-          sum1 = 0;
-        }
-        ff1l = ff1;
-        ff2l = ff2;
-        bel = be;
-      }
-      sum0 = sum0/(1-exp(-al*f0));
-      sum1 = sum1/al/tbeta;
-    }
-  }
+  tabl2 = { 296, 350, 400, 450, 500, 600, 800, 1000, 296, 350, 400, 450, 500, 
+            600, 800, 1000, 296, 400, 500, 600, 700, 800, 1000, 1200, 296, 400, 
+	    500, 600, 700, 800, 1000, 1200, 1600, 2000, 296, 350, 400, 450, 500,
+	    600, 800, 1000, 296, 400, 500, 600, 700, 800, 1000, 1200, 296, 400, 
+	    500, 600, 700, 800, 1000, 1200, 296, 400, 500, 600, 800, 1000, 1200,
+	    296, 350 };
+  tabl3 = { 1396.8, 1411.6, 1427.4, 1444.9, 1464.1, 1506.8, 1605.8, 1719.8,
+	    940.91, 961.62, 982.93, 1006.1, 1030.9, 1085.1, 1209, 1350, 405.64,
+	    484.22, 568.53, 657.66, 749.69, 843.63, 1035., 1229.3, 713.39, 
+	    754.68, 806.67, 868.38, 937.64, 1012.7, 1174.9, 1348.2, 1712.9, 
+	    2091, 1165.9, 1177.8, 1191.4, 1207.7, 1226, 1268.7, 1373.4, 1497.7, 
+	    317.27, 416.29, 513.22, 611.12, 709.60, 808.43, 1006.8, 1205.7, 
+	    806.79, 829.98, 868.44, 920.08, 981.82, 1051.1, 1205.4, 1373.4, 
+	    596.4, 643.9, 704.6, 775.3, 935.4, 1109.8, 1292.3, 1222, 1239 };
+  std::map<int, std::vector<double>> c { 
+    { 1002, { 0.00000000000, 2.41381863e-4, 1.49459297e-1, 1.32985608e3 } },
+    { 1004, { 0.00000000000, 2.65303201e-4, 2.40418931e-1, 8.45103665e2 } },
+    { 1064, { 0.00000000000, 6.47773326e-5, 8.06292092e-1, 1.54527305e2 } },
+    { 1065, {-1.06322465e-7, 5.04305090e-4, 1.49928202e-1, 6.22845033e2 } },
+    { 1095, { 0.00000000000, 3.30122003e-4, 4.84314530e-2, 1.12048596e3 } },
+    { 1096, { 0.00000000000, 2.26006969e-5, 9.50491158e-1, 3.30579237e1 } },
+    { 1097, { 0.00000000000, 3.78501900e-4, 7.56488342e-2, 7.43172868e2 } },
+    { 1099, { 0.00000000000, 2.63979802e-4, 3.88515894e-1, 4.50703811e2 } },
+    { 1114, { 0.00000000000, 0.00000000000, 1.98148148e-1, 1.14574815e3 } }
+  };
+
+  for ( size_t i = 0; i < temp.size(); ++i ){
+    if (eftemp[i] == 0) {
+      for ( size_t j = 0; j < ntabl; ++j ){
+        if (tabl1[j] == mat and std::abs( tabl2[j] - temp[i] ) <= 5 ) {
+          double coeffVal = c[mat][0]*std::pow(temp[i],3) + 
+            c[mat][1]*std::pow(temp[i],2) + 
+            c[mat][2]*temp[i] + 
+            c[mat][3];
+          // eftemp[i] = coeffVal;
+          eftemp[i] = tabl3[j];
+        } // end if 
+      } // end for 
+      if (eftemp[i] == 0) { eftemp[i] = temp[i]; }
+    } // end if 
+  } // end do 
 }
-
