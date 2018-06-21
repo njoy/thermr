@@ -2,10 +2,10 @@
 #include "coh/coh_util/sigcoh.h"
 #include "coh/coh_util/readWrite_util/finda.h"
 #include "coh/coh_util/readWrite_util/loada.h"
-#include <unsupported/Eigen/CXX11/Tensor>
+#include <Eigen/Dense>
 
 auto coh( int lat, std::fstream& inew, int ne, int nex, double temp, 
-  std::fstream& iold, double emax, int natom, std::vector<double>& fl, 
+  std::fstream& iold, double emax, int natom, std::vector<double>& fl,
   std::vector<double>& bufo, std::vector<double>& bufn ){
  /*-------------------------------------------------------------------
   * Compute the coherent scattering cross sections for a crystalline
@@ -26,7 +26,6 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
 
    // initialize.
    nl = 1;
-
    imax = 20;
    if (nl > nlmax) { 
      std::cout << "too many legendre orders" << std::endl; 
@@ -46,8 +45,8 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
    // Oh well, we'll use this for now. 
 
    std::vector<std::vector<double>> stk (nx, std::vector<double> (imax) );
-   Eigen::Tensor<double,2> stkEig(nx,imax);
 
+   Eigen::MatrixXd stkEigen(nx, imax);
 
 
    // determine the energy grid adaptively and
@@ -92,44 +91,44 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
 
      // 105 continue
      ix = ix + 1;
-     x[ix] = ex[1];
-     y[ix] = ex[2];
-     z[ix] = ex[nex];
+     x[ix-1] = ex[1-1];
+     y[ix-1] = ex[2-1];
+     z[ix-1] = ex[nex-1];
 
      if (ix >= nlt) { do100 = false; }
 
   }
    
-   // prime stack with first bragg edge
-   e = enext;
-   wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
+  // prime stack with first bragg edge
+  e = enext;
+  wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
    
-   stk[0][0] = e;
-   stkEig(0,0) = e;
+  stk[0][0] = e;
+  stkEigen(0,0) = e;
    
-   for ( int il = 0; il < nl; ++il ){
-     stk[1+il][0] = s[il];
-     stkEig(1+il,0) = s[il];
-   } 
+  for ( int il = 0; il < nl; ++il ){
+    stk[1+il][0] = s[il];
+    stkEigen(1+il,0) = s[il];
+  } 
 
    i = 1;
    // add next bragg edge to stack
    
   // 120 continue
-   e = enext;
-   wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
-   upstk(e, s, stk, nl, i );
-   // make sure input grid points are included
+  e = enext;
+  wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
+  upstk(e, s, stkEigen, nl, i );
+  // make sure input grid points are included
    
   // 125 continue
    
   for ( int ix = 0; ix < nlt; ++ix ){
-    if (x[ix] > stk[0][i]*(1+small)){  // go to 135
+    if (x[ix] > stkEigen(0,i)*(1+small)){  // go to 135
       // 135 continue
-      if (x[ix] >= stk[0][i-1]*(1-small)){ // go to 140
+      if (x[ix] >= stkEigen(0,i-1)*(1-small)){ // go to 140
         e = x[ix];
         wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
-        upstk(e, s, stk, nl, i );
+        upstk(e, s, stkEigen, nl, i );
       }
     }
   }

@@ -1,28 +1,28 @@
 #include "catch.hpp"
 #include "coh/coh_util/upstk.h"
 
-void checkStk( const std::vector<std::vector<double>>& stk, 
+void checkStk( const Eigen::MatrixXd& stk, 
   const std::vector<double>& stkVals ){
   // stkVals are only the nonzero values in the desired output. In the 
   // for loop down there, we want all values beyond stkVals's range to be 0
-
-  for ( size_t i = 0; i < stk[0].size(); ++i ){
-    for ( size_t j = 0; j < stk.size(); ++j ){
-      if ( stk.size()*i < stkVals.size() ){
-        REQUIRE( stk[j][i] == Approx(stkVals[stk.size()*i+j]).epsilon(1e-6) );
+  
+  for ( int i = 0; i < stk.cols(); ++i ){
+    for ( int j = 0; j < stk.rows(); ++j ){
+      if ( stk.rows()*i < stkVals.size() ){
+        REQUIRE( stk(j,i) == Approx(stkVals[stk.rows()*i+j]).epsilon(1e-6) );
       } 
       else {
-        REQUIRE( stk[j][i] == Approx(0.0).epsilon(1e-6) );
+        REQUIRE( stk(j,i) == Approx(0.0).epsilon(1e-6) );
       }
     }
   }
 } 
 
 auto initializeStk( int nx, int maxIter ){
-  std::vector<std::vector<double>> stk ( nx, std::vector<double> (20,0.0) );
+  Eigen::MatrixXd stk = Eigen::MatrixXd::Zero(nx,20);
   for ( int i = 0; i < maxIter; ++i ){
     for ( int j = 0; j < nx; ++j ){
-      stk[j][i] = i*0.1*nx + 0.1*(j + 1);
+      stk(j,i) = i*0.1*nx + 0.1*(j + 1);
     }
   }
   return stk;
@@ -44,8 +44,8 @@ TEST_CASE( "uptsk" ){
 
       AND_WHEN( "stk is initialized to nearly all zeros" ){
 
-        std::vector<std::vector<double>> stk (nx,std::vector<double> (20,0.0));
-        stk[0][0] = 4.5e-4;
+        Eigen::MatrixXd stk = Eigen::MatrixXd::Zero(nx,20);
+        stk(0,0) = 4.5e-4;
 
         upstk( e, s, stk, nl, i );
 
