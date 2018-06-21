@@ -9,9 +9,12 @@ double form( int lat, int l1, int l2, int l3 ){
    *       lat = 1  graphite
    *       lat = 2  be
    *       lat = 3  beo
+   *
+   * This seems to be approximately the same as leapr's form function in
+   * coher/coher_util/formf.h. The only/main difference is that this does
+   * not give the option for fcc or bcc lattices
    *-------------------------------------------------------------------
    */
-   double beo1 = 7.54, beo2 = 4.24, beo3 = 11.31;
 
    if (lat == 1){ 
       // graphite
@@ -23,6 +26,7 @@ double form( int lat, int l1, int l2, int l3 ){
       return 1 + cos( 2 * M_PI * ( 2 * l1 + 4 * l2 + 3 * l3 ) / 6 );
    }
    else if (lat == 3){
+      double beo1 = 7.54, beo2 = 4.24, beo3 = 11.31;
       // beryllium oxide
       return ( 1 + cos( 2 * M_PI * ( 2*l1 + 4*l2 + 3*l3 ) / 6 ) ) *
              ( beo1 + beo2 + beo3 * cos( M_PI * ( 3*l3 ) / 4 ) );

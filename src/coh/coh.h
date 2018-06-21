@@ -2,6 +2,7 @@
 #include "coh/coh_util/sigcoh.h"
 #include "coh/coh_util/readWrite_util/finda.h"
 #include "coh/coh_util/readWrite_util/loada.h"
+#include <unsupported/Eigen/CXX11/Tensor>
 
 auto coh( int lat, std::fstream& inew, int ne, int nex, double temp, 
   std::fstream& iold, double emax, int natom, std::vector<double>& fl, 
@@ -45,6 +46,8 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
    // Oh well, we'll use this for now. 
 
    std::vector<std::vector<double>> stk (nx, std::vector<double> (imax) );
+   Eigen::Tensor<double,2> stkEig(nx,imax);
+
 
 
    // determine the energy grid adaptively and
@@ -102,9 +105,11 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
    wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
    
    stk[0][0] = e;
+   stkEig(0,0) = e;
    
    for ( int il = 0; il < nl; ++il ){
      stk[1+il][0] = s[il];
+     stkEig(1+il,0) = s[il];
    } 
 
    i = 1;
