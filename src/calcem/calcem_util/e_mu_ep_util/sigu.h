@@ -1,6 +1,6 @@
 #include "calcem/calcem_util/sig.h"
-#include "calcem/calcem_util/sigu_util/begin_sigu.h"
-#include "calcem/calcem_util/sigu_util/do150.h"
+#include "calcem/calcem_util/e_mu_ep_util/sigu_util/begin_sigu.h"
+#include "calcem/calcem_util/e_mu_ep_util/sigu_util/do150.h"
 
 
 auto sigu( int nemax, const double& e, const double& u, const double& tev, 

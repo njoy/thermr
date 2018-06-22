@@ -1,5 +1,6 @@
+#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "calcem/calcem_util/sigu.h"
+#include "calcem/calcem_util/e_mu_ep_util/sigu.h"
 
 
 TEST_CASE( "sigu" ){

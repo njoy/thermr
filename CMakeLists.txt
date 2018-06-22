@@ -93,18 +93,6 @@ set( thermr_GNU_Linux_link_time_optimization_flags "-flto" )
 set( thermr_GNU_Linux_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
 set( thermr_GNU_Linux_nonportable_optimization_flags "-march=native" )
 set( thermr_GNU_Linux_static_flags "-static" )
-set( thermr_GNU_Windows_common_flags "-Wall" "-Wextra" "-Wpedantic" )
-set( thermr_GNU_Windows_DEBUG_flags "-O0" "-g" "-gdwarf-3" "-fsignaling-nans" )
-set( thermr_GNU_Windows_RELEASE_flags "-O3" "-DNDEBUG" )
-set( thermr_GNU_Windows_strict_flags "-Werror" )
-set( thermr_GNU_Windows_coverage_flags "--coverage" )
-set( thermr_GNU_Windows_subproject_flags  )
-set( thermr_GNU_Windows_base_project_flags  )
-set( thermr_GNU_Windows_profile_generate_flags "-fprofile-generate='${CMAKE_BINARY_DIR}/profiling'" )
-set( thermr_GNU_Windows_link_time_optimization_flags "-flto" )
-set( thermr_GNU_Windows_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
-set( thermr_GNU_Windows_nonportable_optimization_flags "-march=native" )
-set( thermr_GNU_Windows_static_flags "-static" )
 set( thermr_GNU_Darwin_common_flags "-Wall" "-Wextra" "-Wpedantic" )
 set( thermr_GNU_Darwin_DEBUG_flags "-O0" "-g" "-gdwarf-3" "-fsignaling-nans" )
 set( thermr_GNU_Darwin_RELEASE_flags "-O3" "-DNDEBUG" )
@@ -117,6 +105,18 @@ set( thermr_GNU_Darwin_link_time_optimization_flags "-flto" )
 set( thermr_GNU_Darwin_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
 set( thermr_GNU_Darwin_nonportable_optimization_flags "-march=native" )
 set( thermr_GNU_Darwin_static_flags "-static" )
+set( thermr_GNU_Windows_common_flags "-Wall" "-Wextra" "-Wpedantic" )
+set( thermr_GNU_Windows_DEBUG_flags "-O0" "-g" "-gdwarf-3" "-fsignaling-nans" )
+set( thermr_GNU_Windows_RELEASE_flags "-O3" "-DNDEBUG" )
+set( thermr_GNU_Windows_strict_flags "-Werror" )
+set( thermr_GNU_Windows_coverage_flags "--coverage" )
+set( thermr_GNU_Windows_subproject_flags  )
+set( thermr_GNU_Windows_base_project_flags  )
+set( thermr_GNU_Windows_profile_generate_flags "-fprofile-generate='${CMAKE_BINARY_DIR}/profiling'" )
+set( thermr_GNU_Windows_link_time_optimization_flags "-flto" )
+set( thermr_GNU_Windows_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
+set( thermr_GNU_Windows_nonportable_optimization_flags "-march=native" )
+set( thermr_GNU_Windows_static_flags "-static" )
 set( thermr_Clang_Linux_common_flags "-stdlib=libstdc++" "-Wall" "-Wextra" "-Wpedantic" )
 set( thermr_Clang_Linux_DEBUG_flags "-O0" "-g" "-gdwarf-3" )
 set( thermr_Clang_Linux_RELEASE_flags "-O3" "-DNDEBUG" )
@@ -129,18 +129,6 @@ set( thermr_Clang_Linux_link_time_optimization_flags "-flto" )
 set( thermr_Clang_Linux_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
 set( thermr_Clang_Linux_nonportable_optimization_flags "-march=native" )
 set( thermr_Clang_Linux_static_flags "-static" )
-set( thermr_Clang_Windows_common_flags "-stdlib=libc++" "-Wall" "-Wextra" "-Wpedantic" )
-set( thermr_Clang_Windows_DEBUG_flags "-O0" "-g" "-gdwarf-3" )
-set( thermr_Clang_Windows_RELEASE_flags "-O3" "-DNDEBUG" )
-set( thermr_Clang_Windows_strict_flags "-Werror" )
-set( thermr_Clang_Windows_coverage_flags "--coverage" )
-set( thermr_Clang_Windows_subproject_flags  )
-set( thermr_Clang_Windows_base_project_flags  )
-set( thermr_Clang_Windows_profile_generate_flags "-fprofile-generate='${CMAKE_BINARY_DIR}/profiling'" )
-set( thermr_Clang_Windows_link_time_optimization_flags "-flto" )
-set( thermr_Clang_Windows_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
-set( thermr_Clang_Windows_nonportable_optimization_flags "-march=native" )
-set( thermr_Clang_Windows_static_flags "-static" )
 set( thermr_Clang_Darwin_common_flags "-stdlib=libc++" "-Wall" "-Wextra" "-Wpedantic" )
 set( thermr_Clang_Darwin_DEBUG_flags "-O0" "-g" "-gdwarf-3" )
 set( thermr_Clang_Darwin_RELEASE_flags "-O3" "-DNDEBUG" )
@@ -153,6 +141,18 @@ set( thermr_Clang_Darwin_link_time_optimization_flags "-flto" )
 set( thermr_Clang_Darwin_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
 set( thermr_Clang_Darwin_nonportable_optimization_flags "-march=native" )
 set( thermr_Clang_Darwin_static_flags "-static" )
+set( thermr_Clang_Windows_common_flags "-stdlib=libc++" "-Wall" "-Wextra" "-Wpedantic" )
+set( thermr_Clang_Windows_DEBUG_flags "-O0" "-g" "-gdwarf-3" )
+set( thermr_Clang_Windows_RELEASE_flags "-O3" "-DNDEBUG" )
+set( thermr_Clang_Windows_strict_flags "-Werror" )
+set( thermr_Clang_Windows_coverage_flags "--coverage" )
+set( thermr_Clang_Windows_subproject_flags  )
+set( thermr_Clang_Windows_base_project_flags  )
+set( thermr_Clang_Windows_profile_generate_flags "-fprofile-generate='${CMAKE_BINARY_DIR}/profiling'" )
+set( thermr_Clang_Windows_link_time_optimization_flags "-flto" )
+set( thermr_Clang_Windows_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
+set( thermr_Clang_Windows_nonportable_optimization_flags "-march=native" )
+set( thermr_Clang_Windows_static_flags "-static" )
 
 if ( static_thermr )
     set( thermr_library_linkage STATIC )
@@ -175,8 +175,48 @@ if( NOT TARGET eigen-adapter )
     add_subdirectory( ${ROOT_DIRECTORY}/subprojects/eigen-adapter )
 endif()
 
+if( NOT TARGET hana-adapter )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/hana-adapter )
+endif()
+
 if( NOT TARGET catch-adapter )
     add_subdirectory( ${ROOT_DIRECTORY}/subprojects/catch-adapter )
+endif()
+
+if( NOT TARGET disco )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/disco )
+endif()
+
+if( NOT TARGET hopscotch-map-adapter )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/hopscotch-map-adapter )
+endif()
+
+if( NOT TARGET fmt-adapter )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/fmt-adapter )
+endif()
+
+if( NOT TARGET spdlog-adapter )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/spdlog-adapter )
+endif()
+
+if( NOT TARGET Log )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/Log )
+endif()
+
+if( NOT TARGET header-utilities )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/header-utilities )
+endif()
+
+if( NOT TARGET range-v3-adapter )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/range-v3-adapter )
+endif()
+
+if( NOT TARGET variant-adapter )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/variant-adapter )
+endif()
+
+if( NOT TARGET ENDFtk )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/ENDFtk )
 endif()
 
 
@@ -228,18 +268,19 @@ add_library( thermr ${thermr_library_linkage}
              "${CMAKE_CURRENT_SOURCE_DIR}/src/general_util/sigfig.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sig.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sigu.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sigl.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sigl_util/beginningLoop.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sigu_util/begin_sigu.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sigu_util/do150.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sig_util/terpq.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/sigl.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/380.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/410.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/310.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/313.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/360.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/313.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/sigl_util/beginningLoop.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/sigu.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/sigu_util/begin_sigu.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/sigu_util/do150.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/thermr.cpp" )
 
 target_include_directories( thermr PUBLIC src/ )
@@ -265,7 +306,7 @@ ${CXX_appended_flags} ${thermr_appended_flags} )
 
 target_link_libraries( thermr PUBLIC "$<$<AND:$<CONFIG:RELEASE>,$<BOOL:${link_time_optimization}>>:${${PREFIX}_RELEASE_flags};${${PREFIX}_link_time_optimization_flags}$<$<BOOL:${profile_generate}>:${${PREFIX}_profile_generate_flags};>$<$<BOOL:${profile_use}>:${${PREFIX}_profile_use_flags};>$<$<BOOL:${nonportable_optimization}>:${${PREFIX}_nonportable_optimization_flags};>>$<$<CONFIG:DEBUG>:$<$<BOOL:${coverage}>:${${PREFIX}_coverage_flags};>>$<$<BOOL:CXX_appended_flags>:${CXX_appended_flags};>$<$<BOOL:thermr_appended_flags>:${thermr_appended_flags};>" )
 
-target_link_libraries( thermr PUBLIC eigen-adapter PUBLIC catch-adapter )
+target_link_libraries( thermr PUBLIC eigen-adapter PUBLIC ENDFtk PUBLIC catch-adapter )
 
 if( NOT is_subproject )
     enable_testing() 
@@ -273,9 +314,10 @@ if( NOT is_subproject )
         add_subdirectory( src/calcem/test )
         add_subdirectory( src/calcem/calcem_util/test )
         add_subdirectory( src/calcem/calcem_util/e_ep_mu_util/test )
+        add_subdirectory( src/calcem/calcem_util/e_ep_mu_util/sigl_util/test )
+        add_subdirectory( src/calcem/calcem_util/e_mu_ep_util/test )
+        add_subdirectory( src/calcem/calcem_util/e_mu_ep_util/sigu_util/test )
         add_subdirectory( src/calcem/calcem_util/sig_util/test )
-        add_subdirectory( src/calcem/calcem_util/sigl_util/test )
-        add_subdirectory( src/calcem/calcem_util/sigu_util/test )
         add_subdirectory( src/coh/test )
         add_subdirectory( src/coh/coh_util/test )
         add_subdirectory( src/coh/coh_util/readWrite_util/test )
@@ -285,6 +327,7 @@ if( NOT is_subproject )
         add_subdirectory( src/iel/iel_util/test )
         add_subdirectory( src/temp_eff/test )
         add_subdirectory( src/temp_eff/temp_eff_util/test )
+        add_subdirectory( src/test )
     endif() 
 endif()
 

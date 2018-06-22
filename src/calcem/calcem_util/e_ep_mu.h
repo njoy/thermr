@@ -1,7 +1,7 @@
 #include "iel/iel_util/terp1.h"
 #include "coh/coh_util/sigcoh_util/legndr.h"
-#include "calcem/calcem_util/sigl.h"
 #include "general_util/sigfig.h"
+#include "calcem/calcem_util/e_ep_mu_util/sigl.h"
 #include "calcem/calcem_util/e_ep_mu_util/310.h"
 #include "calcem/calcem_util/e_ep_mu_util/313.h"
 #include "calcem/calcem_util/e_ep_mu_util/360.h"
@@ -48,6 +48,9 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
   //int mth, mfh;
   // save nwtab,sabmin,nl,nlt,nlp,nlp1,nl1,nnl,jmax,nne
   tevz = therm;
+  
+  // to get rid of uninitialized error
+  nl1 = 0; 
 
 
   // compute kernel and write in special mf6 energy-angle format
@@ -287,6 +290,9 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
       } // passedTest (going back to 330)
     } // moreBeta (311)
   } //  loopE (310)
+
+  // this is just a dumb way to get rid of the errors for right now
+  loc = loc + nw;
 
 }
       //std::cout << std::setprecision(15) << std::setw(25) << yt[0] << std::setw(25) << yt[1] << std::setw(25) << yt[2] << std::endl;

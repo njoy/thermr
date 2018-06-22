@@ -10,3 +10,6 @@
 [submodule "dependencies/eigen-adapter"]
 	path = dependencies/eigen-adapter
 	url = https://github.com/njoy/eigen-adapter
+[submodule "dependencies/ENDFtk"]
+	path = dependencies/ENDFtk
+	url = https://github.com/njoy/ENDFtk

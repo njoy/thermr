@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "calcem/calcem_util/sigu_util/begin_sigu.h"
+#include "calcem/calcem_util/e_mu_ep_util/sigu_util/begin_sigu.h"
 
 
 TEST_CASE( "begin sigu (113,116)" ){

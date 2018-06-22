@@ -1,6 +1,7 @@
 #include "coh/coh_util/sigcoh_util/terp.h"
 #include "iel/iel_util/terpa.h"
 #include <cmath>
+#include "ENDFtk.hpp"
 
 auto iel( int mat, int itemp, int iold, int inew, int ne, int nex, 
     std::vector<double>& tempr, std::vector<double>& fl, int za, 
@@ -92,26 +93,72 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
    //allocate(xie(nne))
    std::vector<double> xie( nne );
 
+   try {
+     
+   } catch (std::exception) {
+     std::cout << "oh well" << std::endl;
+   }
    // write head and tab2 records for mf6
    // in lanl format
+ 
+   std::vector< njoy::ENDFtk::section::Type<6>::ReactionProduct > products {
+   njoy::ENDFtk::section::Type<6>::ReactionProduct(
+     // multiplicity
+     // ZAP     AWP    LIP  LAW  NP   Interpolants
+     { 1001., 0.9986234, 0, 1, { 4 }, { 2 },
+       // Energies Vector
+       { 1e-5, 1.1e+7, 1.147e+7, 2e+7 },
+         // Multiplicities Vector
+         { 0., 8.45368e-11, 6.622950e-8, 2.149790e-1 } },
+
+          // distribution
+          { njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle(
+	    // LAW LEP  NE    NR
+            1, 2, { 2 }, { 1 },
+            { njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle::LegendreCoefficients(
+	    //  1st Energy ND LANG NEP    (note that NW=12 b/c length of next vec)
+                      1e-5, 0, 1, 4,
+	    // These are ordered Energy, Coeff1, Coeff2, Energy, Coeff1, Coeff2 so 
+	    // that E1=1.0, E2=4.0, etc.
+                      { 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12. } ),
+             njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle::LegendreCoefficients(
+             // 2nd Energy  ND LANG NEP   (NW=6  b/c length of vec)
+             2e+7, 0, 1, 2, { 1., 2., 3., 4., 5., 6.} ) } ) } ) };
+
+
+    int mt = 40000000;
+    int jp = 0;
+    int lct = 6;
+    int nk = 0;
+
+    njoy::ENDFtk::section::Type< 6 > chunk( mt, za, awr, jp, lct, std::move( products ) );
+    std::cout << chunk.ZA() << std::endl;
+    std::cout << chunk.AWR() << std::endl;
+    std::cout << chunk.JP() << std::endl;
+    std::cout << chunk.LCT() << std::endl;
+    std::cout << chunk.NK() << std::endl;
+    std::cout << chunk.MT() << std::endl;
+  
+
+
    ltt=6;
    math=matdp;
    mfh=6;
    mth=mtref+1;
-   scr[1]=za;
-   scr[2]=awr;
-   scr[3]=0;
-   scr[4]=ltt; // temporary flag for incoherent inelastic data
-   scr[5]=0;
-   scr[6]=0;
+   scr[1]=za;  // ZA
+   scr[2]=awr; // AWR
+   scr[3]=0;   // JP
+   scr[4]=ltt; // LCT       // temporary flag for incoherent inelastic data
+   scr[5]=0;   // NK
+   scr[6]=0;   // Zero
    nw=6;
    //call contio(0,0,nscr,scr,nb,nw)
-   scr[1]=1;
-   scr[2]=1;
-   scr[3]=-2; // special flag for incoherent inelastic data
-   scr[4]=1; // law=1 for incoherent inelastic data
-   scr[5]=1;
-   scr[6]=2;
+   scr[1]=1;  // ZAP
+   scr[2]=1;  // AWP
+   scr[3]=-2; // LIP       // special flag for incoherent inelastic data
+   scr[4]=1;  // LAW       // law=1 for incoherent inelastic data
+   scr[5]=1;  // NR
+   scr[6]=2;  // NP / E_int
    scr[7]=2;
    scr[8]=2;
    scr[9]=1.e-5;
@@ -123,6 +170,8 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
    scr[1]=temp;
    scr[2]=0;
    scr[3]=3; // LANG=3 is a special flag for equally probable cosines
+             // yeah buddy that's fine and all, but like that's not mentioned 
+	     // at all in the ENDF manual so..
    scr[5]=1;
    scr[6]=nne;
    scr[7]=nne;
@@ -186,6 +235,8 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
    //call asend(0,nscr)
    auto ncdse=5+ne*((n+11)/6);
    return;
+   std::cout << idis+iet+nw+nup1 << std::endl;
+   std::cout << c1+c2+tnxt+math+mth+mfh << std::endl;
 
 }
 

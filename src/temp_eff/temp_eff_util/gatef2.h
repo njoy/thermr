@@ -26,7 +26,7 @@ inline auto gatef2( const std::vector<double>& temp,
 
   for ( size_t i = 0; i < temp.size(); ++i ){
     if (eftmp2[i] == 0) {
-      for ( auto j = 0; j < tabl2.size(); ++j ){
+      for ( size_t j = 0; j < tabl2.size(); ++j ){
         if (tabl1[j] == mat and std::abs(tabl2[j] - temp[i]) <= 5 ) {
           eftmp2[i] = tabl3[j];
         } // end if 

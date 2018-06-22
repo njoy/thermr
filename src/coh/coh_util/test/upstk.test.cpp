@@ -8,7 +8,7 @@ void checkStk( const Eigen::MatrixXd& stk,
   
   for ( int i = 0; i < stk.cols(); ++i ){
     for ( int j = 0; j < stk.rows(); ++j ){
-      if ( stk.rows()*i < stkVals.size() ){
+      if ( (unsigned) (stk.rows()*i) < stkVals.size() ){
         REQUIRE( stk(j,i) == Approx(stkVals[stk.rows()*i+j]).epsilon(1e-6) );
       } 
       else {

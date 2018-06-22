@@ -225,6 +225,7 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
    return
    end subroutine coh
    */
+   std::cout << nlt1 << std::endl;
 }
 
 

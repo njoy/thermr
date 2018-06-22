@@ -63,7 +63,7 @@ inline auto gateff( std::vector<double>& temp, std::vector<double>& eftemp,
 
   for ( size_t i = 0; i < temp.size(); ++i ){
     if (eftemp[i] == 0) {
-      for ( size_t j = 0; j < ntabl; ++j ){
+      for ( int j = 0; j < ntabl; ++j ){
         if (tabl1[j] == mat and std::abs( tabl2[j] - temp[i] ) <= 5 ) {
           double coeffVal = c[mat][0]*std::pow(temp[i],3) + 
             c[mat][1]*std::pow(temp[i],2) + 
