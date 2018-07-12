@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "coh/coh_util/upstk.h"
 
+/*
 void checkStk( const Eigen::MatrixXd& stk, 
   const std::vector<double>& stkVals ){
   // stkVals are only the nonzero values in the desired output. In the 
@@ -131,5 +132,5 @@ TEST_CASE( "uptsk" ){
 
 } // TEST CASE
 
-
+*/
 

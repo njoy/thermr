@@ -19,7 +19,8 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
   int& nnl, const int& nl, const int& jmax, const int& nne, int iprint ){
 
   int itemp,iold,inew,ne,nex;
-  double temp;
+  // CHANGE THIS SHOULD NOT BE EQUAL TO ZERO
+  double temp=0.0;
   int nr,np,nwtab,i,nl1,ltt,loc,l,nb,nw,lt,it,ie,jbeta=0,j=0,iskip,il,k,jnz,ll,jj,ii,nll;
   double uu,uum,test2,xlast,ulast,xs,b,enow,ep,tev,tevz,ylast,u,xl,yl;
   const int ngrid=118, nlmax=65, nemax=5000, mumax=300, imax=20;

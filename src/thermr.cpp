@@ -27,9 +27,11 @@ int thermr( ){
   section::Type< 6 >::ContinuumEnergyAngle::LegendreCoefficients;
   
   //std::string chunk();
-  std::string invalidLAW();
-  std::string validSEND();
-  std::string invalidSEND();
+  /*
+  std::string invalidLAW;
+  std::string validSEND;
+  std::string invalidSEND;
+  */
 
     int zaid = 92235;
     double awr = 2.330248e+2;

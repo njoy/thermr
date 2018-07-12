@@ -13,3 +13,9 @@
 [submodule "dependencies/ENDFtk"]
 	path = dependencies/ENDFtk
 	url = https://github.com/njoy/ENDFtk
+[submodule "dependencies/boost"]
+	path = dependencies/boost
+	url = https://github.com/njoy/boost
+[submodule "dependencies/range-v3-adapter"]
+	path = dependencies/range-v3-adapter
+	url = https://github.com/njoy/range-v3-adapter

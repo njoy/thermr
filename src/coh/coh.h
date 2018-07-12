@@ -2,10 +2,10 @@
 #include "coh/coh_util/sigcoh.h"
 #include "coh/coh_util/readWrite_util/finda.h"
 #include "coh/coh_util/readWrite_util/loada.h"
-#include <Eigen/Dense>
+//#include <Eigen/Dense>
 
-auto coh( int lat, std::fstream& inew, int ne, int nex, double temp, 
-  std::fstream& iold, double emax, int natom, std::vector<double>& fl,
+auto coh( int lat, /*std::fstream& inew,*/ int ne, int nex, double temp, 
+  /*std::fstream& iold,*/ double emax, int natom, std::vector<double>& fl,
   std::vector<double>& bufo, std::vector<double>& bufn ){
  /*-------------------------------------------------------------------
   * Compute the coherent scattering cross sections for a crystalline
@@ -46,7 +46,8 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
 
    std::vector<std::vector<double>> stk (nx, std::vector<double> (imax) );
 
-   Eigen::MatrixXd stkEigen(nx, imax);
+   /*
+   //Eigen::MatrixXd stkEigen(nx, imax);
 
 
    // determine the energy grid adaptively and
@@ -132,6 +133,7 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
       }
     }
   }
+  */
 
   // go to 140
  /*-------------------------------------------------------------------
@@ -226,6 +228,9 @@ auto coh( int lat, std::fstream& inew, int ne, int nex, double temp,
    end subroutine coh
    */
    std::cout << nlt1 << std::endl;
+   lat += temp + emax + natom + fl[0] + bufo[0] + bufn[0];
+   //std::cout << iold << inew << std::endl;
+
 }
 
 

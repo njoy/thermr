@@ -81,6 +81,7 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
    } 
    else {
      std::cout << "call error('iel','unknown material identifier.',' ')" << std::endl;
+     throw(std::exception());
     }
    c1=sb/(2*natom);
 

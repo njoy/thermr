@@ -1,9 +1,8 @@
-
-#include <Eigen/Dense>
+//#include <Eigen/Dense>
 #include <iostream>
-
-auto upstk( const double& e, const std::vector<double>& s, 
-    Eigen::MatrixXd& stk, int nl, int& i ){
+template <typename F, typename A, typename R>
+auto upstk( const F& e, const A& s, 
+    R& stk, int nl, int& i ){
  /*-------------------------------------------------------------------
   * Update the linearization stack with energy e and cross
   * sections s.  Here, i is the current index to the stack in stk,
