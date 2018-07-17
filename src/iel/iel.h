@@ -4,7 +4,7 @@
 #include "ENDFtk.hpp"
 
 auto iel( int mat, int itemp, int iold, int inew, int ne, int nex, 
-    std::vector<double>& tempr, std::vector<double>& fl, int za, 
+    std::vector<double>& tempr, std::vector<double>& fl, double za, 
     std::vector<double>& scr, double awr, double emax, int natom, int nbin,
     std::vector<double>& esi 
     ){
@@ -60,7 +60,8 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
       if (np == 1) {
          tt1=fl[7+2*nr-1];
          if (std::abs(temp-tt1) > temp/10){
-           std::cout << "call error('iel',&'bad temperature for debye-waller factor',' ') " << std::endl;
+           //call error('iel',&'bad temperature for debye-waller factor',' ')
+           throw std::exception();
          }
          dwa=fl[8+2*nr];                            // Debye-Waller Coefficient
       }
@@ -68,7 +69,8 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
          tt1=fl[7+2*nr-1];
          ttn=fl[5+2*nr+2*np-1];
          if (temp < dn*tt1 or temp > up*ttn) { 
-           std::cout << "call error('iel',&'bad temperature for debye-waller factor',' ')" << std::endl;
+           //call error('iel',&'bad temperature for debye-waller factor',' ')
+           throw std::exception();
          }
          if (tt1 > temp) fl[7+2*nr-1]=temp;
          if (ttn < temp) fl[5+2*nr+2*np]=temp;
@@ -80,7 +82,7 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
       }
    } 
    else {
-     std::cout << "call error('iel','unknown material identifier.',' ')" << std::endl;
+     //call error('iel','unknown material identifier.',' ')
      throw(std::exception());
     }
    c1=sb/(2*natom);
@@ -94,11 +96,6 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
    //allocate(xie(nne))
    std::vector<double> xie( nne );
 
-   try {
-     
-   } catch (std::exception) {
-     std::cout << "oh well" << std::endl;
-   }
    // write head and tab2 records for mf6
    // in lanl format
  

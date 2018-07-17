@@ -2,6 +2,7 @@
 #define THERMR_TERPA_HH
 #include "iel/iel_util/terp1.h"
 #include <iostream>
+#include <range/v3/all.hpp>
 
 auto terpa(double y, double x, std::vector<double> a, int ip, int ir){
  /*--------------------------------------------------------------------
@@ -13,6 +14,7 @@ auto terpa(double y, double x, std::vector<double> a, int ip, int ir){
   * before first call to routine.
   *--------------------------------------------------------------------
   */
+
   int jr, jp, intVar, it, idis;
   double shade=1.00001, xbig = 1.0e12, xnext;
   std::tuple<double,int> out;
@@ -26,11 +28,11 @@ auto terpa(double y, double x, std::vector<double> a, int ip, int ir){
 
   while (true) {
     // locate interpolation interval and law for x
-    std::cout << "110  " << ip << "    " << jp << "    " << a[jp-1] << std::endl;
+    if (jp > int(a.size())){ throw(std::exception());} 
     if (x < a[jp-1]){
-      std::cout << "120" << std::endl;
+     // std::cout << "120" << std::endl;
       if (x > a[jp-3]){
-        std::cout << "130" << std::endl;
+      //  std::cout << "130" << std::endl;
         // interpolate for y in this interval
         intVar=round(a[jr]);
         y = terp1(a[jp-3],a[jp-2],a[jp-1],a[jp],x,intVar);
@@ -39,7 +41,7 @@ auto terpa(double y, double x, std::vector<double> a, int ip, int ir){
         return std::tuple<double,int> { a[jp-1], idis };
       }
       if (x == a[jp-3]) {
-        std::cout << "140" << std::endl;
+        //std::cout << "140" << std::endl;
         y = a[jp-2];
         intVar = round(a[jr]);
         xnext = a[jp-1];
@@ -48,7 +50,7 @@ auto terpa(double y, double x, std::vector<double> a, int ip, int ir){
       }
       if (ip == 2) {
         // special branch for x below first point
-        std::cout << "170" << std::endl;
+       // std::cout << "170" << std::endl;
         y = 0;
         return std::tuple<double,int> { a[jp-3], 1 };
       }
@@ -66,10 +68,10 @@ auto terpa(double y, double x, std::vector<double> a, int ip, int ir){
     }
 
     if (ip ==  round(a[5]) ) {
-      std::cout << "150" << std::endl;
+      //std::cout << "150" << std::endl;
       // special branch for last point and above
       if (x < shade*a[jp-1]) {
-         std::cout << "160" << std::endl;
+         //std::cout << "160" << std::endl;
          y = a[jp];
          xnext = ( y > 0 ) ? shade * shade * a[jp-1] : xbig;
          return std::tuple<double,int> { xnext, idis };

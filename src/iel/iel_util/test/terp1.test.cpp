@@ -1,4 +1,3 @@
-
 #include "catch.hpp" 
 #include "iel/iel_util/terp1.h"
 
@@ -11,6 +10,7 @@ void terpa1_equal( double a, double b ){
 }
 
 TEST_CASE( "terp1" ){
+  REQUIRE( true );
   double y;
   GIVEN( "rule 1 --> y is constant" ){
     double x1 = 2.0, y1 = 4.0, x2 = 14.0, y2 = 9.0, x = 3.0;
