@@ -56,7 +56,7 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
 
   // compute kernel and write in special mf6 energy-angle format
   // 300 continue
-  std::cout << "300" << std::endl;
+  //std::cout << "300" << std::endl;
   // if (iform == 1) go to 510 
   // ^^ Take care of this in the upstairs function
   // This will go to the other branch ( the E-mu-E' branch )
@@ -110,7 +110,7 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
 
   // loop over given incident energy grid.
   // 305 continue
-  std::cout << 305 << std::endl;
+  //std::cout << 305 << std::endl;
   ie=0;
 
   // Loop over incident energy (green line in my drawing)
@@ -130,7 +130,7 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
     while (moreBeta) {
       // set up next panel
       // 311 continue
-      std::cout << 311 << std::endl;
+      //std::cout << 311 << std::endl;
       x[2-1]=x[1-1];
 
       for (int il = 0; il < nl; ++il ){
@@ -141,7 +141,7 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
       // do 313
       do313( jbeta, lat, ep, enow, beta, tev, tevz, x, iskip);
 
-      std::cout << 316 << std::endl;
+      //std::cout << 316 << std::endl;
       ep = sigfig(ep,8,0);
       x[1-1]=ep;
 
@@ -161,7 +161,7 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
       while (not passedTest){
 
         //std::cout << 330 << std::endl;
-        std::cout << std::setprecision(15) << 330 << "   " << i << "   " << j << "   " << jbeta << "    " << numIters <<  "     " << scr[4] << std::endl;
+        //std::cout << std::setprecision(15) << 330 << "   " << i << "   " << j << "   " << jbeta << "    " << numIters <<  "     " << scr[4] << std::endl;
 
         if ( i != imax ){
           if ( iskip != 1 ){
@@ -190,7 +190,7 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
                 } 
                 if (goto330){ continue; }
                 if (not goto330){
-                  std::cout << 350 << std::endl;  // 350 continue
+                  //std::cout << 350 << std::endl;  // 350 continue
                   if (std::abs(uu-uum) > 2*tol*std::abs(uu)+uumin){
                     // point passes.  save top point in stack and continue.
                     do410( i, x, xm, nl, y, yt );
@@ -222,10 +222,10 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
 
 
         // test fails.  add point to stack and continue.
-        std::cout << 430 << "         " << ie << std::endl;
+        //std::cout << 430 << "         " << ie << std::endl;
         numIters += 1;
         //if (numIters > 1 )return;
-        std::cout << "-----------------------------------------------" << std::endl;
+        //std::cout << "-----------------------------------------------" << std::endl;
         ++j;
         uu = 0;
         u2 = 0;
@@ -284,7 +284,7 @@ auto e_ep_mu( double& teff, double& teff2, std::vector<double>& scr, double& za,
           moreBeta = false;
         }
         else {
-          std::cout << "go to 610" << std::endl;
+          //std::cout << "go to 610" << std::endl;
           return; 
         }
 

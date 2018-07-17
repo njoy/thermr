@@ -239,7 +239,7 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
     for ( size_t i = 0; i < xsi.size(); ++i ){
       REQUIRE( correctXsi[i] == Approx(xsi[i]).epsilon(1e-6) );
     }
-    std::cout << std::setprecision(15) << xsi[0] << "     " << correctXsi[0] << std::endl;
+    //std::cout << std::setprecision(15) << xsi[0] << "     " << correctXsi[0] << std::endl;
 
 
 

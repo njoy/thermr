@@ -7,7 +7,12 @@
 auto e_mu_ep( int matdp, int mtref, double bk, double t, double& teff, 
   double& teff2, std::vector<double>& scr, double za, double awr, int ncds,
   int nw, int nne, double cliq, int iinc, double emax, std::vector<double> egrid,
-  double temp, double breakVal, std::vector<double>& esi ){
+  double temp, double breakVal, std::vector<double>& esi, double tevz, int lat,
+  int lasym, std::vector<double>& yy, std::vector<double>& yu, double sb,
+  double sb2, std::vector<double>& x, std::vector<double> alpha, 
+  std::vector<double> beta, const std::vector<std::vector<double>>&sab, 
+  double tolin, double az, std::vector<double>& uj, std::vector<double>& sj,
+  double tol, double tolmin, double mumax, int imax ){
 
    // compute kernel and write in mf6/law7 angle-energy format
    // 510 continue
@@ -58,9 +63,15 @@ auto e_mu_ep( int matdp, int mtref, double bk, double t, double& teff,
 
    // loop over given incident energy grid.
    // the first pass computes the cross section and mu grid
-  //515 continue
+  
+   //515 continue
    int ie=0;
-  //520 continue
+
+
+
+   //520 continue
+   while (true){
+   std::cout << 520 << std::endl;
    ie=ie+1;
    double enow=egrid[ie-1];
    if (ie > 1 and temp > breakVal) enow=enow*temp/breakVal;
@@ -69,43 +80,56 @@ auto e_mu_ep( int matdp, int mtref, double bk, double t, double& teff,
    int j=0;
    double sum=0;
 
-   /*
    // adaptive reconstruction of angular cross section
-   u=-1
-   x[2-1]=u
-   call sigu(enow,u,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-   yy[2-1]=yu[1-1]
-   xl=x[2-1]
-   yl=yy[2-1]
-   u=1
-   x[1-1]=u
-   call sigu(enow,u,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-   yy[1-1]=yu[1-1]
-   i=2
+   int u=-1;
+   x[2-1]=u;
+   //call sigu(enow,u,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
+   sigu( int(yu.size()), enow, u, tev, alpha, beta, sab, yu, tolin, az, tevz, iinc, lat, 
+       lasym, cliq, sb, sb2, teff );
+   yy[2-1]=yu[1-1];
+   double xl=x[2-1];
+   double yl=yy[2-1];
+   u=1;
+   x[1-1]=u;
+   //call sigu(enow,u,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
+   sigu( int(yu.size()), enow, u, tev, alpha, beta, sab, yu, tolin, az, tevz, iinc, lat, 
+       lasym, cliq, sb, sb2, teff );
+   yy[1-1]=yu[1-1];
+   int i=2;
+
 
    // adaptive reconstruction
- 530 continue
-   if (i == imax) go to 560
-   xm=half*(x(i-1)+x(i))
-   xm=sigfig(xm,7,0)
-   if (xm <= x(i) or xm >= x(i-1)) go to 560
-   call sigu(enow,xm,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-   if (x(i-1)-x(i) > .25) go to 575
-   ym=yy(i)+(xm-x(i))*(yy(i-1)-yy(i))/(x(i-1)-x(i))
-   if (abs(yu[1-1]-ym) > 2*tol*ym+tolmin) go to 575
-   ! point passes.  save top point in stack and continue.
-  560 continue
-   j=j+1
-   if (j > mumax-1) call error('calcem','too many angles','see mumax')
-   uj(j)=x(i)
-   sj(j)=yy(i)
-   if (j > 1) then
-      sum=sum+half*(yy(i)+yl)*(x(i)-xl)
-      xl=x(i)
-      yl=yy(i)
-   endif
-   i=i-1
-   if (i >= 2) go to 530
+   while (true){ 
+     // 530 continue
+     std::cout << 530 << std::endl;
+     if (i == imax) std::cout << "go to 560" << std::endl;
+     double xm=0.5*(x[i-1-1]+x[i-1]);
+     xm=sigfig(xm,7,0);
+     if (xm <= x[i-1] or xm >= x[i-1-1]) std::cout << "go to 560" << std::endl;
+     //call sigu(enow,xm,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
+     sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tolin, az, tevz, iinc, lat, 
+       lasym, cliq, sb, sb2, teff );
+     if (x[i-1-1]-x[i-1] > 0.25) std::cout << "go to 575" << std::endl;
+     double ym=yy[i-1]+(xm-x[i-1])*(yy[i-1-1]-yy[i-1])/(x[i-1-1]-x[i-1]);
+     if (abs(yu[1-1]-ym) > 2*tol*ym+tolmin) std::cout << "go to 575" << std::endl;
+
+     // point passes.  save top point in stack and continue.
+     // 560 continue
+     std::cout << 560 << std::endl;
+     j=j+1;
+     if (j > mumax-1) std::cout << "error('calcem','too many angles','see mumax')" << std::endl;
+     uj[j-1]=x[i-1];
+     sj[j-1]=yy[i-1];
+     if (j > 1) {
+        sum=sum+0.5*(yy[i-1]+yl)*(x[i-1]-xl);
+        xl=x[i-1];
+        yl=yy[i-1];
+     }
+     i=i-1;
+     if (i >= 2) std::cout << "go to 530" << std::endl;
+     if (i <  2) break;
+   } 
+   /*
    go to 580
    ! test fails.  add point to stack and continue.
   575 continue
@@ -122,12 +146,12 @@ auto e_mu_ep( int matdp, int mtref, double bk, double t, double& teff,
    sj(j)=yy[1-1]
    nmu=j
    ubar[ie-1]=0
-   sum=sum+half*(yy[1-1]+yl)*(x[1-1]-xl)
+   sum=sum+0.5*(yy[1-1]+yl)*(x[1-1]-xl)
    xsi[ie-1]=sum/2
    do i=2,nmu
-      ubar[ie-1]=ubar[ie-1]+half*(uj(i)-uj(i-1))*(sj(i)+sj(i-1))*(uj(i)+uj(i-1))
+      ubar[ie-1]=ubar[ie-1]+0.5*(uj(i)-uj(i-1))*(sj(i)+sj(i-1))*(uj(i)+uj(i-1))
    enddo
-   ubar[ie-1]=half*ubar[ie-1]/sum
+   ubar[ie-1]=0.5*ubar[ie-1]/sum
    //if (iprint == 2) then
    //   write(nsyso,'(/i5,'' enow '',1p,e13.6,''   xsec '',e13.6,&
    //     &''   mubar  '',e13.6)') ie,enow,xsi[ie-1],ubar[ie-1]
@@ -211,5 +235,9 @@ auto e_mu_ep( int matdp, int mtref, double bk, double t, double& teff,
 
 
      */
-
+    if ( ie >= nne ){ 
+      std::cout << "go to 610" << std::endl;
+      return; 
+    }
+  } // while we want to do 520 
 } 
