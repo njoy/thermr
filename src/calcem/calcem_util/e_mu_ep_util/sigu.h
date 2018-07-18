@@ -23,6 +23,7 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
    // constant factors
    tol=tolin;
    for ( int i = 0; i < 2*nemax; ++i ){
+     if ( i >= int(s.size()) ) { break; }
      s[i] = 0;
    }
 

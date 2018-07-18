@@ -6,7 +6,7 @@
 template <typename A, typename F>
 auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
   // 575 continue
-  std::cout << 575 << "   " << i << std::endl;
+  std::cout << 575 << std::endl;
   i=i+1;
   x[i-1]=x[i-1-1];
   x[i-1-1]=xm;
@@ -16,6 +16,49 @@ auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
 }
 
 
+auto adaptiveReconstruction( double& teff, double cliq, int iinc, double tevz, int lat, int lasym, std::vector<double>& yy, std::vector<double>& yu, double sb, double sb2, std::vector<double>& x, std::vector<double> alpha, std::vector<double> beta, const std::vector<std::vector<double>>& sab, double az, std::vector<double>& uj, std::vector<double>& sj, double tol, double tolmin, double mumax, int i, double& xl, double& yl, double& sum, int imax, double enow, double tev, int j  ){
+
+    // adaptive reconstruction
+    while (true){ 
+      // 530 continue
+      std::cout << 530 << std::endl;
+      if (i == imax) std::cout << "go to 560" << std::endl;
+      double xm=0.5*(x[i-1-1]+x[i-1]);
+      xm=sigfig(xm,7,0);
+      if (xm <= x[i-1] or xm >= x[i-1-1]) std::cout << "go to 560" << std::endl;
+      //call sigu(enow,xm,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
+      sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
+        lasym, cliq, sb, sb2, teff );
+      if (x[i-1-1]-x[i-1] > 0.25){ 
+        do575(i, x, yy, yu, xm );
+        continue;
+      }
+      double ym=yy[i-1]+(xm-x[i-1])*(yy[i-1-1]-yy[i-1])/(x[i-1-1]-x[i-1]);
+      if (abs(yu[1-1]-ym) > 2*tol*ym+tolmin){ 
+        do575(i, x, yy, yu, xm );
+        continue;
+      }
+ 
+      // point passes.  save top point in stack and continue.
+      // 560 continue
+      std::cout << 560 << std::endl;
+      j=j+1;
+      if (j > mumax-1) std::cout << "error('calcem','too many angles','see mumax')" << std::endl;
+      uj[j-1]=x[i-1];
+      sj[j-1]=yy[i-1];
+      if (j > 1) {
+         sum=sum+0.5*(yy[i-1]+yl)*(x[i-1]-xl);
+         xl=x[i-1];
+         yl=yy[i-1];
+      }
+      i=i-1;
+      if (i >= 2) {
+        continue; 
+      }
+      if (i <  2) break;
+    } 
+
+}
 
 
 auto e_mu_ep( int matdp, int mtref, double t, double& teff, 
@@ -99,63 +142,29 @@ auto e_mu_ep( int matdp, int mtref, double t, double& teff,
     int u=-1;
     x[2-1]=u;
     //call sigu(enow,u,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-    std::cout << "HERE1" << std::endl; 
     sigu( int(yu.size()), enow, u, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
         lasym, cliq, sb, sb2, teff );
-    return;
-    std::cout << "HERE2" << std::endl; 
     yy[2-1]=yu[1-1];
     double xl=x[2-1];
     double yl=yy[2-1];
     u=1;
     x[1-1]=u;
     //call sigu(enow,u,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-    std::cout << "HERE3" << std::endl; 
     sigu( int(yu.size()), enow, u, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
         lasym, cliq, sb, sb2, teff );
-    std::cout << "HERE4" << std::endl; 
     yy[1-1]=yu[1-1];
     int i=2;
 
 
-    // adaptive reconstruction
-    while (true){ 
-      // 530 continue
-      std::cout << 530 << std::endl;
-      if (i == imax) std::cout << "go to 560" << std::endl;
-      double xm=0.5*(x[i-1-1]+x[i-1]);
-      xm=sigfig(xm,7,0);
-      if (xm <= x[i-1] or xm >= x[i-1-1]) std::cout << "go to 560" << std::endl;
-      //call sigu(enow,xm,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-      sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
-        lasym, cliq, sb, sb2, teff );
-      if (x[i-1-1]-x[i-1] > 0.25){ 
-        do575(i, x, yy, yu, xm );
-        continue;
-      }
-      double ym=yy[i-1]+(xm-x[i-1])*(yy[i-1-1]-yy[i-1])/(x[i-1-1]-x[i-1]);
-      if (abs(yu[1-1]-ym) > 2*tol*ym+tolmin){ 
-        do575(i, x, yy, yu, xm );
-        continue;
-      }
- 
-      // point passes.  save top point in stack and continue.
-      // 560 continue
-      std::cout << 560 << std::endl;
-      return;
-      j=j+1;
-      if (j > mumax-1) std::cout << "error('calcem','too many angles','see mumax')" << std::endl;
-      uj[j-1]=x[i-1];
-      sj[j-1]=yy[i-1];
-      if (j > 1) {
-         sum=sum+0.5*(yy[i-1]+yl)*(x[i-1]-xl);
-         xl=x[i-1];
-         yl=yy[i-1];
-      }
-      i=i-1;
-      if (i >= 2) std::cout << "go to 530" << std::endl;
-      if (i <  2) break;
-    } 
+
+    adaptiveReconstruction( teff, cliq, iinc, tevz, lat, lasym, yy, yu, sb, sb2, 
+      x, alpha, beta, sab, az, uj, sj, tol, tolmin, mumax, i, xl, yl, sum, imax, 
+      enow, tev, j  );
+
+
+
+    std::cout << 580 << std::endl;
+    return;
     /*
     go to 580
     ! test fails.  add point to stack and continue.

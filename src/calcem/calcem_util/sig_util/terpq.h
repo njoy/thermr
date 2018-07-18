@@ -6,13 +6,13 @@
 
 template <typename F>
 auto terpq( F x1, F x2, F x3, F x, F y1, F y2, F y3 ){
-  std::cout << "in terpq" << std::endl;
   /*-------------------------------------------------------------------
    * Compute y(x) by quadratic interpolation,
    * except use log-lin if x < x1 and lin-lin if x > x3.
    * and use lin-lin if the function takes big steps (corners).
    *-------------------------------------------------------------------
    */
+  //return x1 + x2 + x3 + x + y1 + y2 + y3;
   double b, c, sabflg = -225, step = 2, y;
 
   // If desired value x is below known range (x1,x2,x3), then log-lin 
@@ -44,5 +44,4 @@ auto terpq( F x1, F x2, F x3, F x, F y1, F y2, F y3 ){
 
    if (y < sabflg) { std::cout << "here" << std::endl; y = sabflg; }
 }
-
 
