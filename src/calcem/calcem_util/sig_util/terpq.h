@@ -4,7 +4,9 @@
 //auto terpq( double x1, double y1, double x2, double y2, double x3, double y3,
 //  double x, double y ){
 
-inline auto terpq( double x1, double x2, double x3, double x, double y1, double y2, double y3 ){
+template <typename F>
+auto terpq( F x1, F x2, F x3, F x, F y1, F y2, F y3 ){
+  std::cout << "in terpq" << std::endl;
   /*-------------------------------------------------------------------
    * Compute y(x) by quadratic interpolation,
    * except use log-lin if x < x1 and lin-lin if x > x3.

@@ -18,7 +18,7 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
    int i, j, jbeta, imax=20;
    double sum, xl, yl, xm, ym, test, yt, tol, tolmin = 1.e-6, bmax = 20;
    std::vector<double> x(imax), y(imax);
-   std::cout << std::setprecision(12);
+   //std::cout << std::setprecision(12);
 
    // constant factors
    tol=tolin;
@@ -43,7 +43,7 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
    // set up next panel
    while (true){  
      // 111 continue
-     std::cout << 111 << std::endl;
+     //std::cout << 111 << std::endl;
      x[2-1]=x[1-1]; 
      y[2-1]=y[1-1];
 
@@ -54,8 +54,8 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
      //return;
      i = 2;
 
-     std::cout << std::setprecision(15) << x[0] << "    " << x[1] << "     " << x[2] << std::endl;
-     std::cout << std::setprecision(15) << y[0] << "    " << y[1] << "     " << y[2] << std::endl;
+     //std::cout << std::setprecision(15) << x[0] << "    " << x[1] << "     " << x[2] << std::endl;
+     //std::cout << std::setprecision(15) << y[0] << "    " << y[1] << "     " << y[2] << std::endl;
 
      // compare linear approximation to true function
      // 150 continue
@@ -100,7 +100,7 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
   
        // point passes
        // 160 continue
-       std::cout << 160 << "    " << i << "    " << j << "      " << sum << std::endl;
+       //std::cout << 160 << "    " << i << "    " << j << "      " << sum << std::endl;
        if ( j == 220 )return;
        j=j+1;
        s[2*j+1-1]=x[i-1];
@@ -111,7 +111,7 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
 
        // if (j >= nemax-1) go to 170
        if (j >= nemax-1 or (jbeta > 0 and beta[jbeta-1] > bmax )) {
-         std::cout << j << "    " << nemax-1 << "    " << jbeta << "     " << bmax <<std::endl;
+         //std::cout << j << "    " << nemax-1 << "    " << jbeta << "     " << bmax <<std::endl;
          s[1-1]=sum;
          s[2-1]=j;
          return; 
@@ -144,7 +144,7 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
  
 
     // 170 continue
-    std::cout << 170 << std::endl;
+    //std::cout << 170 << std::endl;
     s[1-1]=sum;
     s[2-1]=j;
     return; 

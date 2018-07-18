@@ -28,6 +28,9 @@ inline auto do155( int ia, int ib, const std::vector<double>& alpha,
    if ( (unsigned) ib+1 == beta.size())  ib -= 1;
    ia -= 1;
    ib -= 1;
+   std::cout << "going into terpq" << std::endl;
+   std::cout << alpha.size() << "    " << ia << std::endl;
+   std::cout << beta.size() << "    " << ib << std::endl;
    double s1 = terpq( alpha[ia],     alpha[ia+1],     alpha[ia+2], a, 
                       sab[ia][ib],   sab[ia+1][ib],   sab[ia+2][ib] );
    double s2 = terpq( alpha[ia],     alpha[ia+1],     alpha[ia+2], a, 
