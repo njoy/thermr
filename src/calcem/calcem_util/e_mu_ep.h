@@ -16,29 +16,33 @@ auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
 }
 
 
-auto adaptiveReconstruction( double& teff, double cliq, int iinc, double tevz, int lat, int lasym, std::vector<double>& yy, std::vector<double>& yu, double sb, double sb2, std::vector<double>& x, std::vector<double> alpha, std::vector<double> beta, const std::vector<std::vector<double>>& sab, double az, std::vector<double>& uj, std::vector<double>& sj, double tol, double tolmin, double mumax, int i, double& xl, double& yl, double& sum, int imax, double enow, double tev, int j  ){
+auto adaptiveReconstruction( const double& teff, const double& cliq, 
+    const int& iinc, double tevz, int lat, int lasym, std::vector<double>& yy, std::vector<double>& yu, double sb, double sb2, std::vector<double>& x, std::vector<double> alpha, std::vector<double> beta, const std::vector<std::vector<double>>& sab, double az, std::vector<double>& uj, std::vector<double>& sj, double tol, double tolmin, double mumax, int i, double& xl, double& yl, double& sum, int imax, double enow, double tev, int j  ){
 
     // adaptive reconstruction
     while (true){ 
       // 530 continue
       std::cout << 530 << std::endl;
-      if (i == imax) std::cout << "go to 560" << std::endl;
-      double xm=0.5*(x[i-1-1]+x[i-1]);
-      xm=sigfig(xm,7,0);
-      if (xm <= x[i-1] or xm >= x[i-1-1]) std::cout << "go to 560" << std::endl;
-      //call sigu(enow,xm,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-      sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
-        lasym, cliq, sb, sb2, teff );
-      if (x[i-1-1]-x[i-1] > 0.25){ 
-        do575(i, x, yy, yu, xm );
-        continue;
-      }
-      double ym=yy[i-1]+(xm-x[i-1])*(yy[i-1-1]-yy[i-1])/(x[i-1-1]-x[i-1]);
-      if (abs(yu[1-1]-ym) > 2*tol*ym+tolmin){ 
-        do575(i, x, yy, yu, xm );
-        continue;
-      }
- 
+      //if (i == imax) std::cout << "go to 560" << std::endl;
+      if (i != imax) {
+        double xm=0.5*(x[i-1-1]+x[i-1]);
+        xm=sigfig(xm,7,0);
+        //if (xm <= x[i-1] or  xm >= x[i-1-1]) std::cout << "go to 560" << std::endl;
+        if (xm >  x[i-1] and xm <  x[i-1-1]) {
+          //call sigu(enow,xm,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
+          sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
+            lasym, cliq, sb, sb2, teff );
+          if (x[i-1-1]-x[i-1] > 0.25){ 
+            do575(i, x, yy, yu, xm );
+            continue;
+          }
+          double ym=yy[i-1]+(xm-x[i-1])*(yy[i-1-1]-yy[i-1])/(x[i-1-1]-x[i-1]);
+          if (abs(yu[1-1]-ym) > 2*tol*ym+tolmin){ 
+            do575(i, x, yy, yu, xm );
+            continue;
+          }
+        }
+      } 
       // point passes.  save top point in stack and continue.
       // 560 continue
       std::cout << 560 << std::endl;
