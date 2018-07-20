@@ -23,15 +23,17 @@ auto adaptiveReconstruction( const double& teff, const double& cliq,
   const std::vector<double>& beta, const std::vector<std::vector<double>>& sab, 
   const double& az, std::vector<double>& uj, std::vector<double>& sj, 
   const double& tol, const double& tolmin, const double& mumax, int& i, 
-  double& xl, double& yl, double& sum, const int& imax, const double& enow, 
+  double& sum, const int& imax, const double& enow, 
   const double& tev, int& j ){
+    double xl = x[1];
+    double yl = yy[1];
 
     // adaptive reconstruction
     do { 
       // 530 continue
-      std::cout << 530 << "   " << i << std::endl;
+      std::cout << 530 << std::endl;
       if (i != imax) {
-        double xm = sigfig(0.5*(x[i-1-1]+x[i-1]),7,0);
+        double xm = sigfig(0.5*(x[i-2]+x[i-1]),7,0);
         if (xm > x[i-1] and xm < x[i-2]) {
           sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tol, az, 
             tevz, iinc, lat, lasym, cliq, sb, sb2, teff );
@@ -46,8 +48,7 @@ auto adaptiveReconstruction( const double& teff, const double& cliq,
       std::cout << 560 << std::endl;
       ++j;
       if (j > mumax-1) { 
-        throw std::exception(); 
-        std::cout << "error('calcem','too many angles','see mumax')" << std::endl;
+        throw std::exception(); // error('calcem','too many angles','see mumax')
       }
       uj[j-1] = x[i-1];
       sj[j-1] = yy[i-1];
@@ -58,6 +59,7 @@ auto adaptiveReconstruction( const double& teff, const double& cliq,
       }
       --i;
     }  while ( i >= 2 );
+    return std::make_tuple(xl,yl);
 }
 
 
@@ -157,8 +159,8 @@ auto e_mu_ep( int matdp, int mtref, double t, double& teff,
 
 
 
-    adaptiveReconstruction( teff, cliq, iinc, tevz, lat, lasym, yy, yu, sb, sb2, 
-      x, alpha, beta, sab, az, uj, sj, tol, tolmin, mumax, i, xl, yl, sum, imax, 
+    auto out = adaptiveReconstruction( teff, cliq, iinc, tevz, lat, lasym, yy, yu, sb, sb2, 
+      x, alpha, beta, sab, az, uj, sj, tol, tolmin, mumax, i, sum, imax, 
       enow, tev, j  );
 
 
