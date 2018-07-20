@@ -5,6 +5,7 @@
 
 template <typename A, typename F>
 auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
+  // test fails. add to stack and continue
   // 575 continue
   std::cout << 575 << std::endl;
   ++i;
@@ -71,7 +72,8 @@ auto e_mu_ep( int matdp, int mtref, double t, double& teff,
   double sb2, std::vector<double>& x, std::vector<double> alpha, 
   std::vector<double> beta, const std::vector<std::vector<double>>&sab, 
   double az, std::vector<double>& uj, std::vector<double>& sj,
-  double tol, double tolmin, double mumax, int imax ){
+  double tol, double tolmin, double mumax, int imax, std::vector<double>& ubar,
+  std::vector<double>& xsi, int nep, double yumin, int iend, int npage, int ib, int nb ){
   double bk = 8.6173845e-5;
 
   // compute kernel and write in mf6/law7 angle-energy format
@@ -141,136 +143,136 @@ auto e_mu_ep( int matdp, int mtref, double t, double& teff,
     double sum=0;
  
     // adaptive reconstruction of angular cross section
-    int u=-1;
-    x[2-1]=u;
+    int u = -1;
+    x[1] = u;
+    sigu( int(yu.size()), enow, u, tev, alpha, beta, sab, yu, tol, az, tevz, 
+      iinc, lat, lasym, cliq, sb, sb2, teff );
+    yy[1] = yu[0];
+    u = 1;
+    x[0] = u;
     //call sigu(enow,u,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
     sigu( int(yu.size()), enow, u, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
         lasym, cliq, sb, sb2, teff );
-    yy[2-1]=yu[1-1];
-    double xl=x[2-1];
-    double yl=yy[2-1];
-    u=1;
-    x[1-1]=u;
-    //call sigu(enow,u,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-    sigu( int(yu.size()), enow, u, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
-        lasym, cliq, sb, sb2, teff );
-    yy[1-1]=yu[1-1];
-    int i=2;
+    yy[0] = yu[0];
+    int i = 2;
 
+    // This does 530, 560, and 575
+    auto out = adaptiveReconstruction( teff, cliq, iinc, tevz, lat, lasym, yy, 
+      yu, sb, sb2, x, alpha, beta, sab, az, uj, sj, tol, tolmin, mumax, i, sum, 
+      imax, enow, tev, j  );
 
-
-    auto out = adaptiveReconstruction( teff, cliq, iinc, tevz, lat, lasym, yy, yu, sb, sb2, 
-      x, alpha, beta, sab, az, uj, sj, tol, tolmin, mumax, i, sum, imax, 
-      enow, tev, j  );
-
-
+    double xl = std::get<0>(out), yl = std::get<1>(out);
 
     std::cout << 580 << std::endl;
+    // linearization complete.  write out result.
+    // 580 continue
+    ++j;
+    uj[j-1]=x[0];
+    sj[j-1]=yy[0];
+    int nmu=j;
+    ubar[ie-1]=0;
+    sum=sum+0.5*(yy[1-1]+yl)*(x[1-1]-xl);
+    xsi[ie-1]=sum/2;
+    for ( int i = 1; i < nmu; ++i ){
+       ubar[ie-1]=ubar[ie-1]+0.5*(uj[i]-uj[i-1])*(sj[i]+sj[i-1])*(uj[i]+uj[i-1]);
+    }
+    ubar[ie-1]=0.5*ubar[ie-1]/sum;
+ 
     return;
-    /*
-    go to 580
-    ! test fails.  add point to stack and continue.
-   575 continue
-    i=i+1
-    x(i)=x(i-1)
-    x(i-1)=xm
-    yy(i)=yy(i-1)
-    yy(i-1)=yu[1-1]
-    go to 530
-    ! linearization complete.  write out result.
-    580 continue
-    j=j+1
-    uj(j)=x[1-1]
-    sj(j)=yy[1-1]
-    nmu=j
-    ubar[ie-1]=0
-    sum=sum+0.5*(yy[1-1]+yl)*(x[1-1]-xl)
-    xsi[ie-1]=sum/2
-    do i=2,nmu
-       ubar[ie-1]=ubar[ie-1]+0.5*(uj(i)-uj(i-1))*(sj(i)+sj(i-1))*(uj(i)+uj(i-1))
-    enddo
-    ubar[ie-1]=0.5*ubar[ie-1]/sum
-    //if (iprint == 2) then
-    //   write(nsyso,'(/i5,'' enow '',1p,e13.6,''   xsec '',e13.6,&
-    //     &''   mubar  '',e13.6)') ie,enow,xsi[ie-1],ubar[ie-1]
-    //   write(nsyso,'(''      num of mu '', i5)') nmu
-    //   write(nsyso,'(/''            mu            theta      dsigma/dmu'')')
-    //   do i=1,nmu
-    //      write(nsyso,'(i5,1x,f15.8,1x,f12.4,1x,1p,e14.7)') i,uj(i),&
-    //            acos(uj(i))*180.0/3.14159265359,sj(i)/2.0
-    //   enddo
-    //endif
- 
+
     // now loop through the mu grid to write out the distributions
-    mth=mtref
-    scr[1-1]=0
-    scr[2-1]=enow
-    scr[3-1]=0
-    scr[4-1]=0
-    scr[5-1]=1
-    scr[6-1]=nmu
-    scr[7-1]=nmu
-    scr[8-1]=2
-    nw=8
-    call tab2io(0,0,nscr,scr,nb,nw)
-    ncds=ncds+1
-    do il=1,nmu
-       u=uj(il)
-       call sigu(enow,u,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-       nep=nint(yu[2-1])
-       j=0
-       do i=1,nep
-         j=nep-i
-         if (yu(2*(nep-i)+4)/sum > yumin) exit
-       enddo
-       nep=j
-      if (iprint == 2) then
-          write(nsyso,'(/'' mu = '',f15.8)') u
-          write(nsyso,'('' (e-prime, pdf);  num of e-prime '', i5)') nep
-          write(nsyso,*)
-          // test yu()/sum below: is this pdf normalized to 1.0 ?
-          write(nsyso,'(1p,3(1x,e14.7,1x,e14.7,1x))')&
-                (yu(2*i+1),yu(2*i+2)/sum,i=1,nep)
-       endif
-       scr[1-1]=0
-       scr[2-1]=u
-       scr[3-1]=0
-       scr[4-1]=0
-       scr[5-1]=1
-       scr[6-1]=nep
-       scr[7-1]=nep
-       scr[8-1]=2
-       k=8;
-       istart=1
-      595 continue
-       iend=nep
-       if ((iend-istart) >= npage/2) iend=istart+npage/2-1
-       j=k-1
-       ib=istart-1
-      596 continue
-       j=j+2
-       ib=ib+1
-       scr(j)=yu(1+2*ib)
-       scr(j+1)=yu(2+2*ib)*2/sum
-       if (ib < iend) go to 596
-       nw=j+1
-       if (k == 0) go to 597
-       k=0
-       call tab1io(0,0,nscr,scr,nb,nw)
-       if (nb == 0) go to 598
-       istart=iend+1
-       go to 595
-     597 continue
-       call moreio(0,0,nscr,scr,nb,nw)
-       if (nb == 0) go to 598
-       istart=iend+1
-       go to 595
-      598 continue
-       ncds=ncds+1+(j*(nep+1)+5)/6
-    enddo
+    mth=mtref;
+    scr[1-1]=0;
+    scr[2-1]=enow;
+    scr[3-1]=0;
+    scr[4-1]=0;
+    scr[5-1]=1;
+    scr[6-1]=nmu;
+    scr[7-1]=nmu;
+    scr[8-1]=2;
+    nw=8;
+    //call tab2io(0,0,nscr,scr,nb,nw)
+    ncds=ncds+1;
+
+    for ( int il = 0; il < nmu; ++il ){
+    //do il=1,nmu
+       u = uj[il];
+       sigu( int(yu.size()), enow, u, tev, alpha, beta, sab, yu, tol, az, tevz, 
+         iinc, lat, lasym, cliq, sb, sb2, teff );
+
+       nep = int(yu[1]);
+       j=0;
+       for ( int i = 1; i <= nep; ++i ){
+       //do i=1,nep
+         j = nep - i;
+         if (yu[2*(nep-i)+4-1]/sum > yumin){ 
+           std::cout << " exit " << std::endl; 
+           throw std::exception(); 
+         }
+       }
+       nep = j;
+
+       scr[1-1]=0;
+       scr[2-1]=u;
+       scr[3-1]=0;
+       scr[4-1]=0;
+       scr[5-1]=1;
+       scr[6-1]=nep;
+       scr[7-1]=nep;
+       scr[8-1]=2;
+       int k=8;
+       int istart=1;
+       while (true) {
+         //595 continue
+         std::cout << 595 << std::endl;
+         iend=nep;
+         if ((iend-istart) >= npage/2) iend=istart+npage/2-1;
+         j=k-1;
+         ib=istart-1;
+
+        //596 continue
+         while (true){
+         j=j+2;
+         ib=ib+1;
+         scr[j-1]=yu[1+2*ib-1];
+         scr[j+1-1]=yu[2+2*ib-1]*2/sum;
+         if (ib < iend) { continue; }// go to 596
+         else { break; }
+         }
+         nw=j+1;
+         if (k == 0) {
+           std::cout << "go to 597" << std::endl;
+           //597 continue
+             //call moreio(0,0,nscr,scr,nb,nw)
+             if (nb == 0) {
+               std::cout << "go to 598" << std::endl;
+               ncds=ncds+1+(j*(nep+1)+5)/6;
+               continue;
+             }
+             istart=iend+1;
+             std::cout << "go to 595" << std::endl;
+             continue;
+         }
+         k=0;
+         //call tab1io(0,0,nscr,scr,nb,nw)
+         if (nb == 0) {
+           std::cout << "go to 598" << std::endl;
+           continue;
+         } 
+         istart=iend+1;
+         std::cout << "go to 595" << std::endl;
+         continue;
+
+        //598 continue
+        // ncds=ncds+1+(j*(nep+1)+5)/6;
+       }
+       /*
+       */
+    }
  
-    if (ie < nne) go to 520
+    //if (ie < nne) go to 520
   
+       /*
 
     */
     if ( ie >= nne ){ 
