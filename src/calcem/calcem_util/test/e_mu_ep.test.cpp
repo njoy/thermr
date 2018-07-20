@@ -27,20 +27,56 @@ TEST_CASE( "adaptive reconstruction" ){
       2.36, 2.59, 2.855, 3.120, 3.42, 3.75, 4.07, 4.46, 4.9, 5.35, 5.85, 6.4, 
       7.0, 7.65, 8.4, 9.15, 9.85, 10.0 }, esi(89,0.0), alpha(65), beta(75), 
       x(20,0.0), yy(20,0.0), yu(10000,0.0), uj(300,0.0), sj(300,0.0), scr(500000,0.0);
+    for ( size_t i = 0; i < alpha.size(); ++i ){ alpha[i] = 0.12*(i+1); }
+    for ( size_t i = 0; i < beta.size();  ++i ){ beta[i]  = 0.23*(i+1); }
     std::vector<std::vector<double>> sab(alpha.size(),std::vector<double>(beta.size()));
     for ( size_t i = 0; i < alpha.size(); ++i ){
       for ( size_t j = 0; j < beta.size(); ++j ){
         sab[i][j] = alpha[i]-beta[j];
       }
     }
-    for ( size_t i = 0; i < alpha.size(); ++i ){ alpha[i] = 0.12*(i+1); }
-    for ( size_t i = 0; i < beta.size();  ++i ){ beta[i]  = 0.23*(i+1); }
+
     x[0] = 1; x[1] = -1;
+    yy[0] = 18516.457902061160;
+    yy[1] = 20796.853421853437;
 
     
     adaptiveReconstruction( teff, cliq, iinc, tevz, lat, lasym, yy, yu, sb, sb2, 
       x, alpha, beta, sab, az, uj, sj, tol, tolmin, mumax, i, xl, yl, sum, imax, 
       enow, tev, j  );
+
+    std::vector<double> yyCorrect { 18516.45790206, 18787.04952242, 
+      18923.84621860, 19061.65895127, 19623.17417784, 0.0, 0.0, 0.0, 0.0, 0.0, 
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+      yuCorrect1_30 { 18651.259858, 113.0, 0.0, 0.0, 2.2235874e-8, 
+        49.692358408, 4.4471748e-8, 69.846615744, 8.8943495e-8, 
+        97.914611677, 1.7788699e-7, 136.73106477, 3.5577398e-7, 
+        189.85007980, 7.1154795e-7, 261.38911576, 1.4230959e-6, 
+        355.47667620, 2.8461918e-6, 475.82350947, 5.6923835e-6, 
+        634.00500562, 1.1384767e-5, 909.95669658, 2.2769534e-5, 
+        1491.2348194, 4.5539068e-5, 2528.4906307, 9.1078135e-5, 
+        4229.9969100},
+      xCorrect { 1.0, 0.75, 0.625, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    
+    for ( size_t i = 0; i < yy.size(); ++i){ 
+      REQUIRE( yyCorrect[i] == Approx(yy[i]).epsilon(1e-4) );
+    }
+    for ( size_t i = 0; i < yuCorrect1_30.size(); ++i){ 
+      if ( i == 1 ){ 
+        // This is j in sigu, it's the number of iterations you need. may not
+        // be so important that this is actually correct. 
+        REQUIRE( yuCorrect1_30[i] == Approx(yu[i]).epsilon(1e-2) );
+      } 
+      else {
+        REQUIRE( yuCorrect1_30[i] == Approx(yu[i]).epsilon(1e-4) );
+      } 
+    }
+    for ( size_t i = 0; i < x.size(); ++i){ 
+      REQUIRE( xCorrect[i] == Approx(x[i]).epsilon(1e-6) );
+    }
+
+
 
 
 
@@ -75,14 +111,15 @@ TEST_CASE( "Branch to handle E-mu-E' ordering" ){
       2.36, 2.59, 2.855, 3.120, 3.42, 3.75, 4.07, 4.46, 4.9, 5.35, 5.85, 6.4, 
       7.0, 7.65, 8.4, 9.15, 9.85, 10.0 }, esi(89,0.0), alpha(65), beta(75), 
       x(20,0.0), yy(20,0.0), yu(10000,0.0), uj(300,0.0), sj(300,0.0), scr(500000,0.0);
+    for ( size_t i = 0; i < alpha.size(); ++i ){ alpha[i] = 0.12*(i+1); }
+    for ( size_t i = 0; i < beta.size();  ++i ){ beta[i]  = 0.23*(i+1); }
     std::vector<std::vector<double>> sab(alpha.size(),std::vector<double>(beta.size()));
     for ( size_t i = 0; i < alpha.size(); ++i ){
       for ( size_t j = 0; j < beta.size(); ++j ){
         sab[i][j] = alpha[i]-beta[j];
       }
     }
-    for ( size_t i = 0; i < alpha.size(); ++i ){ alpha[i] = 0.12*(i+1); }
-    for ( size_t i = 0; i < beta.size();  ++i ){ beta[i]  = 0.23*(i+1); }
+
     //e_mu_ep( matdp, mtref, t, teff, teff2, scr, za, awr, ncds, nw, nne, 
     //  cliq, iinc, emax, egrid, temp, breakVal, esi, tevz, lat, lasym, yy, yu, 
     //  sb, sb2, x, alpha, beta, sab, az, uj, sj, tol, tolmin, mumax, imax );

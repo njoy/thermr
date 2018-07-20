@@ -6,6 +6,9 @@
 template <typename A, typename F>
 auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
   // 575 continue
+  //std::cout << 575 << std::endl;
+  //std::cout << 575 << "  " << i << "  " << x[i-1] << "   " << yy[i-1] << "   " << x[i-2] << "   " << yy[i-2] << std::endl;
+  //std::cout << 575 << "  "<< yy[i-1] << "   " << yy[i-2] << "   " << yu[0] << "    " << yu[i-2] << std::endl;
   std::cout << 575 << std::endl;
   i=i+1;
   x[i-1]=x[i-1-1];
@@ -17,8 +20,16 @@ auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
 
 
 auto adaptiveReconstruction( const double& teff, const double& cliq, 
-    const int& iinc, double tevz, int lat, int lasym, std::vector<double>& yy, std::vector<double>& yu, double sb, double sb2, std::vector<double>& x, std::vector<double> alpha, std::vector<double> beta, const std::vector<std::vector<double>>& sab, double az, std::vector<double>& uj, std::vector<double>& sj, double tol, double tolmin, double mumax, int i, double& xl, double& yl, double& sum, int imax, double enow, double tev, int j  ){
+  const int& iinc, const double& tevz, const int& lat, const int& lasym, 
+  std::vector<double>& yy, std::vector<double>& yu, const double& sb, 
+  const double& sb2, std::vector<double>& x, const std::vector<double>& alpha, 
+  const std::vector<double>& beta, const std::vector<std::vector<double>>& sab, 
+  const double& az, std::vector<double>& uj, std::vector<double>& sj, 
+  const double& tol, const double& tolmin, const double& mumax, int& i, 
+  double& xl, double& yl, double& sum, const int& imax, const double& enow, 
+  const double& tev, int& j  ){
 
+    // for ( auto x : sab ){ for ( auto y : x ){  std::cout << y << std::endl; }}
     // adaptive reconstruction
     while (true){ 
       // 530 continue
@@ -28,15 +39,27 @@ auto adaptiveReconstruction( const double& teff, const double& cliq,
         double xm=0.5*(x[i-1-1]+x[i-1]);
         xm=sigfig(xm,7,0);
         //if (xm <= x[i-1] or  xm >= x[i-1-1]) std::cout << "go to 560" << std::endl;
+        //std::cout << xm << "   " << x[i-1] << "   " << x[i-2] << "    " << i << std::endl;
         if (xm >  x[i-1] and xm <  x[i-1-1]) {
           //call sigu(enow,xm,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
+         
+          //std::cout << std::setprecision(15) << yu[0] << "   " << yu[1] << "   " << yu[2] << std::endl;
+          //std::cout << std::setprecision(15) << yu[3] << "   " << yu[4] << "   " << yu[5] << std::endl << std::endl;
+
           sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
             lasym, cliq, sb, sb2, teff );
+          std::cout << std::setprecision(15) << yu[0] << "   " << yu[1] << "   " << yu[2] << std::endl;
+          std::cout << std::setprecision(15) << yu[3] << "   " << yu[4] << "   " << yu[5] << std::endl;
+          //return;
           if (x[i-1-1]-x[i-1] > 0.25){ 
             do575(i, x, yy, yu, xm );
             continue;
           }
           double ym=yy[i-1]+(xm-x[i-1])*(yy[i-1-1]-yy[i-1])/(x[i-1-1]-x[i-1]);
+          //std::cout << "--------  " << yu[0] << "   " << ym  << std::endl;
+   //       std::cout << std::setprecision(15) << "--------  " << x[i-1] << "   " << x[i-2]  << "    " << i<< std::endl;
+    //      std::cout << std::setprecision(15) << "--------  " << yy[i-1] << "   " << yy[i-2]  << std::endl;
+          //return;
           if (abs(yu[1-1]-ym) > 2*tol*ym+tolmin){ 
             do575(i, x, yy, yu, xm );
             continue;
@@ -61,6 +84,7 @@ auto adaptiveReconstruction( const double& teff, const double& cliq,
       }
       if (i <  2) break;
     } 
+    std::cout << 580 << std::endl;
 
 }
 

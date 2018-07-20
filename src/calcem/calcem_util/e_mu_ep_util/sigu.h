@@ -18,7 +18,6 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
    int i, j, jbeta, imax=20;
    double sum, xl, yl, xm, ym, test, yt, tol, tolmin = 1.e-6, bmax = 20;
    std::vector<double> x(imax), y(imax);
-   //std::cout << std::setprecision(12);
 
    // constant factors
    tol=tolin;
@@ -102,7 +101,7 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
        // point passes
        // 160 continue
        //std::cout << 160 << "    " << i << "    " << j << "      " << sum << std::endl;
-       if ( j == 220 )return;
+       //if ( j == 220 )return;
        j=j+1;
        s[2*j+1-1]=x[i-1];
        s[2*j+2-1]=y[i-1];
@@ -146,6 +145,7 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
 
     // 170 continue
     //std::cout << 170 << std::endl;
+    std::cout << "HERE" << std::endl;
     s[1-1]=sum;
     s[2-1]=j;
     return; 
