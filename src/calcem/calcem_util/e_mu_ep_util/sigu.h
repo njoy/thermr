@@ -145,7 +145,6 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
 
     // 170 continue
     //std::cout << 170 << std::endl;
-    std::cout << "HERE" << std::endl;
     s[1-1]=sum;
     s[2-1]=j;
     return; 

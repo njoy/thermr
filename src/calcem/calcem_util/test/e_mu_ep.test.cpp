@@ -57,7 +57,9 @@ TEST_CASE( "adaptive reconstruction" ){
         1491.2348194, 4.5539068e-5, 2528.4906307, 9.1078135e-5, 
         4229.9969100},
       xCorrect { 1.0, 0.75, 0.625, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+      ujCorrect_1_15 { -1.0, -0.750, -0.625, -0.50, -0.375, -0.250, -0.125, 0.0, 0.125, 0.250, 0.375, 0.50, 0.625, 0.750, 0.0 },
+      sjCorrect_1_15 { 20796.853421, 20496.893150, 20348.583053, 20201.379495, 20055.273967, 19910.165824, 19766.074146, 19623.174177, 19481.208983, 19340.369483, 19200.497164, 19061.658951, 18923.846218, 18787.049522, 0.0 };
     
     for ( size_t i = 0; i < yy.size(); ++i){ 
       REQUIRE( yyCorrect[i] == Approx(yy[i]).epsilon(1e-4) );
@@ -72,9 +74,33 @@ TEST_CASE( "adaptive reconstruction" ){
         REQUIRE( yuCorrect1_30[i] == Approx(yu[i]).epsilon(1e-4) );
       } 
     }
+
     for ( size_t i = 0; i < x.size(); ++i){ 
       REQUIRE( xCorrect[i] == Approx(x[i]).epsilon(1e-6) );
     }
+
+    for ( size_t i = 0; i < ujCorrect_1_15.size(); ++i){ 
+      REQUIRE( ujCorrect_1_15[i] == Approx(uj[i]).epsilon(1e-5) );
+    }
+    for ( size_t i = ujCorrect_1_15.size(); i < uj.size(); ++i){ 
+      REQUIRE( 0.0 == Approx(uj[i]).epsilon(1e-6) );
+    }
+
+    for ( size_t i = 0; i < sjCorrect_1_15.size(); ++i){ 
+      REQUIRE( sjCorrect_1_15[i] == Approx(sj[i]).epsilon(1e-4) );
+    }
+    for ( size_t i = sjCorrect_1_15.size(); i < sj.size(); ++i){ 
+      REQUIRE( 0.0 == Approx(sj[i]).epsilon(1e-6) );
+    }
+
+    REQUIRE( 1 == i );
+    REQUIRE( 14 == j );
+    REQUIRE( 0.75 == Approx(xl).epsilon(1e-6) );
+    REQUIRE( 18787.0495224 == Approx(yl).epsilon(1e-4) );
+    REQUIRE( 34605.9936718 == Approx(sum).epsilon(1e-4) );
+
+
+
 
 
 

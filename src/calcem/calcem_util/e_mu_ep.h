@@ -6,15 +6,12 @@
 template <typename A, typename F>
 auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
   // 575 continue
-  //std::cout << 575 << std::endl;
-  //std::cout << 575 << "  " << i << "  " << x[i-1] << "   " << yy[i-1] << "   " << x[i-2] << "   " << yy[i-2] << std::endl;
-  //std::cout << 575 << "  "<< yy[i-1] << "   " << yy[i-2] << "   " << yu[0] << "    " << yu[i-2] << std::endl;
   std::cout << 575 << std::endl;
-  i=i+1;
-  x[i-1]=x[i-1-1];
-  x[i-1-1]=xm;
-  yy[i-1]=yy[i-1-1];
-  yy[i-1-1]=yu[1-1];
+  ++i;
+  x[i-1] = x[i-2];
+  x[i-2] = xm;
+  yy[i-1]= yy[i-2];
+  yy[i-2]= yu[0];
 
 }
 
@@ -27,65 +24,40 @@ auto adaptiveReconstruction( const double& teff, const double& cliq,
   const double& az, std::vector<double>& uj, std::vector<double>& sj, 
   const double& tol, const double& tolmin, const double& mumax, int& i, 
   double& xl, double& yl, double& sum, const int& imax, const double& enow, 
-  const double& tev, int& j  ){
+  const double& tev, int& j ){
 
-    // for ( auto x : sab ){ for ( auto y : x ){  std::cout << y << std::endl; }}
     // adaptive reconstruction
-    while (true){ 
+    do { 
       // 530 continue
-      std::cout << 530 << std::endl;
-      //if (i == imax) std::cout << "go to 560" << std::endl;
+      std::cout << 530 << "   " << i << std::endl;
       if (i != imax) {
-        double xm=0.5*(x[i-1-1]+x[i-1]);
-        xm=sigfig(xm,7,0);
-        //if (xm <= x[i-1] or  xm >= x[i-1-1]) std::cout << "go to 560" << std::endl;
-        //std::cout << xm << "   " << x[i-1] << "   " << x[i-2] << "    " << i << std::endl;
-        if (xm >  x[i-1] and xm <  x[i-1-1]) {
-          //call sigu(enow,xm,tev,nalpha,alpha,nbeta,beta,sab,yu,nemax,tol)
-         
-          //std::cout << std::setprecision(15) << yu[0] << "   " << yu[1] << "   " << yu[2] << std::endl;
-          //std::cout << std::setprecision(15) << yu[3] << "   " << yu[4] << "   " << yu[5] << std::endl << std::endl;
-
-          sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tol, az, tevz, iinc, lat, 
-            lasym, cliq, sb, sb2, teff );
-          std::cout << std::setprecision(15) << yu[0] << "   " << yu[1] << "   " << yu[2] << std::endl;
-          std::cout << std::setprecision(15) << yu[3] << "   " << yu[4] << "   " << yu[5] << std::endl;
-          //return;
-          if (x[i-1-1]-x[i-1] > 0.25){ 
-            do575(i, x, yy, yu, xm );
-            continue;
-          }
-          double ym=yy[i-1]+(xm-x[i-1])*(yy[i-1-1]-yy[i-1])/(x[i-1-1]-x[i-1]);
-          //std::cout << "--------  " << yu[0] << "   " << ym  << std::endl;
-   //       std::cout << std::setprecision(15) << "--------  " << x[i-1] << "   " << x[i-2]  << "    " << i<< std::endl;
-    //      std::cout << std::setprecision(15) << "--------  " << yy[i-1] << "   " << yy[i-2]  << std::endl;
-          //return;
-          if (abs(yu[1-1]-ym) > 2*tol*ym+tolmin){ 
+        double xm = sigfig(0.5*(x[i-1-1]+x[i-1]),7,0);
+        if (xm > x[i-1] and xm < x[i-2]) {
+          sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tol, az, 
+            tevz, iinc, lat, lasym, cliq, sb, sb2, teff );
+          double ym = yy[i-1]+(xm-x[i-1])*(yy[i-2]-yy[i-1])/(x[i-2]-x[i-1]);
+          if ( (x[i-2]-x[i-1]) > 0.25 or (std::abs(yu[0]-ym) > 2*tol*ym+tolmin) ){ 
             do575(i, x, yy, yu, xm );
             continue;
           }
         }
       } 
       // point passes.  save top point in stack and continue.
-      // 560 continue
       std::cout << 560 << std::endl;
-      j=j+1;
-      if (j > mumax-1) std::cout << "error('calcem','too many angles','see mumax')" << std::endl;
-      uj[j-1]=x[i-1];
-      sj[j-1]=yy[i-1];
+      ++j;
+      if (j > mumax-1) { 
+        throw std::exception(); 
+        std::cout << "error('calcem','too many angles','see mumax')" << std::endl;
+      }
+      uj[j-1] = x[i-1];
+      sj[j-1] = yy[i-1];
       if (j > 1) {
-         sum=sum+0.5*(yy[i-1]+yl)*(x[i-1]-xl);
-         xl=x[i-1];
-         yl=yy[i-1];
+         sum += 0.5 * (yy[i-1]+yl) * (x[i-1]-xl);
+         xl = x[i-1];
+         yl = yy[i-1];
       }
-      i=i-1;
-      if (i >= 2) {
-        continue; 
-      }
-      if (i <  2) break;
-    } 
-    std::cout << 580 << std::endl;
-
+      --i;
+    }  while ( i >= 2 );
 }
 
 
