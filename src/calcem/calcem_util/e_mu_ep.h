@@ -6,16 +6,20 @@
 #include "calcem/calcem_util/e_mu_ep_util/mainLoop.h"
 
 
-auto e_mu_ep( int matdp, int mtref, double t, double& teff, 
-  double& teff2, std::vector<double>& scr, double za, double awr, int ncds,
-  int nw, int nne, double cliq, int iinc, double emax, std::vector<double> egrid,
-  double temp, double breakVal, std::vector<double>& esi, double tevz, int lat,
-  int lasym, std::vector<double>& yy, std::vector<double>& yu, double sb,
-  double sb2, std::vector<double>& x, std::vector<double> alpha, 
-  std::vector<double> beta, const std::vector<std::vector<double>>&sab, 
-  double az, std::vector<double>& uj, std::vector<double>& sj,
-  double tol, double tolmin, double mumax, int imax, std::vector<double>& ubar,
-  std::vector<double>& xsi, int nep, double yumin, int npage, int ib, int nb ){
+auto e_mu_ep( const int matdp, const int mtref, const double t, double& teff, 
+  double& teff2, std::vector<double>& scr, const double za, const double awr, 
+  int& ncds, int& nw, const int& nne, double& cliq, const int& iinc, 
+  const double& emax, const std::vector<double>& egrid, const double& temp, 
+  const double& breakVal, std::vector<double>& esi, const double& tevz, 
+  const int& lat, const int& lasym, std::vector<double>& yy, 
+  std::vector<double>& yu, const double sb, const double sb2, 
+  std::vector<double>& x, const std::vector<double> alpha, 
+  const std::vector<double> beta, const std::vector<std::vector<double>>& sab, 
+  const double az, std::vector<double>& uj, std::vector<double>& sj, 
+  const double tol, const double tolmin, const double mumax, const int imax, 
+  std::vector<double>& ubar, std::vector<double>& xsi, int nep, 
+  const double yumin, const int npage, int ib, int nb ){
+
   double bk = 8.6173845e-5;
 
   // compute kernel and write in mf6/law7 angle-energy format
@@ -120,8 +124,6 @@ auto e_mu_ep( int matdp, int mtref, double t, double& teff,
     }
     ubar[ie-1]=0.5*ubar[ie-1]/sum;
  
-    return;
-
     // now loop through the mu grid to write out the distributions
     mth=mtref;
     scr[1-1]=0;
@@ -148,11 +150,13 @@ auto e_mu_ep( int matdp, int mtref, double t, double& teff,
        //do i=1,nep
          j = nep - i;
          if (yu[2*(nep-i)+4-1]/sum > yumin){ 
-           std::cout << " exit " << std::endl; 
-           throw std::exception(); 
+           break;
+           //std::cout << " exit " << std::endl; 
+           //throw std::exception(); 
          }
        }
        nep = j;
+       ++nep;
 
        scr[1-1]=0;
        scr[2-1]=u;
@@ -166,18 +170,14 @@ auto e_mu_ep( int matdp, int mtref, double t, double& teff,
        int istart=1;
 
 
+       //std::cout << nep << "   " << k << std::endl;
        mainLoop(nep, npage, j, k, ib, scr, yu, sum, nw, ncds, nb );
-
-
+       //std::cout << j << "   " << ncds << std::endl;
+       return;
 
 
     }
  
-    //if (ie < nne) go to 520
-  
-       /*
-
-    */
     if ( ie >= nne ){ 
       std::cout << "go to 610" << std::endl;
       return; 
