@@ -2,6 +2,7 @@
 #include "catch.hpp"
 #include "calcem/calcem_util/e_mu_ep_util/sigu.h"
 
+/*
 
 TEST_CASE( "sigu" ){
   GIVEN( "inputs" ){
@@ -27,7 +28,7 @@ TEST_CASE( "sigu" ){
 
 
     sigu( nemax, e, u, tev, alpha, beta, sab, s, tolin, az, tevz, iinc, 
-        lat, lasym, /*az2, teff2,*/ cliq, sb, sb2, teff );
+        lat, lasym, cliq, sb, sb2, teff );
 
 
 
@@ -71,11 +72,7 @@ TEST_CASE( "sigu" ){
      REQUIRE( correctS[i] == Approx(s[i]).epsilon(1e-5) );
    }
 
-
-    /*
-   */
-
-    REQUIRE( true );
   } // GIVEN
 } // TEST CASE
+*/
 

@@ -2,8 +2,10 @@
 #include "calcem/calcem_util/e_mu_ep_util/sigu_util/begin_sigu.h"
 #include "calcem/calcem_util/e_mu_ep_util/sigu_util/do150.h"
 
+#ifndef CALCEM_E_MU_EP_SIGU
+#define CALCEM_E_MU_EP_SIGU
 
-auto sigu( int nemax, const double& e, const double& u, const double& tev, 
+inline auto sigu( int nemax, const double& e, const double& u, const double& tev, 
   const std::vector<double>& alpha, const std::vector<double>& beta, 
   const std::vector<std::vector<double>>&sab, std::vector<double>&s, 
   const double& tolin, const double& az, const double& tevz, const int& iinc, 
@@ -151,4 +153,5 @@ auto sigu( int nemax, const double& e, const double& u, const double& tev,
   }
 }
 
+#endif
 

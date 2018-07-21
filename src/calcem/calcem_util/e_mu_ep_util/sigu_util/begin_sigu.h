@@ -1,7 +1,10 @@
 #include "calcem/calcem_util/sig.h"
 #include "general_util/sigfig.h"
 
-auto do_113_116( int& jbeta, const int& lat, std::vector<double>& x, 
+#ifndef CALCEM_E_MU_EP_SIGU_DO_113_116
+#define CALCEM_E_MU_EP_SIGU_DO_113_116
+
+inline auto do_113_116( int& jbeta, const int& lat, std::vector<double>& x, 
   std::vector<double>& y, const double& e, const double& tev, const double& tevz,
   const double& root1, const double& u,
   const std::vector<double>& alpha, const std::vector<double>& beta, 
@@ -37,5 +40,6 @@ auto do_113_116( int& jbeta, const int& lat, std::vector<double>& x,
       teff2,*/ lat, cliq, sb, sb2, teff, iinc );
 } 
 
+#endif
 
 

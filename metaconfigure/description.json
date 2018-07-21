@@ -392,6 +392,8 @@
     "src/calcem/calcem_util/e_ep_mu_util/410.h",
     "src/calcem/calcem_util/e_ep_mu_util/313.h",
     "src/calcem/calcem_util/e_ep_mu_util/sigl_util/beginningLoop.h",
+    "src/calcem/calcem_util/e_mu_ep_util/mainLoop.h",
+    "src/calcem/calcem_util/e_mu_ep_util/adaptiveReconstruction.h",
     "src/calcem/calcem_util/e_mu_ep_util/sigu.h",
     "src/calcem/calcem_util/e_mu_ep_util/sigu_util/do150.h",
     "src/calcem/calcem_util/e_mu_ep_util/sigu_util/begin_sigu.h",
@@ -437,7 +439,9 @@
       "src/calcem/calcem_util/e_ep_mu_util/sigl_util/test/beginningLoop.test.cpp"
     ],
     "calcem.calcem_util.e_mu_ep_util": [
-      "src/calcem/calcem_util/e_mu_ep_util/test/sigu.test.cpp"
+      "src/calcem/calcem_util/e_mu_ep_util/test/sigu.test.cpp",
+      "src/calcem/calcem_util/e_mu_ep_util/test/mainLoop.test.cpp",
+      "src/calcem/calcem_util/e_mu_ep_util/test/adaptiveReconstruction.test.cpp"
     ],
     "calcem.calcem_util.e_mu_ep_util.sigu_util": [
       "src/calcem/calcem_util/e_mu_ep_util/sigu_util/test/do150.test.cpp",
