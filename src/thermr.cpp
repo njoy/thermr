@@ -1,38 +1,36 @@
-//#include <Eigen/Dense>
 #include <iostream> 
 #include <vector>
 #include <cmath>
 #include <tuple>
 #include <string>
 #include <time.h>
-#include "ENDFtk.hpp"
+//#include "ENDFtk.hpp"
 
 
 int thermr( ){
-
-  //clock_t t;
-  //t = clock();
+  /*
   using namespace njoy::ENDFtk;
 
   // convenience typedefs
   using ReactionProduct = 
   section::Type< 6 >::ReactionProduct;
-//  using Multiplicity = 
-//  section::Type< 6 >::Multiplicity;
-//  using Distribution = 
-//  section::Type< 6 >::Distribution;
+  //  using Multiplicity = 
+  //  section::Type< 6 >::Multiplicity;
+  //  using Distribution = 
+  //  section::Type< 6 >::Distribution;
   using ContinuumEnergyAngle = 
   section::Type< 6 >::ContinuumEnergyAngle;
   using LegendreCoefficients = 
   section::Type< 6 >::ContinuumEnergyAngle::LegendreCoefficients;
+  */
   
-  //std::string chunk();
   /*
   std::string invalidLAW;
   std::string validSEND;
   std::string invalidSEND;
   */
 
+  /*
     int zaid = 92235;
     double awr = 2.330248e+2;
     int jp = 0;
@@ -98,6 +96,7 @@ int thermr( ){
   
  std::cout << "hello, world" << std::endl;
 
+ */
   return 0;
 
 
