@@ -1,7 +1,7 @@
 #include "coh/coh_util/upstk.h"
 #include "coh/coh_util/sigcoh.h"
-#include "coh/coh_util/readWrite_util/finda.h"
-#include "coh/coh_util/readWrite_util/loada.h"
+//#include "coh/coh_util/readWrite_util/finda.h"
+//#include "coh/coh_util/readWrite_util/loada.h"
 //#include <Eigen/Dense>
 
 auto coh( int lat, /*std::fstream& inew,*/ int ne, int nex, double temp, 

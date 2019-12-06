@@ -88,7 +88,7 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   *-------------------------------------------------------------------
   */
   int nw, i1m, l1, i2m, i3m;
-  double amne, econ, tsqx, a, c, amsc, scoh, wal2, wint, w1, w2, w3, tau_sq, 
+  double mass_n, econ, tsqx, a, c, amsc, scoh, wal2, wint, w1, w2, w3, tau_sq, 
     tau, w, f, t2, ulim, phi, c1, c2, scon;
   
   // These are lattice factors. Apparently they were borrowed directly from
@@ -102,8 +102,8 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
                           // II-VI and I-VII Compounds; Semimagnetic Compounds
 
   // These are masses
-  double gr3 = 12.011e0, 
-         be3 = 9.01e0, 
+  double gr3  = 12.011e0, 
+         be3  = 9.01e0, 
          beo3 = 12.5e0;  // Mass of BeO is actually 25, but apparently we 
                          // divide by 2 because I suppose avg mass per atom
                          
@@ -123,7 +123,6 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   // save k,recon,scon
 
 
-
   // Temperatures interpolated over when trying to get correct Debye-Waller
   // Coefficient.
   std::vector<double> tmp {296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000};
@@ -132,29 +131,23 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   // This appears in Eq. 220 of the manual, as 'W' in the exponential term
   // This also appears in the General Atomics HEXSCAT report as the integral
   // shown below (as wal2 description)
-
-  std::vector<double> dwf ( 10 );
+  std::vector<double> dwf ( tmp.size() );
   if (lat == 1){       // GRAPHITE
     a = gr1; c = gr2; amsc = gr3; scoh = gr4/natom; 
-    dwf = { 2.1997, 2.7448, 3.2912, 3.8510, 4.4210, 4.9969, 6.1624, 7.3387, 
-      9.6287, 11.992 };      
+    dwf = {2.1997,2.7448,3.2912,3.8510,4.4210,4.9969,6.1624,7.3387,9.6287,11.992};      
   }
   else if (lat == 2) { // BERYLLIUM
     a = be1; c = be2; amsc = be3; scoh = be4/natom;
-    dwf = { 3.16663, 3.88842, 4.62944, 5.40517, 6.19880, 7.0042, 8.63665, 
-      10.2865, 0, 0 };  
+    dwf = {3.16663,3.88842,4.62944,5.40517,6.19880,7.0042,8.63665,10.2865,0,0};  
   }
   else if (lat == 3){  // BERYLLIUM OXIDE
     a = beo1; c = beo2; amsc = beo3; scoh = beo4/natom;
-    dwf = {  2.153, 2.6374, 3.1348, 3.6513, 4.1798, 4.7164, 5.8052, 6.9068, 
-      0, 0 };
+    dwf = {2.153,2.6374,3.1348,3.6513,4.1798,4.7164,5.8052,6.9068,0,0};
   } 
   else {
+    a = 0.0; c = 0.0; amsc = 0.0; scoh = 0.0;
     std::cout << "OH NO! Error over here. Illegal lat value" << std::endl;
-    throw std::exception();
   }
-
-
 
 
  /* If this is the first entry (E=0) for an ENDF-III type material, the 
@@ -163,8 +156,8 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   * reciprocal lattice wave vectors and structure factors are computed, 
   * sorted into shells, and stored for later use.
   */
-  amne = amassn * amu;     // mass of neutron in grams
-  econ = ev * 8 * ( amne / hbar ) / hbar;
+  mass_n = amassn * amu;     // mass of neutron in grams
+  econ = ev * 8 * ( mass_n / hbar ) / hbar;
   tsqx = econ / 20;
   scon = scoh * ( 16.0 * M_PI*M_PI )/( 2.0 * a * a * c * sqrt(3) * econ );
 
@@ -182,12 +175,11 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
  
 
 
-
   // wal2 is (supposed to be) equal to
   //
   //       1   |' f(w)        
   //      ---  |  ----  coth( w / kb T ) dw
-  //       M  _|   w   
+  //       M  ,|   w   
   //
   // this seems to be the case from pg. 5 of the General Atomics HEXSCAT code,
   // in the table of descriptions for input values into the original HEXSCAT.
@@ -208,7 +200,8 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
 
   // This is the tau^2 value that corresponds to the maximum considered energy.
   // Calculated according to Eq. 223.
-  ulim = econ * emax;
+  //ulim = econ * emax;
+  ulim = emax * ev * 8.0 * mass_n / (hbar*hbar);
 
   nw = 10000;
   std::vector<double> wrk(nw,0.0);

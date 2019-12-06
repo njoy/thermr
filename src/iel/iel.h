@@ -1,7 +1,7 @@
 #include "coh/coh_util/sigcoh_util/terp.h"
 #include "iel/iel_util/terpa.h"
 #include <cmath>
-#include "ENDFtk.hpp"
+//#include "ENDFtk.hpp"
 
 auto iel( int mat, int itemp, int iold, int inew, int ne, int nex, 
     std::vector<double>& tempr, std::vector<double>& fl, double za, 
@@ -99,6 +99,7 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
    // write head and tab2 records for mf6
    // in lanl format
  
+   /*
    std::vector< njoy::ENDFtk::section::Type<6>::ReactionProduct > products {
    njoy::ENDFtk::section::Type<6>::ReactionProduct(
      // multiplicity
@@ -138,6 +139,7 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
     std::cout << chunk.MT() << std::endl;
   
 
+    */
 
    ltt=6;
    math=matdp;

@@ -1,5 +1,7 @@
 #include "catch.hpp"
 #include "coh/coh_util/upstk.h"
+#include "generalTools/testing.h"
+#include <range/v3/all.hpp>
 
 /*
 void checkStk( const Eigen::MatrixXd& stk, 
@@ -18,16 +20,30 @@ void checkStk( const Eigen::MatrixXd& stk,
     }
   }
 } 
+*/
 
 auto initializeStk( int nx, int maxIter ){
-  Eigen::MatrixXd stk = Eigen::MatrixXd::Zero(nx,20);
+  std::vector<double> stk(nx*20);
   for ( int i = 0; i < maxIter; ++i ){
     for ( int j = 0; j < nx; ++j ){
-      stk(j,i) = i*0.1*nx + 0.1*(j + 1);
+      stk[j+i*nx] = i*0.1*nx + 0.1*(j + 1);
     }
   }
   return stk;
 }
+
+/*
+auto initializeStk( int nx, int maxIter ){
+  std::vector<std::vector<double>> stk ( nx, std::vector<double> (20,0.0) );
+  for ( int i = 0; i < maxIter; ++i ){
+    for ( int j = 0; j < nx; ++j ){
+      stk[j][i] = i*0.1*nx + 0.1*(j + 1);
+    }
+  }
+  return stk;
+}
+*/
+
 
 
 TEST_CASE( "uptsk" ){
@@ -44,52 +60,40 @@ TEST_CASE( "uptsk" ){
       s = {0,0,0,0,0,0};
 
       AND_WHEN( "stk is initialized to nearly all zeros" ){
-
-        Eigen::MatrixXd stk = Eigen::MatrixXd::Zero(nx,20);
-        stk(0,0) = 4.5e-4;
-
-        upstk( e, s, stk, nl, i );
-
+        std::vector<double> stk(40,0.0); stk[0] = 4.5e-4;
+        upstk( e, s, stk, nl, i, nx );
         THEN( "output is correct" ){
-          stkVals = { 4.0e-4, 0, 4.5e-4, 0 };
-          checkStk( stk, stkVals );
+            std::vector<double> stkVals(40,0.0);
+            stkVals[0] = 4.0e-4;
+            stkVals[2] = 4.5e-4;
+            REQUIRE(ranges::equal(stk, stkVals, equal));
         } // THEN
-
       } // AND WHEN
   
       AND_WHEN( "stk is initialized to some nonzero values" ){
-
         auto stk = initializeStk( nx, 5 );
-
-        upstk( e, s, stk, nl, i );
-
+        upstk( e, s, stk, nl, i, nx );
         stkVals = {4e-4, 0, 0.1, 0.2, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
 
         THEN( "output is correct" ){
-          checkStk( stk, stkVals );
+            checkPartOfVec(stk,stkVals);
+            restAreZero(stkVals.size(),stk);
         } // THEN
-
       } // AND WHEN
-
     } // WHEN
 
     WHEN( "cycle length is moderate (nx=4)" ){
       s[0] = 1.5e3;
       nx = 4;
       e = 1.8e-3;
-
       auto stk = initializeStk( nx, 3 );
-
-      upstk( e, s, stk, nl, i );
-
+      upstk( e, s, stk, nl, i, nx );
       stkVals = { 1.8e-3, 1500, 0.3, 0.4, 0.1, 0.2, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2 };
-
       THEN( "output is correct" ){
-        checkStk( stk, stkVals );
+        checkPartOfVec(stk,stkVals);
+        restAreZero(stkVals.size(),stk);
       } // THEN
-
     } // WHEN
-
   } // GIVEN
 
   GIVEN( "legendre order nl of 3" ){
@@ -99,38 +103,26 @@ TEST_CASE( "uptsk" ){
 
     WHEN( "cycle length is large (nx=6)" ){
       nx = 6;
-
       auto stk = initializeStk( nx, 3 );
-
-      upstk( e, s, stk, nl, i );
-
+      upstk( e, s, stk, nl, i, nx );
       stkVals = { 1.8e-3, 1500, 2500, 3500, 0.5, 0.6, 0.1, 0.2, 0.3, 0.4, 1.1, 
         1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8 };
-      
       THEN( "output is correct" ){
-        checkStk( stk, stkVals );
+        checkPartOfVec(stk,stkVals);
+        restAreZero(stkVals.size(),stk);
       } // THEN
-
     } // WHEN
-
     WHEN( "cycle length is moderate (nx=4)" ){
       nx = 4;
-
       auto stk = initializeStk( nx, 3 );
-
-      upstk( e, s, stk, nl, i );
-
+      upstk( e, s, stk, nl, i, nx );
       stkVals = { 1.8e-3, 1500, 2500, 3500, 0.1, 0.2, 0.3, 0.4, 0.9, 1.0, 1.1, 1.2 };
-
       THEN( "output is correct" ){
-          checkStk( stk, stkVals );
+        checkPartOfVec(stk,stkVals);
+        restAreZero(stkVals.size(),stk);
       } // THEN
-
     } // WHEN
-
   } // GIVEN
-
 } // TEST CASE
 
-*/
 
