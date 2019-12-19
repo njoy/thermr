@@ -158,13 +158,14 @@ inline auto sigl( int nlin, double e, double ep,
   // constant factors
   
   // """ 
-  // A stact is first primed with tthe point at zero, and the first point above
+  // A stact is first primed with the point at zero, and the first point above
   // can be derived from the positive and negative values of beta from the 
   // evaluator's beta grid using Eq. 226.
   // """ 
   // (pg. 170 of manual)
   // So b is supposed to be the first nonzero value for our stack.
   b = (lat == 1 and iinc == 2) ? (ep-e)/tevz : (ep-e)/tev; // Eq. 226
+  // lat == 1 means 
 
   tol  = 0.5*tolin;
   nl   = std::abs(nlin);

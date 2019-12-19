@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "calcem/calcem_util/e_ep_mu_util/380.h"
 
+/*
 TEST_CASE( "380" ){
   GIVEN( " " ){
     int i = 4, nl = 9, j = 66, nll, jnz = 0;
@@ -122,3 +123,4 @@ TEST_CASE( "380" ){
   } // GIVEN
 
 } // TEST CASE
+*/

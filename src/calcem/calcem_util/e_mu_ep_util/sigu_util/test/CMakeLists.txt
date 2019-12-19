@@ -1,7 +1,7 @@
 
 add_executable( calcem.calcem_util.e_mu_ep_util.sigu_util.test
-                begin_sigu.test.cpp
-                do150.test.cpp )
+                do150.test.cpp
+                begin_sigu.test.cpp )
 target_compile_options( calcem.calcem_util.e_mu_ep_util.sigu_util.test PRIVATE ${${PREFIX}_common_flags}
 $<$<BOOL:${strict}>:${${PREFIX}_strict_flags}>$<$<CONFIG:DEBUG>:
 ${${PREFIX}_DEBUG_flags}

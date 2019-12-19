@@ -8,6 +8,7 @@ void vecHasZeros( const std::vector<double>& v, size_t i1, size_t i2 ){
   }
 }
 
+/*
 TEST_CASE( "360" ){
   int i = 4, j = 4, jmax = 55550, ie = 1, nll = 32673, nl = 9;
   std::vector<double> xsi(95,0.0), x(20,0.0), p2(118,0.0), p3(118,0.0), 
@@ -94,3 +95,4 @@ TEST_CASE( "360" ){
     } // THEN
   } // GIVEN
 } // TEST CASE
+*/
