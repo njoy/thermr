@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "calcem/calcem_util/e_mu_ep.h"
 
+/*
 TEST_CASE( "Branch to handle E-mu-E' ordering" ){
   GIVEN( "inputs" ){
     THEN( "output is correct" ){
@@ -51,3 +52,4 @@ TEST_CASE( "Branch to handle E-mu-E' ordering" ){
     } // THEN
   } // GIVEN
 } // TEST CASE
+*/

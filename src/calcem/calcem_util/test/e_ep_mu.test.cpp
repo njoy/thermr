@@ -2,6 +2,7 @@
 #include "catch.hpp"
 #include "calcem/calcem_util/e_ep_mu.h"
 
+/*
 
 
 TEST_CASE( "Branch to handle E-E'-mu ordering" ){
@@ -10,7 +11,7 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
     int ncds = 0, iinc = 1, lat = 1, 
         lasym = 0, nnl = -9, nl = 9, jmax = 55550, nne = 94, iprint=2;
     double teff = 400.0, teff2 = 290.0, za = 6000.0, awr = 11.8969, emax = 1.2, 
-        cliq = 0.0, t = 350.0, tol = 5e-2, az = 11.9, /*az2 = 0.0,*/
+        cliq = 0.0, t = 350.0, tol = 5e-2, az = 11.9, //az2 = 0.0,
         sb = 12.5, sb2 = 6.6;
     std::vector<double> scr( 500000, 0.0 ), esi( 95, 0.0 ), xsi( 95, 0.0 );
     for (size_t i = 0; i < alpha.size(); ++i ){
@@ -33,7 +34,8 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
     std::setprecision(15);
 
     //e_ep_mu( teff, teff2, scr, za, awr, ncds, emax, cliq, iinc, lat, esi, xsi, 
-//      lasym, alpha, beta, sab, t, tol, az, /*az2,*/ sb, sb2, nnl, nl, jmax, nne, 
+//      lasym, alpha, beta, sab, t, tol, az, //
+//      sb, sb2, nnl, nl, jmax, nne, 
  //     iprint );
     //std::cout << "okay got to here" << std::endl;
     std::vector<double> correctScr { 0.0, 1.28, 0.0, 0.0, 700.0, 10.0, 0.0, 
@@ -151,7 +153,8 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
 
     std::setprecision(15);
 
-    //e_ep_mu( teff, teff2, scr, za, awr, ncds, emax, cliq, iinc, lat, esi, xsi, lasym, alpha, beta, sab, t, tol, az, /*az2,*/ sb, sb2, nnl, nl, jmax, nne, iprint );
+    //e_ep_mu( teff, teff2, scr, za, awr, ncds, emax, cliq, iinc, lat, esi, xsi, lasym, alpha, beta, sab, t, tol, az, 
+    //sb, sb2, nnl, nl, jmax, nne, iprint );
     //std::cout << "okay got to here" << std::endl;
     std::vector<double> correctScr { 0.0, 1.28, 0.0, 0.0, 690.0, 10.0, 0.0, 
       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.47, 2.4354583e-5, 
@@ -274,7 +277,7 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
 
     std::setprecision(15);
 
-    //e_ep_mu( teff, teff2, scr, za, awr, ncds, emax, cliq, iinc, lat, esi, xsi, lasym, alpha, beta, sab, t, tol, az, /*az2,*/ sb, sb2, nnl, nl, jmax, nne, iprint );
+    //e_ep_mu( teff, teff2, scr, za, awr, ncds, emax, cliq, iinc, lat, esi, xsi, lasym, alpha, beta, sab, t, tol, az,  sb, sb2, nnl, nl, jmax, nne, iprint );
     //std::cout << "okay got to here" << std::endl;
     std::vector<double> correctScr { 0.0, 1.28, 0.0, 0.0, 690.0, 10.0, 0.0, 
       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.47, 2.4354583e-5, 
@@ -368,3 +371,4 @@ TEST_CASE( "Branch to handle E-E'-mu ordering" ){
   } // GIVEN
 
 } // TEST CASE
+*/

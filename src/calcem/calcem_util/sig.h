@@ -1,19 +1,17 @@
-
 #ifndef THERMR_SIG
 #define THERMR_SIG
-
 
 #include "calcem/calcem_util/sig_util/terpq.h"
 #include "general_util/sigfig.h"
 #include <cmath>
-
 
 template <typename Float>
 auto cutoff( const Float proposedAnswer, const Float& cutoff=1e-10 ){
     return (proposedAnswer < cutoff) ? 0.0 : proposedAnswer;
 }
 
-inline double do160(double sigc, double sigma_b, double s, double bb, double sabflg ){
+template <typename Float>
+inline auto do160(Float sigc, Float sigma_b, Float s, Float bb, Float sabflg ){
   // Based off of Eq. 225, it appears that s = S(a,b). 
   // sigc = sqrt(E'/E)/(2 kb T), sigma_b = sigma_b, and bb = beta. 
   // Note that calling do160 at the very and of sig seems mysterious, because
@@ -24,22 +22,24 @@ inline double do160(double sigc, double sigma_b, double s, double bb, double sab
   return sigc * sigma_b * exp(s-bb/2);
 }
 
-inline auto do155( int ia, int ib, const std::vector<double>& alpha,
-    const std::vector<double>& beta, const std::vector<std::vector<double>>& sab,
-    double a, double bbb, double sigc, double sigma_b, double bb, double sabflg ){
+template <typename Float, typename Range>
+inline auto do155( int ia, int ib, const Range& alpha,
+    const Range& beta, const std::vector<std::vector<Float>>& sab,
+    Float a, Float bbb, Float sigc, Float sigma_b, Float bb, Float sabflg ){
    if ( (unsigned) ia+1 == alpha.size()) ia -= 1;
    if ( (unsigned) ib+1 == beta.size())  ib -= 1;
    ia -= 1; ib -= 1;
-   double s1 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib+0], sab[ia+1][ib+0], sab[ia+2][ib+0] ),
+   Float s1 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib+0], sab[ia+1][ib+0], sab[ia+2][ib+0] ),
           s2 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib+1], sab[ia+1][ib+1], sab[ia+2][ib+1] ),
           s3 = terpq( alpha[ia], alpha[ia+1], alpha[ia+2], a, sab[ia][ib+2], sab[ia+1][ib+2], sab[ia+2][ib+2] );
-   double s  = terpq( beta[ib], beta[ib+1], beta[ib+2], bbb, s1, s2, s3 );
+   Float s  = terpq( beta[ib], beta[ib+1], beta[ib+2], bbb, s1, s2, s3 );
    return do160(sigc, sigma_b, s, bb, sabflg );
 }
 
 
-inline auto doSCTApproximation( double a, double teff, double sigc, 
-  double sigma_b2, double tev, double sabflg, double bb, double sigma_b ){
+template <typename Float>
+inline auto doSCTApproximation( Float a, Float teff, Float sigc, 
+  Float sigma_b2, Float tev, Float sabflg, Float bb, Float sigma_b ){
  /* The SCT approximation is calculated, according to Eq. 230. Note that since
   * some evaluations give S(a,b) for a molecule or compund (e.g. C6H6 or BeO), 
   * the corresponding SCT approximation must contin terms for both atoms.
@@ -47,26 +47,25 @@ inline auto doSCTApproximation( double a, double teff, double sigc,
   * account the secondary atom's parameters.
   */
   using std::abs;
-  double arg, sigVal = 0, s;
+  Float arg, sigVal = 0, s;
   // If sigma_b2 > 0, then we're going to have to add the second atom's contribution to sig. 
-  for ( const double& sigma_b_val : {sigma_b, sigma_b2} ){ // Eq. 230 in the NJOY manual
+  for ( const Float& sigma_b_val : {sigma_b, sigma_b2} ){ // Eq. 230 in the NJOY manual
     arg = (a-abs(bb))*(a-abs(bb))*tev/(4.0*a*teff) + (abs(bb)+bb)/2.0;
     s   = (-arg > sabflg) ? exp(-arg)/(sqrt(4.0*M_PI*a*teff/tev)) : 0;
     sigVal += sigc * sigma_b_val * s;
   }
-
   return sigVal;
-
 }
 
 
-inline auto sig( const double& e, const double& ep, const double& u, 
-  const double& tev,  
-  const std::vector<double>& alpha, const std::vector<double>& beta,
-  const std::vector<std::vector<double>>& sab, const double az, 
-  const double tevz, const int lasym,// const double az2, const double teff2, 
-  const int lat, const double cliq, const double sigma_b, const double sigma_b2, 
-  const double teff, const int iinc ){
+template <typename Float, typename Range>
+inline auto sig( const Float& e, const Float& ep, const Float& u, 
+  const Float& tev,  
+  const Range& alpha, const Range& beta,
+  const std::vector<std::vector<Float>>& sab, const Float az, 
+  const Float tevz, const int lasym,// const Float az2, const Float teff2, 
+  const int lat, const Float cliq, const Float sigma_b, const Float sigma_b2, 
+  const Float teff, const int iinc ){
 
  /*-------------------------------------------------------------------
   * Compute the differential scattering cross section from e to
@@ -75,28 +74,32 @@ inline auto sig( const double& e, const double& ep, const double& u,
   *-------------------------------------------------------------------
   */
   int i,ib,ia;
-  double bb,a,sigc,b,s,s1,s2,s3,bbm,sctResult;
-  double sabflg=-225.e0, amin=1.e-6, test1=0.2e0,
-         test2=30.e0;
-  double sigVal;
+  Float bb,a,sigc,b,s,s1,s2,s3,bbm,sctResult;
+  Float sabflg=-225.e0, amin=1.e-6, test1=0.2e0, test2=30.e0;
+  Float sigVal;
 
   // common factors.
   sigc=sqrt(ep/e)/(2.0*tev);
 
 
+  if (iinc != 1 and iinc != 2){ throw std::exception(); }
   // -------------------------------------------------------------------------
   // So the whole source of confusion here is that leapr has this option with
   // lat, where if you set lat = 1 it will scale all alpha, beta values by
   // 0.0253/tev, and if lat = 0 then no such operation will be performed. Here,
   // we're checking to see if lat = 1 or not and undoing this scaling. 
   // -------------------------------------------------------------------------
-  double a_tev   = (e+ep-2*u*sqrt(e*ep))/(az*tev);
-  double a_tevz  = (e+ep-2*u*sqrt(e*ep))/(az*tevz);
-  double bb_tev  = (ep-e)/tev;     
-  double bb_tevz = (ep-e)/tevz;
+  Float a_tev   = (e+ep-2*u*sqrt(e*ep))/(az*tev);
+  Float a_tevz  = (e+ep-2*u*sqrt(e*ep))/(az*tevz);
+  Float bb_tev  = (ep-e)/tev;     
+  Float bb_tevz = (ep-e)/tevz;
+
   if ( a_tev < amin ){ a_tev = amin; a_tevz = amin * tev / tevz; }
 
-  if (iinc != 1 and iinc != 2){ throw std::exception(); }
+  if ( lat == 1 ){ b = std::abs(bb_tevz); a = a_tevz; bbm = bb_tevz; }
+  else           { b = std::abs(bb_tev ); a = a_tev ; bbm = bb_tev ; }
+  b = sigfig(b,8,0);
+
 
   // ----------------------------------------------------------------------
   // ------------------------ FREE GAS SCATTERING ------------------------ 
@@ -104,7 +107,7 @@ inline auto sig( const double& e, const double& ep, const double& u,
   // free-gas scattering. Plug Eq. 229 into Eq. 225, solve.
   if ( iinc == 1 ){ 
     // S(a,b) = 1/sqrt(4pi*a) * exp( - ( a^2 + b^2 ) / 4a )          [Eq. 229]
-    double sab = 1.0/sqrt(4.0*M_PI*a_tev) * exp( -(a_tev*a_tev + bb_tev*bb_tev)/(4.0*a_tev) );
+    Float sab = 1.0/sqrt(4.0*M_PI*a_tev) * exp( -(a_tev*a_tev + bb_tev*bb_tev)/(4.0*a_tev) );
     // sigma = sigma_b / 2 kb T  * sqrt(E'/E) * exp( -b/2 ) * S(a,b) [Eq. 225]
     // Note that sigma_b is the bound scattering cross section, which is 
     // defined by Eq. 228 to be 
@@ -118,27 +121,19 @@ inline auto sig( const double& e, const double& ep, const double& u,
   // ----------------------------------------------------------------------
   // -------------------------- BOUND SCATTERING -------------------------- 
   // ----------------------------------------------------------------------
-  // Now we change the definitions of a and b so that they're defined using
-  // tevz instead of tev
-  if ( lat == 1 ){ b = std::abs(bb_tevz); a = a_tevz; }
-  else           { b = std::abs(bb_tev ); a = a_tev ; }
-  b = sigfig(b,8,0);
+  //bool outOfRange = false;
 
   if (a > alpha[alpha.size()-1]) {  // go to 170
     return cutoff( doSCTApproximation( a_tev, teff, sigc, sigma_b2, tev, sabflg, bb_tev, sigma_b ) );
   }
 
-  if (lasym == 1) {  // Symmetric S(a,b) for ortho/para hydrogen (need both +/- beta sides)
-    bbm = (lat == 1) ? bb_tevz : bb_tev;
-    if ( bbm > beta[beta.size()-1] or bbm < beta[0] ){ // go to 170
+  Float maxBeta = beta[beta.size()-1];
+
+  // lasym = 1 means Symmetric S(a,b) and ortho/para hydrogen (need +/- beta sides)
+  if ( (lasym == 1 and (bbm > maxBeta or bbm < beta[0])) or 
+                       (b   > maxBeta                 ) ){ 
       return cutoff( doSCTApproximation( a_tev, teff, sigc, sigma_b2, tev, sabflg, bb_tev, sigma_b ) );
-    } 
-  } // end if 
-  else {
-    if ( b > beta[beta.size()-1] ){
-      return cutoff( doSCTApproximation( a_tev, teff, sigc, sigma_b2, tev, sabflg, bb_tev, sigma_b ) );
-     }
-  } // end if
+  }
 
   if (cliq == 0.0 or a >= alpha[0] or lasym == 1 or b >= test1 ){ 
     // Find index ia such that alpha[ia-1] < a < alpha[ia]. Same for ib
