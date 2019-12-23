@@ -1,17 +1,80 @@
 #include "calcem/calcem_util/sig.h"
 #include "general_util/sigfig.h"
+#include <range/v3/all.hpp>
 #include <cmath>
 
 template <typename Float>
-inline Float maxOf3Vals( const Float& a, const Float& b, const Float& c ){
-  return (a < b) ? (b < c ? c : b) : (a < c ? c : a);
+inline Float maxOf4Vals( const Float a, const Float b, const Float c, const Float d ){
+  return (a < b) ? (b < c ? (c < d ? d : c ) : (b < d ? d : b)) 
+                 : (a < c ? (c < d ? d : c ) : (a < d ? d : a));
+}
+
+
+
+
+template <typename Range, typename Float>
+auto do_190(Range xsVec, Float xn, Float xil, Float muLeft, Float xsLeft, Float fract, int i){
+  std::cout << " --- 190 --- " << std::endl;
+  Float yn = xsLeft + (xsVec[i-1]-xsLeft)*(xn-muLeft)*xil;
+  Float gral = gral + (xn-muLeft)*(xsLeft*0.5*(xn+muLeft) + 
+        (xsVec[i-1]-xsLeft)*xil*(-muLeft*0.5*(xn+muLeft)
+            + (1.0/3.0)*(xn*xn+xn*muLeft+muLeft*muLeft)));
+  Float xbar = gral / fract;
+  return std::make_tuple<double,double,double>(yn,gral,xbar);
 }
 
 
 template <typename Range, typename Float>
+auto do_170_175_180(Float& fract, Float& sum, Range& xsVec, Range& muVec, 
+  Float& xsLeft, Float& muLeft, int& i, int& j, Float& xil ){
+
+  std::cout << " --- 170 --- " << std::endl;
+  j++; 
+  Float gral=0.0, xn, yn, xbar;
+
+  Float test = (fract-sum)*(xsVec[i-1]-xsLeft)/((muVec[i-1]-muLeft)*xsLeft*xsLeft);
+  if ( xsLeft >= 1e-32 and abs(test) <= 1e-3 ){
+      // Could potentially do 180, 190
+      Float xn = muLeft + ( fract-sum)/xsLeft;
+      if ( xn > muVec[i-1] ){
+        std::cout << " --- 180 --- " << std::endl;
+        xn = muVec[i-1];
+        return xn;
+
+      } 
+      if ( xn >= muLeft and xn <= muVec[i-1] ){
+        std::cout << " --- 190 --- " << std::endl;
+        return xn;
+      }
+
+  }
+  std::cout << " --- 175 --- " << std::endl;
+  Float f = (xsVec[i-1]-xsLeft)*xil;
+  Float disc = (xsLeft/f)*(xsLeft/f)+2.0*(fract-sum)/f;
+  if ( disc < 0 ){ throw std::exception(); }
+  if (f > 0){ xn = muLeft - (xsLeft/f) + pow(disc,0.5); }
+  if (f < 0){ xn = muLeft - (xsLeft/f) - pow(disc,0.5); }
+
+  if (xn > muLeft and xn <= muVec[i-1]){ 
+      std::cout << "to to 190" << std::endl; 
+      return xn;
+  }
+  else if (xn > muLeft and xn < (muVec[i-1]+1e-3*(muVec[i-1]-muLeft))){ 
+      std::cout << " --- 180 --- " << std::endl;
+      xn = muVec[i-1];
+      return xn;
+  }
+  else { throw std::exception(); }
+
+
+}
+
+
+
+template <typename Range, typename Float>
 inline auto adaptiveLinearization( Range& x, Range& y, const Float& e, 
-  const Float& ep, const Float& tev, const Float& tevz, const Range& alpha, 
-  const Range& beta,const Range& sab, const Float& az, 
+  const Float& ep, const Float& tev, const Float& tevz, const Range& alphas, 
+  const Range& betas, const Range& sab, const Float& az, 
   const int& lasym, const Float& teff, const int& lat, 
   const Float& sb, const Float& sb2, const int& iinc, const Float& eps, 
   const Float& seep, const Float& s1bb  ){
@@ -27,18 +90,18 @@ inline auto adaptiveLinearization( Range& x, Range& y, const Float& e,
   // adaptive linearization
   // Consider a cosine mu equal to -1. What's the cross section?
   x[2] = -1;
-  y[2] = sig(e,ep,x[2],tev,alpha,beta,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
+  y[2] = sig(e,ep,x[2],tev,alphas,betas,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
 
   // Consider a cosine mu that corresponds to an alpha value of sqrt(1+beta^2).
   // What's the cross section?
   x[1] = 0.5 * seep * ( e + ep - (s1bb-1) * az * tev );
   if (std::abs(x[1]) > 1-eps) x[1] = 0.99;
   x[1] = sigfig(x[1],8,0);
-  y[1] = sig(e,ep,x[1],tev,alpha,beta,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
+  y[1] = sig(e,ep,x[1],tev,alphas,betas,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
 
   // Consider a cosine mu equal to 1. What's the cross section?
   x[0] = 1;
-  y[0] = sig(e,ep,x[0],tev,alpha,beta,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
+  y[0] = sig(e,ep,x[0],tev,alphas,betas,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
 
   Float ymax = maxOf3Vals(y[0],y[1],y[2]);
   //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "in sigl     " << y[1] << "     " << y[2] << std::endl;
@@ -62,10 +125,10 @@ inline void shiftOver( int& i, Range& x, Range& y, Float& muMid, const Float& yt
 
 template <typename Range, typename Float>
 inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Float& ep, 
-  const Float& tev, const Range& alpha, const Range& beta, const Range& sab, 
+  const Float& tev, const Range& alphas, const Range& betas, const Range& sab, 
   const Float& az, const Float tevz, const int& lasym, const int& lat, 
   const Float& sb, const Float& sb2, const Float& teff, const int& iinc, 
-  const Float& mu_tol, const Float& tol, const Float& ymax){
+  const Float& tol, const Float& ymax){
 
   // If the spacing isn't fine enough, we'll bisect the grid
   //
@@ -87,12 +150,12 @@ inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Flo
     muMid = 0.5*( muVec[i-2] + muVec[i-1] );
     muMid = sigfig(muMid,8,0);
     xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
-    xs_true  = sig(e,ep,muMid,tev,alpha,beta,sab,az,tevz,lasym,lat,sb,sb2,teff,iinc);
+    xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,tevz,lasym,lat,sb,sb2,teff,iinc);
     
     if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*ymax/50.0 and 
            abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+ymax/100.0 and 
            (muVec[i-2]-muVec[i-1]) < 0.5 ) or
-          ( muVec[i-2]-muVec[i-1] < mu_tol ) ) { 
+          ( muVec[i-2]-muVec[i-1] < 1e-5 ) ) { 
       return; 
     }
 
@@ -106,8 +169,12 @@ inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Flo
 
 template <typename Range, typename Float>
 inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL, 
-  int lat, int iinc  ){
+  int lat, int iinc, Range& alphas, Range& betas, Range& sab, Float az,
+  int lasym, Float sigma_b, Float sigma_b2, Float teff ){
 
+  using std::abs;
+  using std::min;
+  using std::pow;
 
   Float beta = std::abs((ep-e)/tev);
   Float tol = 0.5*tolin;
@@ -122,13 +189,169 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
 
   Range muVec(20), xsVec(20);
 
-  muVec[2] = -1.0; xsVec[2] = sig(e,ep,x[2],tev,alpha,beta,sab); 
+  muVec[0] =  1.0; 
+  muVec[2] = -1.0; 
+  muVec[1] = (ep==0.0) ? 0.0 : 
+                         0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev)
+                             * pow(e*ep,-0.5);
+  if (abs(muVec[1]) > 0.99){ muVec[1] = 0.99; }
+
+  xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+
+
+  Float muLeft = muVec[2],
+        xsLeft = xsVec[2];
+
+  Float xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
+
+
+
+  while ( true ){
+    do_110(i, muVec, xsVec,  e,  ep, tev, alphas, betas, sab, az, tevz, lasym, 
+           lat, sigma_b,  sigma_b2,  teff, iinc, tol,  xsMax);
+
+    // 200                      
+    while ( true ){
+      sum += 0.5*( xsVec[i-1] + xsLeft )*(muVec[i-1]-muLeft);
+      muLeft = muVec[i-1];
+      xsLeft = xsVec[i-1];
+      i -= 1;
+    
+      if ( i != 1 ){ break; }
+    }
+
+    if ( i <= 1 ){ break; }
+  }
+
+
+
+  std::vector<double> s(65,0.0);
+
+  s[0] = sum;
+  if ( sum <= 1e-32 ){
+    for (int i = 0; i < nL; ++i){
+        s[i] = 0.0;
+    }
+  }
+
+  // 130
+  int nbin = nL - 1;
+  Float fract = sum/(1.0*nbin);
+  sum = 0.0;
+  Float gral = 0.0;
+  for (int i = 1; i < nL; ++i){
+    s[i] = 0.0;
+  }
+  int j = 0;
+
+
+
+  //---------------------------------------------------------------------------
+  i = 3;
+  //---------------------------------------------------------------------------
+  muVec[0] =  1.0; 
+  muVec[2] = -1.0; 
+  muVec[1] = (ep==0.0) ? 0.0 : 
+                         0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev)
+                             * pow(e*ep,-0.5);
+  if (abs(muVec[1]) > 0.99){ muVec[1] = 0.99; }
+
+  xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+
+
+  muLeft = muVec[2],
+  xsLeft = xsVec[2];
+
+  xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
+  std::cout << (xsVec|ranges::view::all) << std::endl;
+  std::cout << (muVec|ranges::view::all) << std::endl;
+
+  Float xn=0.0;
+
+  while (true){
+    std::cout << " --- 150 ---  "<< std::endl;
+    // 150
+    do_110(i, muVec, xsVec,  e,  ep, tev, alphas, betas, sab, az, tevz, lasym, 
+           lat, sigma_b,  sigma_b2,  teff, iinc, tol,  xsMax);
+
+
+    while (true){
+      std::cout << " --- 160 ---  "<< std::endl;
+      // 160
+      Float add = 0.5*(xsVec[i-1]+xsLeft)*(muVec[i-1]-muLeft);
+
+
+      if (muVec[i-1] == muLeft) {  // 250
+          std::cout << " --- 250 ---  "<< std::endl;
+          //std::cout << "go to 250" << std::endl; 
+          muLeft = muVec[i-1];
+          xsLeft = xsVec[i-1];
+          i -= 1;
+          if ( i > 1 ){ break; }
+          if ( i != 1 ){ return; }
+      }
+
+      Float xil = 1.0/(muVec[i-1]-muLeft);
+      Float shade = 0.99999999;
+
+      if ( i == 1 and j == nbin-1 ){
+          std::cout << " --- 165 ---  "<< std::endl;
+          xn = muVec[i-1];
+          j++;
+          std::cout << "go to 190" << std::endl;
+          do_190(xsVec, xn, xil, muLeft, xsLeft, fract, i);
+          return ;
+      }
+      else if ( sum + add >= fract * shade and j < nbin - 1 ){
+          xn = do_170_175_180(fract, sum, xsVec, muVec, xsLeft, muLeft, i, j, xil );
+          do_190(xsVec, xn, xil, muLeft, xsLeft, fract, i);
+      }
+
+      sum += add;
+      gral = gral + 0.5 * (xsLeft*muVec[i-1]-xsVec[i-1]*muLeft)*(muVec[i-1]+muLeft)+0.333333*(xsVec[i-1]-xsLeft)*(muVec[i-1]*muVec[i-1]+muVec[i-1]*muLeft+muLeft*muLeft);
+      std::cout << " --- 250 ---  "<< std::endl;
+      muLeft = muVec[i-1];
+      xsLeft = xsVec[i-1];
+      i -= 1;
+      if ( i > 1 ){ break; }
+      if ( i != 1 ){ return; }
+
+
+
+    }
+
+  }
+
+
+  //std::cout << (xsVec|ranges::view::all) << std::endl;
+  //std::cout << (muVec|ranges::view::all) << std::endl;
+
+
+
+
+
+
+  //std::cout << nbin << std::endl;
+
+  //std::cout << muVec[0] << "   " << muVec[1] << "    " << muVec[2] << std::endl;
+
+
+  //std::cout << i << std::endl;
+  //std::cout << sum << std::endl;
+
+  //std::cout << (muVec|ranges::view::all) << std::endl;
+  //std::cout << std::endl;
+  //std::cout << (xsVec|ranges::view::all) << std::endl;
+
+
+
+  return;
+  std::cout << sigma_b << "   " << sigma_b2<<std::endl;
   //muVec[1] =  1.0; xsVec[1] =  1.0;
-
-
-  
-
-
 
 
   //Float xsLeft = xsVec[3];

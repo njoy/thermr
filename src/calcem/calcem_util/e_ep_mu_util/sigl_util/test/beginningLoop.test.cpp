@@ -6,6 +6,7 @@
 
 auto equal = [](auto x, auto y, double tol = 1e-6){return x == Approx(y).epsilon(tol);};
 
+/*
 TEST_CASE( "110" ){
   std::vector<double> x(20,0.0), y(20,0.0);
   x[0] =  1.0; x[2] = -1.0;
@@ -23,10 +24,10 @@ TEST_CASE( "110" ){
     } 
   } 
   double az = 0.99917, tevz = 2.53e-2, sigma_b = 163.72792237360667, 
-         sigma_b2 = 0.0, teff = 0.120441926577313, xtol = 1e-5, tol = 2.5e-2, ymax = 1e-3;
+         sigma_b2 = 0.0, teff = 0.120441926577313, tol = 2.5e-2, ymax = 1e-3;
   int lasym = 0, lat = 1, iinc = 2; 
 
-  do_110(i,x,y,e,ep,tev,alpha,beta,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc,xtol,tol,ymax);
+  do_110(i,x,y,e,ep,tev,alpha,beta,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc,tol,ymax);
   std::vector<double> 
     correct_x { 1.0, 0.0, -0.5, -0.75, -0.875, -0.9375, -0.96875, -0.984375, 
     -0.9921875, -0.99609375, -0.99804687, -0.99902343, -0.99951171, -0.99975585, 
@@ -41,9 +42,89 @@ TEST_CASE( "110" ){
 
 
 }
+*/
 
 
 
+TEST_CASE( "170-180" ){
+  double fract = 312.0, sum = 0.0, muLeft = -1.0, xsLeft = 1252.9281013622765, xil = 2.0100502512564842; 
+  int i = 4, j = 0;
+
+  std::vector<double> 
+    muVec  { 1.0, 0.99, -5.0E-3, -0.5025, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+    xsVec { 1250.5627281224217, 1250.5869704560703, 1252.1124859871622, 1252.5658596359865, 1252.9281013622765, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  WHEN( "170 -> leave " ){
+    THEN( "nothing changed" ){ 
+      auto xn = do_170_175_180( fract, sum, xsVec, muVec, xsLeft, muLeft, i, j, xil );
+      REQUIRE( fract   == Approx(312.0).epsilon(1e-6) );
+      REQUIRE( sum     == Approx(  0.0).epsilon(1e-6) );
+      REQUIRE( muLeft  == Approx( -1.0).epsilon(1e-6) );
+      REQUIRE( xsLeft  == Approx(1252.92810136).epsilon(1e-6) );
+      REQUIRE( i == 4 );
+      REQUIRE( j == 1 ); 
+      REQUIRE(xn == Approx(-0.7509833168).epsilon(1e-6));
+    } // THEN
+  } // WHEN 
+
+
+  WHEN( "170 -> 175 -> 180 -> leave " ){
+    xsLeft *= 0.001;
+    THEN( "nothing changed" ){ 
+      auto xn = do_170_175_180( fract, sum, xsVec, muVec, xsLeft, muLeft, i, j, xil );
+      REQUIRE( fract   == Approx(312.0).epsilon(1e-6) );
+      REQUIRE( sum     == Approx(  0.0).epsilon(1e-6) );
+      REQUIRE( muLeft  == Approx( -1.0).epsilon(1e-6) );
+      REQUIRE( xsLeft  == Approx(1.25292810136).epsilon(1e-6) );
+      REQUIRE( i == 4 );
+      REQUIRE( j == 1 ); 
+      REQUIRE(xn == Approx( -0.5025).epsilon(1e-6));
+    } // THEN
+  } // WHEN 
+ 
+} // TEST CASE
+
+
+
+
+
+    
+
+
+
+
+/*
+
+
+
+TEST_CASE( "dothings" ){
+  double e = 1e-2, ep = 1e-3, tev = 0.025, tolin = 5e-2, az = 0.99917, sigma_b = 163.727922373, sigma_b2 = 0.0, teff = 0.120441926577;
+  int nL = -9, lat = 1, iinc = 2, lasym = 0;
+  std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
+                       betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
+  std::vector<double> sab(alphas.size()*betas.size());
+  for ( size_t i = 0; i < alphas.size(); ++i ){
+    for ( size_t j = 0; j < betas.size(); ++j ){
+      sab[i*betas.size()+j] = 0.01*((j+1) + 0.1*(i+1));
+    } 
+  } 
+
+  do_things(ep,e,tev,tolin,nL,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+  std::vector<double> 
+    correct_x { 1.0, 0.0, -0.5, -0.75, -0.875, -0.9375, -0.96875, -0.984375, 
+    -0.9921875, -0.99609375, -0.99804687, -0.99902343, -0.99951171, -0.99975585, 
+    -0.99987792, -0.99993896, -0.99996948, -0.99998474, -0.99999237, -1.0},
+    correct_y { 2.5, 0.0, 143662.33773, 136248.865859, 132948.05965, 
+    131385.1453676, 130624.0785461, 130248.4714971, 130061.878966, 129968.882923, 
+    129922.4597632, 129899.2668299, 129887.6750200, 129881.880278, 129878.983198, 
+    129877.5346130, 129876.8103382, 129876.4482054, 129876.267140, 4.0};
+
+  //REQUIRE(ranges::equal(correct_x, x, equal));
+  //REQUIRE(ranges::equal(correct_y, y, equal));
+
+
+}
+*/
 
 
 
