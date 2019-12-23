@@ -19,9 +19,6 @@ template <typename Float>
 Float freeGas( Float alpha, Float beta, Float sab_to_xs_consts ){ 
   // Follows Eq. 225, 228, 229 in LEAPR manual.
   Float sab = pow(4.0*M_PI*alpha,-0.5) * exp(-(alpha*alpha+beta*beta)/(4.0*alpha));
-  //std::cout << exp(-(alpha*alpha+beta*beta)/(4.0*alpha)) << std::endl;
-  //std::cout << exp(-(alpha*alpha+beta*beta)/(4.0*alpha))*exp(beta*0.5)<< std::endl;
-  //std::cout << pow(4.0*M_PI*alpha,-0.5) << std::endl;
   return cutoff(sab_to_xs_consts*exp(-beta*0.5)*sab);
 } 
 
@@ -102,7 +99,9 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
   // ----------------------------------------------------------------------
   // ------------------------ FREE GAS SCATTERING ------------------------- 
   // ----------------------------------------------------------------------
-  if ( iinc == 1 ){  return freeGas( alpha, beta, sigma_b*sigc ); }
+  if ( iinc == 1 ){ 
+      return freeGas( alpha, beta, sigma_b*sigc ); 
+  }
 
 
 
@@ -152,6 +151,10 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
     return cutoff( doSCT(alpha,teff,sigc,sigma_b2,tev,sabflg,beta,sigma_b) );
   }
 
+
+  // ........................................................................//
+  // Just interpolate on the S(a,b) grid for the right value.                //
+  // ........................................................................//
 
   auto sabVal = interpolateSAB( ia, ib, alphas, betas, sab, alpha_scaled, abs(beta_scaled), beta);
   return cutoff( sigc * sigma_b * sabVal);
