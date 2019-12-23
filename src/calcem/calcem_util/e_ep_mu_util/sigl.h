@@ -173,7 +173,8 @@ inline auto sigl( int nlin, double e, double ep,
   sum  = 0;
   i    = 3;
   xl   = -1;
-  yl = sig(e,ep,xl,tev,alpha,beta,sab,az,tevz,lasym,/*az2,teff2,*/lat,cliq,sb,sb2,teff,iinc);
+  std::vector<double> sab2 (beta.size()*alpha.size());
+  yl = sig(e,ep,xl,tev,alpha,beta,sab2,az,tevz,lasym,lat,sb,sb2,teff,iinc);
 
   seep = (ep == 0) ? 0.0 : 1.0/sqrt(e*ep);
 
@@ -185,13 +186,13 @@ inline auto sigl( int nlin, double e, double ep,
   // mu1 = -1, 
   // mu2 = mu such that alpha equals sqrt(1+beta^2)
   // mu3 = 1
-  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, /*az2,*/
-      lasym, teff, /*teff2,*/ lat, cliq, sb, sb2, iinc, eps, seep, s1bb );
+  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, 
+      lasym, teff,  lat, cliq, sb, sb2, iinc, eps, seep, s1bb );
   //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )return;
 
 
   auto out = do_110_120_130_for_sigl( i, x, y, e, ep, tev, tevz, alpha, beta, sab,  
-      az, /*az2,*/ lasym, teff, /*teff2,*/ lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
+      az,  lasym, teff,  lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
       nbin, fract, xl, j, ymax, yl, tol, xtol );
 
   if (std::get<2>(out)) { return; }
@@ -199,8 +200,8 @@ inline auto sigl( int nlin, double e, double ep,
   gral = std::get<0>(out);
   sum  = std::get<1>(out);
 
-  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, /*az2,*/
-      lasym, teff, /*teff2,*/ lat, cliq, sb, sb2, iinc, eps, seep, s1bb );
+  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, 
+      lasym, teff,  lat, cliq, sb, sb2, iinc, eps, seep, s1bb );
 
 
   bool go_straight_to_150_from_190 = true;

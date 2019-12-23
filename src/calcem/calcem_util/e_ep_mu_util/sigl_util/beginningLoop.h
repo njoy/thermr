@@ -2,19 +2,19 @@
 #include "general_util/sigfig.h"
 #include <cmath>
 
-inline double maxOf3Vals( const double& a, const double& b, const double& c ){
+template <typename Float>
+inline Float maxOf3Vals( const Float& a, const Float& b, const Float& c ){
   return (a < b) ? (b < c ? c : b) : (a < c ? c : a);
 }
 
-inline auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& y, 
-  const double& e, const double& ep, const double& tev, const double& tevz, 
-  const std::vector<double>& alpha, const std::vector<double>& beta,
-  const std::vector<std::vector<double>>& sab, 
-  const double& az, /*const double& az2,*/ const int& lasym, const double& teff, 
-  /*const double& teff2,*/ const int& lat, const double& cliq, const double& sb, 
-  const double& sb2, const int& iinc, 
-  const double& eps, const double& seep, 
-  const double& s1bb  ){
+
+template <typename Range, typename Float>
+inline auto adaptiveLinearization( Range& x, Range& y, const Float& e, 
+  const Float& ep, const Float& tev, const Float& tevz, const Range& alpha, 
+  const Range& beta,const Range& sab, const Float& az, 
+  const int& lasym, const Float& teff, const int& lat, 
+  const Float& sb, const Float& sb2, const int& iinc, const Float& eps, 
+  const Float& seep, const Float& s1bb  ){
   /* So here we consider three angles - a cosine value of -1, a cosine value 
    * that corresponds to alpha = sqrt(1+beta^2) [According to Eq. 227], and a
    * cosine value of 1. We calculate the incoherent cross sections for all 
@@ -27,24 +27,20 @@ inline auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& 
   // adaptive linearization
   // Consider a cosine mu equal to -1. What's the cross section?
   x[2] = -1;
-//  if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "going into sig     " << y[2] << std::endl;
-  y[2] = sig(e,ep,x[2],tev,alpha,beta,sab,az,tevz,lasym,/*az2,teff2,*/lat,cliq,sb,sb2,teff,iinc);
-//  if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "finished sig     " << y[2] << std::endl;
-//  if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 ) return 0.0;
+  y[2] = sig(e,ep,x[2],tev,alpha,beta,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
 
   // Consider a cosine mu that corresponds to an alpha value of sqrt(1+beta^2).
   // What's the cross section?
   x[1] = 0.5 * seep * ( e + ep - (s1bb-1) * az * tev );
   if (std::abs(x[1]) > 1-eps) x[1] = 0.99;
   x[1] = sigfig(x[1],8,0);
-  y[1] = sig(e,ep,x[1],tev,alpha,beta,sab,az,tevz,lasym,
-    /*az2,teff2,*/lat,cliq,sb,sb2,teff,iinc);
+  y[1] = sig(e,ep,x[1],tev,alpha,beta,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
 
   // Consider a cosine mu equal to 1. What's the cross section?
   x[0] = 1;
-  y[0] = sig(e,ep,x[0],tev,alpha,beta,sab,az,tevz,lasym,/*az2,teff2,*/lat,cliq,sb,sb2,teff,iinc);
+  y[0] = sig(e,ep,x[0],tev,alpha,beta,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
 
-  double ymax = maxOf3Vals(y[0],y[1],y[2]);
+  Float ymax = maxOf3Vals(y[0],y[1],y[2]);
   //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "in sigl     " << y[1] << "     " << y[2] << std::endl;
   return ( ymax < eps ) ? eps : ymax;
 
@@ -52,98 +48,131 @@ inline auto adaptiveLinearization( std::vector<double>& x, std::vector<double>& 
 
 
 
-inline void shiftOver( int& i, std::vector<double>& x, std::vector<double>& y, 
-  double& xm, const double& yt ){
+template <typename Range, typename Float>
+inline void shiftOver( int& i, Range& x, Range& y, Float& muMid, const Float& yt ){
   // x = [   mu1      mu2          mu3            0    0   0 ... ]
   // y = [ s(mu1)   s(mu2)       s(mu3)           0    0   0 ... ]
-  //   |
-  //   |  
-  //   V
+  //  becomes 
   // x = [   mu1      mu2      0.5*(mu2+mu3)     mu3   0   0 ... ]
   // y = [ s(mu1)   s(mu2)   s(0.5*(mu2+mu3))  s(mu3)  0   0 ... ]
- 
-  i = i + 1;
-  x[i-1] = x[i-2];
-  y[i-1] = y[i-2];
-  x[i-2] = xm;
-  y[i-2] = yt;
+  i++;
+  x[i-1] = x[i-2]; x[i-2] = muMid;
+  y[i-1] = y[i-2]; y[i-2] = yt;
 }
 
-inline auto do_110(int& i, std::vector<double>& x, std::vector<double>& y, 
-  const double& e, const double& ep, const double& tev, 
-  const std::vector<double>& alpha, const std::vector<double>& beta, 
-  const std::vector<std::vector<double>>& sab, const 
-  double& az, const double tevz, const int& lasym, /*const double& az2, const 
-  double& teff2,*/ const int& lat, const double& cliq, const double& sb, const 
-  double& sb2, const double& teff, const int& iinc, const double& xtol, 
-  const double& tol, const double& ymax){
-  /* So note that here, x[i-2] = mu_a, x[i-1] = mu_c. Similarly, y[i-2] is 
-   * the incoh. cross section [Eq. 225] corresponding to mu_a, and y[i-1] is
-   * the incoh. cross section [Eq. 225] corresponding to mu_c.
-   *
-   * s(mu_1) is the incoh. cross section corresponding to cosine mu_1
-   *
-   * We check to see if the grid is fine enough. 
-   * 
-   * Consider mu_b = 1/2 * ( mu_a + mu_c )
-   * If we trust our grid, then 
-   *  
-   *   s(mu_b) should be adequately described by 1/2 * ( s(mu_a) + s(mu_c) )
-   *
-   * So we compute this approximation (ym), and calculate the real deal. 
-   * If they're not close enought, then bisect the grid spacing and spread
-   * things out more (visualization below).
-   *
-   */
+template <typename Range, typename Float>
+inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Float& ep, 
+  const Float& tev, const Range& alpha, const Range& beta, const Range& sab, 
+  const Float& az, const Float tevz, const int& lasym, const int& lat, 
+  const Float& sb, const Float& sb2, const Float& teff, const int& iinc, 
+  const Float& mu_tol, const Float& tol, const Float& ymax){
 
-  double xm, ym, yt;
-  while ( (unsigned) i < x.size() ){ 
-    // std::cout << 110 << std::endl;
+  // If the spacing isn't fine enough, we'll bisect the grid
+  //
+  // x = [   mu1      mu2          mu3            0    0   0 ... ]
+  // y = [ s(mu1)   s(mu2)       s(mu3)           0    0   0 ... ]
+  //
+  //           will be turned into
+  //
+  // x = [   mu1      mu2      0.5*(mu2+mu3)     mu3   0   0 ... ]
+  // y = [ s(mu1)   s(mu2)   s(0.5*(mu2+mu3))  s(mu3)  0   0 ... ]
+  //
+  // where s(x) is the incoherent cross section [Eq. 225] evaluated at 
+  // cosine x
+   
+  using std::abs;
+  Float muMid, xs_guess, xs_true;
+  while ( (unsigned) i < muVec.size() ){ // std::cout << 110 << std::endl;
     
-    xm = 0.5*( x[i-2] + x[i-1] );
-    xm = sigfig(xm,8,0);
-    ym = 0.5*( y[i-2] + y[i-1] );
-    yt = sig(e, ep, xm, tev, alpha, beta, sab, az, tevz, lasym, /*az2, teff2,*/
-      lat, cliq, sb, sb2, teff, iinc);
+    muMid = 0.5*( muVec[i-2] + muVec[i-1] );
+    muMid = sigfig(muMid,8,0);
+    xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
+    xs_true  = sig(e,ep,muMid,tev,alpha,beta,sab,az,tevz,lasym,lat,sb,sb2,teff,iinc);
     
-    if ( ( std::abs(yt-ym) <= tol*std::abs(yt)+tol*ymax/50.0 and 
-           std::abs(y[i-2]-y[i-1]) <= ym+ymax/100.0 and 
-           (x[i-2]-x[i-1]) < 0.5 ) or
-         ( x[i-2]-x[i-1] < xtol ) ) { 
+    if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*ymax/50.0 and 
+           abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+ymax/100.0 and 
+           (muVec[i-2]-muVec[i-1]) < 0.5 ) or
+          ( muVec[i-2]-muVec[i-1] < mu_tol ) ) { 
       return; 
     }
 
-    // If the spacing isn't fine enough, we'll bisect the grid
-    //
-    // x = [   mu1      mu2          mu3            0    0   0 ... ]
-    // y = [ s(mu1)   s(mu2)       s(mu3)           0    0   0 ... ]
-    //
-    //           will be turned into
-    //
-    // x = [   mu1      mu2      0.5*(mu2+mu3)     mu3   0   0 ... ]
-    // y = [ s(mu1)   s(mu2)   s(0.5*(mu2+mu3))  s(mu3)  0   0 ... ]
-    //
-    // where s(x) is the incoherent cross section [Eq. 225] evaluated at 
-    // cosine x
-    
-    shiftOver( i, x, y, xm, yt );
-
-  }  // do 110 inner. This corresponds to    // go to 110 
+ 
+    shiftOver( i, muVec, xsVec, muMid, xs_true );
+  }  
 } 
 
 
 
-inline auto do_110_120_130_for_sigl( int& i, std::vector<double>& x, std::vector<double>& y, 
-  const double& e, const double& ep, const double& tev, const double& tevz, 
-  const std::vector<double>& alpha, const std::vector<double>& beta,
-  const std::vector<std::vector<double>>& sab, 
-  const double& az, /*const double& az2,*/ const int& lasym, const double& teff, 
-  /*const double& teff2,*/ const int& lat, const double& cliq, const double& sb, 
-  const double& sb2, const int& iinc, const int& nl, 
-  const double& sigmin, std::vector<double>& s, int& nbin, double& fract, 
-  double& xl, int& j, double& ymax, 
-  double& yl, const double& tol, 
-  const double& xtol ){
+
+template <typename Range, typename Float>
+inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL, 
+  int lat, int iinc  ){
+
+
+  Float beta = std::abs((ep-e)/tev);
+  Float tol = 0.5*tolin;
+
+  nL = std::abs(nL);
+  
+  Float tevz = 0.0253;
+  if ( lat == 1 and iinc == 2 ){ beta *= tev/tevz; }
+
+  int i = 3;
+  Float sum = 0;
+
+  Range muVec(20), xsVec(20);
+
+  muVec[2] = -1.0; xsVec[2] = sig(e,ep,x[2],tev,alpha,beta,sab); 
+  //muVec[1] =  1.0; xsVec[1] =  1.0;
+
+
+  
+
+
+
+
+  //Float xsLeft = xsVec[3];
+  //do_110(i, muVec, xsVec,  e,  ep, tev, alpha, beta, sab, az, tevz, lasym, 
+  //       lat, sb,  sb2,  teff, iinc, mu_tol,  tol,  ymax);
+  
+  //sum = sum + 0.5*(xsVec[i]);
+
+
+
+
+}
+
+
+
+
+
+/*
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+template <typename Range, typename Float>
+inline auto do_110_120_130_for_sigl( int& i, Range& x, Range& y, 
+  const Float& e, const Float& ep, const Float& tev, const Float& tevz, 
+  const Range& alpha, const Range& beta,
+  const Range& sab, 
+  const Float& az, const int& lasym, const Float& teff, 
+  const int& lat, const Float& sb, 
+  const Float& sb2, const int& iinc, const int& nl, 
+  const Float& sigmin, Range& s, int& nbin, Float& fract, 
+  Float& xl, int& j, Float& ymax, 
+  Float& yl, const Float& tol, 
+  const Float& xtol ){
   /* For this, we fill up mu values into x, and S(a,b,mu) values into y (with
    * a and b being fixed, and mu corresponding to the values in x). The grid
    * is chosen adaptively. So let's consider x = [2, -8, -16, 0, 0, 0, ... ]
@@ -152,7 +181,7 @@ inline auto do_110_120_130_for_sigl( int& i, std::vector<double>& x, std::vector
 
 
 
-  double gral, sum = 0;
+  Float gral, sum = 0;
 
   while (true){
 
@@ -162,7 +191,7 @@ inline auto do_110_120_130_for_sigl( int& i, std::vector<double>& x, std::vector
     // y = [ s(mu1)   s(mu2)   s(mu3)    ...  s(mu_i)    0    0   0 ... ]
 
     do_110(i, x, y, e, ep, tev, alpha, beta, sab, az, tevz, lasym, /*az2, 
-        teff2,*/ lat, cliq, sb, sb2, teff, iinc, xtol, tol, ymax);
+        teff2,*/ lat, sb, sb2, teff, iinc, xtol, tol, ymax);
 
     // When do_100 returns, we x and y both have i-many nonzero entries
     // On the first iteration, xl = -1, and yl = S(a,b,mu=-1)
@@ -199,12 +228,12 @@ inline auto do_110_120_130_for_sigl( int& i, std::vector<double>& x, std::vector
           xl    = -1;
           gral  = 0;
           for ( int il = 1; il < nl; ++il ){ s[il] = 0; } 
-          return std::tuple<double,double,bool> { gral, sum, false };
+          return std::tuple<Float,Float,bool> { gral, sum, false };
         } 
         else { 
           s[0] = 0; 
           for ( int il = 1; il < nl; ++il ){ s[il] = 0; } 
-          return std::tuple<double,double,bool> { gral, sum, true };
+          return std::tuple<Float,Float,bool> { gral, sum, true };
         }
 
 

@@ -5,15 +5,22 @@
 #include "general_util/sigfig.h"
 #include <cmath>
 
+
+
 template <typename Range>
 auto get(const Range& sab, int a, int b, int betas_size){
     return sab[a*betas_size+b];
 }
 
+
+
 template <typename Float>
 auto cutoff( const Float proposedAnswer, const Float& cutoff=1e-10 ){
     return (proposedAnswer < cutoff) ? 0.0 : proposedAnswer;
 }
+
+
+
 
 template <typename Float>
 Float freeGas( Float alpha, Float beta, Float sab_to_xs_consts ){ 
@@ -21,6 +28,8 @@ Float freeGas( Float alpha, Float beta, Float sab_to_xs_consts ){
   Float sab = pow(4.0*M_PI*alpha,-0.5) * exp(-(alpha*alpha+beta*beta)/(4.0*alpha));
   return cutoff(sab_to_xs_consts*exp(-beta*0.5)*sab);
 } 
+
+
 
 
 template <typename Float, typename Range>
@@ -40,6 +49,12 @@ inline auto interpolateSAB( int a, int b, const Range& alphas,
   Float s  = terpq( betas[b-1], betas[b], betas[b+1], abs_beta_scaled, sVec[0], sVec[1], sVec[2] );
   return exp(s-beta*0.5);
 }
+
+
+
+
+
+
 
 
 template <typename Float>
@@ -63,11 +78,19 @@ inline auto doSCT( Float a, Float teff, Float sigc,
 }
 
 
+
+
+
+
+
+
+
+
 template <typename Float, typename Range>
 inline auto sig( const Float& e, const Float& ep, const Float& u, 
   const Float& tev, const Range& alphas, const Range& betas, const Range& sab, 
   const Float az, const Float tevz, const int lasym, const int lat, 
-  const Float cliq, const Float sigma_b, const Float sigma_b2, const Float teff, 
+  const Float sigma_b, const Float sigma_b2, const Float teff, 
   const int iinc ){
 
  /*-------------------------------------------------------------------
@@ -125,8 +148,11 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
 
 
   // ........................................................................//
-  // Not really sure why this is here or who it's helping. Sure isn't me.    //
+  //  Diffusion in liquids can create a sort of singularity when alpha is    //
+  //  small and beta = 0. If it looks like we have a singularity, then we    //
+  //  extrapolate using a beta^2/alpha law.
   // ........................................................................//
+  double cliq = (sab[0] - sab[1])*alphas[0]/(betas[1]*betas[1]);
   if (cliq != 0.0 and alpha_scaled < alphas[0] and lasym != 1 and abs(beta_scaled) < test1){
     s = sab[0] + log(alphas[0]/alpha_scaled)*0.5 - cliq*pow(beta_scaled,2)/alpha_scaled;
     return cutoff( sigc * sigma_b * exp(s-beta*0.5) );

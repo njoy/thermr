@@ -1,11 +1,68 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "calcem/calcem_util/e_ep_mu_util/sigl_util/beginningLoop.h"
+#include <range/v3/all.hpp>
 
+
+auto equal = [](auto x, auto y, double tol = 1e-6){return x == Approx(y).epsilon(tol);};
+
+TEST_CASE( "110" ){
+  std::vector<double> x(20,0.0), y(20,0.0);
+  x[0] =  1.0; x[2] = -1.0;
+  y[0] =  2.5; y[2] =  4.0;
+  
+  int i = 3;
+  double e = 1e-5, ep = 1e-4, tev = 2.55e-2;
+  
+  std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
+                       beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
+  std::vector<double> sab(alpha.size()*beta.size());
+  for ( size_t i = 0; i < alpha.size(); ++i ){
+    for ( size_t j = 0; j < beta.size(); ++j ){
+      sab[i*beta.size()+j] = 0.01*((j+1) + 0.1*(i+1));
+    } 
+  } 
+  double az = 0.99917, tevz = 2.53e-2, sigma_b = 163.72792237360667, 
+         sigma_b2 = 0.0, teff = 0.120441926577313, xtol = 1e-5, tol = 2.5e-2, ymax = 1e-3;
+  int lasym = 0, lat = 1, iinc = 2; 
+
+  do_110(i,x,y,e,ep,tev,alpha,beta,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc,xtol,tol,ymax);
+  std::vector<double> 
+    correct_x { 1.0, 0.0, -0.5, -0.75, -0.875, -0.9375, -0.96875, -0.984375, 
+    -0.9921875, -0.99609375, -0.99804687, -0.99902343, -0.99951171, -0.99975585, 
+    -0.99987792, -0.99993896, -0.99996948, -0.99998474, -0.99999237, -1.0},
+    correct_y { 2.5, 0.0, 143662.33773, 136248.865859, 132948.05965, 
+    131385.1453676, 130624.0785461, 130248.4714971, 130061.878966, 129968.882923, 
+    129922.4597632, 129899.2668299, 129887.6750200, 129881.880278, 129878.983198, 
+    129877.5346130, 129876.8103382, 129876.4482054, 129876.267140, 4.0};
+
+  REQUIRE(ranges::equal(correct_x, x, equal));
+  REQUIRE(ranges::equal(correct_y, y, equal));
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 TEST_CASE( "110 120 130" ){
   std::vector<double> x(20,0.0);
   std::vector<double> y(20,0.0);
-  std::vector<double> s(65,0.0);
   x[0] = 1.0; x[1] = 0.99; x[2] = -1.0;
   y[0] = 1.35700e5; y[1] = 1.35701e5; y[2] = 1.35809e5;
 
@@ -13,12 +70,10 @@ TEST_CASE( "110 120 130" ){
   std::vector<double> beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
     
 
-  // Initialize S(a,b)
-  std::vector<std::vector<double>> sab(alpha.size(), 
-      std::vector<double>(beta.size(),0));
+  std::vector<double> sab(alpha.size()*beta.size());
   for ( size_t i = 0; i < alpha.size(); ++i ){
     for ( size_t j = 0; j < beta.size(); ++j ){
-      sab[i][j] = 0.01*((j+1) + 0.1*(i+1));
+      sab[i*beta.size()+j] = 0.01*((j+1) + 0.1*(i+1));
     } 
   } 
 
@@ -26,7 +81,7 @@ TEST_CASE( "110 120 130" ){
       j = 0, nbin = 8;
 
   double e = 1.0e-6, ep = 1.2e-4, tev = 1.5e-4, bbm = 0.0, az = 11.9,
-    tevz = 2.2e-4, az2 = 0.0, teff2 = 0.0, cliq = 1.0, sb = 5.53, sb2 = 0.0,
+    tevz = 2.2e-4, sb = 5.53, sb2 = 0.0,
     teff = 6.14e-2, tolin = 5e-2, sigmin = 1.0e-32, 
     s1bb = 1.1369180380, tol = 2.5e-2, xtol = 1.0e-5, 
     seep = 91200.0, yl = 13500, ymax = 13500, fract = 0.0, xl = -1.0, 
@@ -39,13 +94,13 @@ TEST_CASE( "110 120 130" ){
 
 
       auto out = do_110_120_130_for_sigl( i, x, y, e, ep, tev, tevz, alpha, 
-        beta, sab, az, /*az2,*/ lasym, teff, /*teff2,*/ lat, cliq, sb, sb2, iinc, nl, 
+        beta, sab, az, lasym, teff, lat, sb, sb2, iinc, nl, 
         sigmin, s, nbin, fract, xl, j, ymax, yl, tol, xtol );
 
 
 
       //ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, 
-      //  bbm, az, /*az2,*/ lasym, teff, /*teff2,*/ lat, cliq, sb, sb2, iinc, eps, seep, s1bb );
+      //  bbm, az, lasym, teff, lat, sb, sb2, iinc, eps, seep, s1bb );
 
       double gral = std::get<0>(out);
       double sum = std::get<1>(out);
@@ -83,7 +138,9 @@ TEST_CASE( "110 120 130" ){
     } // THEN
   } // GIVEN
 
+*/
 
+  /*
 
   GIVEN( "inputs 2" ){
     y[0] = 1.00000e5; y[1] = 1.00001e5; y[2] = 1.00009e5;
@@ -97,13 +154,13 @@ TEST_CASE( "110 120 130" ){
 
 
       auto out = do_110_120_130_for_sigl( i, x, y, e, ep, tev, tevz, alpha, 
-        beta, sab, az, /*az2,*/ lasym, teff, /*teff2,*/ lat, cliq, sb, sb2, iinc, nl, 
+        beta, sab, az, lasym, teff, lat, sb, sb2, iinc, nl, 
         sigmin, s, nbin, fract, xl, j, ymax, yl, tol, xtol );
 
 
 
       //ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, 
-      //  bbm, az, /*az2,*/ lasym, teff, /*teff2,*/ lat, cliq, sb, sb2, iinc, eps, seep, s1bb );
+      //  bbm, az, lasym, teff, lat, sb, sb2, iinc, eps, seep, s1bb );
 
       double gral = std::get<0>(out);
       double sum = std::get<1>(out);
@@ -162,11 +219,11 @@ TEST_CASE( "110 120 130" ){
 
 
       //auto out = do_110_120_130_for_sigl(i, x, y, e, ep, tev, tevz, alpha, beta, sab, bbm, az, 
-      //az2, lasym, teff, teff2, lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
+      //lasym, teff, lat, sb, sb2, iinc, nl, sigmin, s, 
       //  nbin, fract, xl, j, ymax, eps, seep, yl, s1bb, tol, xtol);
 
       auto out = do_110_120_130_for_sigl( i, x, y, e, ep, tev, tevz, alpha, 
-        beta, sab, az, /*az2,*/ lasym, teff, /*teff2,*/ lat, cliq, sb, sb2, iinc, nl, 
+        beta, sab, az, lasym, teff, lat, sb, sb2, iinc, nl, 
         sigmin, s, nbin, fract, xl, j, ymax, yl, tol, xtol );
 
 
@@ -211,4 +268,5 @@ TEST_CASE( "110 120 130" ){
 
 } // TEST CASE
 
+  */
 
