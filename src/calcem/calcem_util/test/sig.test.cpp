@@ -9,7 +9,7 @@ TEST_CASE( "sig" ){
     tevz = 2.53e-2, cliq = 0.0, sb = 5.53, sb2 = 0.0,
     teff = 6.14e-2;
 
-  double sigVal1, sigVal2;
+  double sigVal, sigVal1, sigVal2;
 
   std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
     beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
@@ -21,48 +21,70 @@ TEST_CASE( "sig" ){
     } 
   } 
 
-
-
   GIVEN( "invalid input requested (iinc != 1,2)" ){
     iinc = 0;
     THEN( "throw exception" ){
-      REQUIRE_THROWS( sig( e, ep, u, tev, alpha, beta, sab, 
-        az, tevz, lasym, lat, cliq, sb, sb2, teff, iinc ) );
+      REQUIRE_THROWS( sig( e, ep, u, tev, alpha, beta, sab, az, tevz, lasym, 
+                           lat, cliq, sb, sb2, teff, iinc ) );
     } // THEN
   } // GIVEN
+
 
   GIVEN( "free gas option selected (iinc = 1)" ){
     iinc = 1;
 
-    WHEN( "final neutron energy E' is zero (ep = 0)" ){
-      THEN( "output cross section is 0 (see Eq. 225) " ){
-        sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, az, tevz, lasym, lat, 
-                       cliq, sb, sb2, teff, iinc );
-        REQUIRE( 0.0 == Approx( sigVal1 ).epsilon(1e-6) );
-      } // THEN
-    } // WHEN
+    WHEN( "many different E' are considered" ){
+      std::vector<double> ePrimeVals {0.0,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,5e-1},
+                          correct_XS (ePrimeVals.size());
 
-    ep = 1.2e-6;
+      AND_WHEN( "scattering cosine of -1.0" ){
+        u = -1.0;
 
-    WHEN( "temperature is extremely small" ){
-      tev = 1.5e-8;
-      sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
-        az, tevz, lasym, lat, cliq, sb, sb2, teff, iinc );
-      THEN( "alpha, beta --> big, so exponential in Eq. 229 dies" ){
-        REQUIRE( 0.0 == Approx( sigVal1 ).epsilon(1e-6) );
-      } // THEN
-    } // WHEN
+        correct_XS = { 0.0, 1292.387848, 2690.599752, 4057.900264, 4351.096726, 
+                            1386.996889, 5.696163E-3, 0.0};
+        THEN( "all output cross sections are correct" ) {
+          for (size_t i = 0; i < ePrimeVals.size(); ++i ){
+            sigVal = sig( e, ePrimeVals[i], u, tev, alpha, beta, sab, az, tevz, 
+                           lasym, lat, cliq, sb, sb2, teff, iinc );
+            REQUIRE( correct_XS[i] == Approx( sigVal ).epsilon(1e-6) );
+          } 
+        } // THEN
+      } // AND WHEN
 
-    WHEN( "nonextreme values are provided" ){
-      sigVal1 = sig( e, ep, u, tev, alpha, beta, sab, 
-        az, tevz, lasym, lat, cliq, sb, sb2, teff, iinc );
-      THEN( "nonzero sig output is provided" ){
-        REQUIRE( 1384.063418 == Approx( sigVal1 ).epsilon(1e-6) );
-      } // THEN
+      AND_WHEN( "scattering cosine of -0.5" ){
+        u = -0.5;
+        correct_XS = { 0.0, 1429.23802569, 3106.86309110, 4482.6813516, 
+                            4503.96605993, 1361.12947151, 5.1043503E-3, 0.0};
+        THEN( "all output cross sections are correct" ) {
+          for (size_t i = 0; i < ePrimeVals.size(); ++i ){
+            sigVal = sig( e, ePrimeVals[i], u, tev, alpha, beta, sab, az, tevz, 
+                           lasym, lat, cliq, sb, sb2, teff, iinc );
+            REQUIRE( correct_XS[i] == Approx( sigVal ).epsilon(1e-6) );
+          } 
+        } // THEN
+      } // AND WHEN
+
+      AND_WHEN( "scattering cosine of +0.1" ){
+        u = 0.1;
+
+        correct_XS =  { 0.0, 1670.038013, 4010.983453, 5226.3490715, 
+                             4709.2476163, 1327.738591, 4.4614069E-3, 0.0};
+        THEN( "all output cross sections are correct" ) {
+          for (size_t i = 0; i < ePrimeVals.size(); ++i ){
+            sigVal = sig( e, ePrimeVals[i], u, tev, alpha, beta, sab, az, tevz, 
+                           lasym, lat, cliq, sb, sb2, teff, iinc );
+            REQUIRE( correct_XS[i] == Approx( sigVal ).epsilon(1e-6) );
+          } 
+        } // THEN
+      } // AND WHEN
     } // WHEN
   } // GIVEN
 
-  GIVEN ("alpha, beta values outside of provided range" ){
+
+
+
+
+  GIVEN ("Bound scattering (iinc != 1)" ){
     iinc = 2; tev = 1.5e-1; tevz = 2.2e-4;
     WHEN( "this is because of a > alpha(nalpha)" ){
       e = 1.0e-2, ep = 1.2e-2;
@@ -295,5 +317,7 @@ TEST_CASE( "sig" ){
         //REQUIRE( 665890150.16903055 == Approx( sigVal1 ).epsilon(1e-6) );
       } // THEN
     } // WHEN
+/*
+  */
   } // GIVEN
 } // TEST CASE

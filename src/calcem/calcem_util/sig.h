@@ -19,6 +19,9 @@ template <typename Float>
 Float freeGas( Float alpha, Float beta, Float sab_to_xs_consts ){ 
   // Follows Eq. 225, 228, 229 in LEAPR manual.
   Float sab = pow(4.0*M_PI*alpha,-0.5) * exp(-(alpha*alpha+beta*beta)/(4.0*alpha));
+  //std::cout << exp(-(alpha*alpha+beta*beta)/(4.0*alpha)) << std::endl;
+  //std::cout << exp(-(alpha*alpha+beta*beta)/(4.0*alpha))*exp(beta*0.5)<< std::endl;
+  //std::cout << pow(4.0*M_PI*alpha,-0.5) << std::endl;
   return cutoff(sab_to_xs_consts*exp(-beta*0.5)*sab);
 } 
 
