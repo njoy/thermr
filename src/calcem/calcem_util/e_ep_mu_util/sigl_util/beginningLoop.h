@@ -1,7 +1,9 @@
 #include "calcem/calcem_util/sig.h"
 #include "general_util/sigfig.h"
+#include "coh/coh_util/sigcoh_util/legndr.h"
 #include <range/v3/all.hpp>
 #include <cmath>
+#include <tuple>
 
 template <typename Float>
 inline Float maxOf4Vals( const Float a, const Float b, const Float c, const Float d ){
@@ -13,14 +15,38 @@ inline Float maxOf4Vals( const Float a, const Float b, const Float c, const Floa
 
 
 template <typename Range, typename Float>
-auto do_190(Range xsVec, Float xn, Float xil, Float muLeft, Float xsLeft, Float fract, int i){
+auto do_190(Range& muVec, Range& xsVec, Float& xn, Float& xil, Float& muLeft, Float& xsLeft, 
+            Float& fract, int& i, Float& gral, int& nL, int& nbin, Range&s, int& j, Float& sum){
   std::cout << " --- 190 --- " << std::endl;
   Float yn = xsLeft + (xsVec[i-1]-xsLeft)*(xn-muLeft)*xil;
-  Float gral = gral + (xn-muLeft)*(xsLeft*0.5*(xn+muLeft) + 
+  gral = gral + (xn-muLeft)*(xsLeft*0.5*(xn+muLeft) + 
         (xsVec[i-1]-xsLeft)*xil*(-muLeft*0.5*(xn+muLeft)
             + (1.0/3.0)*(xn*xn+xn*muLeft+muLeft*muLeft)));
   Float xbar = gral / fract;
-  return std::make_tuple<double,double,double>(yn,gral,xbar);
+
+  if ( nL >= 0 ){
+    Range p (nL,0.0);
+    legndr(xbar,p,nL);
+    for (int k = 1; k < nL; ++k){
+      s[k] += p[k]/nbin;
+    }
+  }
+  else {
+    s[j] = xbar;
+  }
+  
+
+  std::cout << (s|ranges::view::all) << std::endl;
+  //std::cout << muLeft << "   " << muVec[i-1] << std::endl;
+
+  muLeft = xn;
+  xsLeft = yn;
+  sum = 0.0;
+  gral = 0.0;
+  if (j == nbin){ return 260; }
+  if (muLeft < muVec[i-1] ){ return 160; }
+  return 250;
+
 }
 
 
@@ -43,7 +69,6 @@ auto do_170_175_180(Float& fract, Float& sum, Range& xsVec, Range& muVec,
 
       } 
       if ( xn >= muLeft and xn <= muVec[i-1] ){
-        std::cout << " --- 190 --- " << std::endl;
         return xn;
       }
 
@@ -64,7 +89,8 @@ auto do_170_175_180(Float& fract, Float& sum, Range& xsVec, Range& muVec,
       xn = muVec[i-1];
       return xn;
   }
-  else { throw std::exception(); }
+  else { std::cout << "throw std::exception();" << std::endl; return 1.0; }
+  //else { throw std::exception(); }
 
 
 }
@@ -151,6 +177,7 @@ inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Flo
     muMid = sigfig(muMid,8,0);
     xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
     xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,tevz,lasym,lat,sb,sb2,teff,iinc);
+    //std::cout << xs_guess << "   " << xs_true<< std::endl;
     
     if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*ymax/50.0 and 
            abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+ymax/100.0 and 
@@ -168,10 +195,12 @@ inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Flo
 
 
 template <typename Range, typename Float>
-inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL, 
+inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl, 
   int lat, int iinc, Range& alphas, Range& betas, Range& sab, Float az,
   int lasym, Float sigma_b, Float sigma_b2, Float teff ){
 
+  Float yn = 0.0;
+  Float xbar = 0.0;
   using std::abs;
   using std::min;
   using std::pow;
@@ -179,7 +208,7 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
   Float beta = std::abs((ep-e)/tev);
   Float tol = 0.5*tolin;
 
-  nL = std::abs(nL);
+  int nL = std::abs(nl);
   
   Float tevz = 0.0253;
   if ( lat == 1 and iinc == 2 ){ beta *= tev/tevz; }
@@ -212,8 +241,9 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
     do_110(i, muVec, xsVec,  e,  ep, tev, alphas, betas, sab, az, tevz, lasym, 
            lat, sigma_b,  sigma_b2,  teff, iinc, tol,  xsMax);
 
-    // 200                      
+    // 120                      
     while ( true ){
+      std::cout << " --- 120 --- " << std::endl;
       sum += 0.5*( xsVec[i-1] + xsLeft )*(muVec[i-1]-muLeft);
       muLeft = muVec[i-1];
       xsLeft = xsVec[i-1];
@@ -225,8 +255,6 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
     if ( i <= 1 ){ break; }
   }
 
-
-
   std::vector<double> s(65,0.0);
 
   s[0] = sum;
@@ -237,6 +265,7 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
   }
 
   // 130
+  std::cout << " --- 130 --- " << std::endl;
   int nbin = nL - 1;
   Float fract = sum/(1.0*nbin);
   sum = 0.0;
@@ -267,8 +296,13 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
   xsLeft = xsVec[2];
 
   xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
-  std::cout << (xsVec|ranges::view::all) << std::endl;
-  std::cout << (muVec|ranges::view::all) << std::endl;
+  //std::cout << (muVec|ranges::view::all) << std::endl;
+  //std::cout << std::endl;
+  //std::cout << (xsVec|ranges::view::all) << std::endl;
+  //return;
+
+
+
 
   Float xn=0.0;
 
@@ -279,20 +313,24 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
            lat, sigma_b,  sigma_b2,  teff, iinc, tol,  xsMax);
 
 
+
     while (true){
       std::cout << " --- 160 ---  "<< std::endl;
+  //std::cout << xsLeft << std::endl;
       // 160
       Float add = 0.5*(xsVec[i-1]+xsLeft)*(muVec[i-1]-muLeft);
 
 
       if (muVec[i-1] == muLeft) {  // 250
           std::cout << " --- 250 ---  "<< std::endl;
-          //std::cout << "go to 250" << std::endl; 
           muLeft = muVec[i-1];
           xsLeft = xsVec[i-1];
           i -= 1;
           if ( i > 1 ){ break; }
-          if ( i != 1 ){ return; }
+          if ( i != 1 ){ 
+              std::cout << " --- 260 ---  "<< std::endl;
+              return s;
+          }
       }
 
       Float xil = 1.0/(muVec[i-1]-muLeft);
@@ -302,13 +340,50 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
           std::cout << " --- 165 ---  "<< std::endl;
           xn = muVec[i-1];
           j++;
-          std::cout << "go to 190" << std::endl;
-          do_190(xsVec, xn, xil, muLeft, xsLeft, fract, i);
-          return ;
+          //std::cout << "go to 190" << std::endl;
+          int out = do_190(muVec, xsVec, xn, xil, muLeft, xsLeft, fract, i, gral, nl, nbin, s, j, sum);
+          if (out == 260){
+              std::cout << " --- 260 ---  "<< std::endl;
+              return s;
+          }
+          else if ( out == 160 ){
+              continue;
+          }
+          else { // 250
+            std::cout << " --- 250 ---  "<< std::endl;
+            muLeft = muVec[i-1];
+            xsLeft = xsVec[i-1];
+            i -= 1;
+            if ( i > 1 ){ break; }
+            if ( i != 1 ){ 
+              std::cout << " --- 260 ---  "<< std::endl;
+              return s;
+            }
+          }
+
       }
       else if ( sum + add >= fract * shade and j < nbin - 1 ){
           xn = do_170_175_180(fract, sum, xsVec, muVec, xsLeft, muLeft, i, j, xil );
-          do_190(xsVec, xn, xil, muLeft, xsLeft, fract, i);
+          int out = do_190(muVec, xsVec, xn, xil, muLeft, xsLeft, fract, i, gral, nl, nbin, s, j, sum);
+          if (out == 260){
+              std::cout << " --- 260 ---  "<< std::endl;
+              return s;
+          }
+          else if ( out == 160 ){
+              continue;
+          }
+          else { // 250
+            std::cout << " --- 250 ---  "<< std::endl;
+            muLeft = muVec[i-1];
+            xsLeft = xsVec[i-1];
+            i -= 1;
+            if ( i > 1 ){ break; }
+            if ( i != 1 ){ 
+              std::cout << " --- 260 ---  "<< std::endl;
+              return s;
+            }
+          }
+          
       }
 
       sum += add;
@@ -318,7 +393,10 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
       xsLeft = xsVec[i-1];
       i -= 1;
       if ( i > 1 ){ break; }
-      if ( i != 1 ){ return; }
+      if ( i != 1 ){ 
+          std::cout << " --- 260 ---  "<< std::endl;
+          return s;
+      }
 
 
 
@@ -349,8 +427,6 @@ inline auto do_things(Float ep, Float e, Float tev, Float tolin, int nL,
 
 
 
-  return;
-  std::cout << sigma_b << "   " << sigma_b2<<std::endl;
   //muVec[1] =  1.0; xsVec[1] =  1.0;
 
 
