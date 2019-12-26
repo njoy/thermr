@@ -7,10 +7,10 @@
 
 inline auto sigu( int nemax, const double& e, const double& u, const double& tev, 
   const std::vector<double>& alpha, const std::vector<double>& beta, 
-  const std::vector<std::vector<double>>&sab, std::vector<double>&s, 
+  const std::vector<double>&sab, std::vector<double>&s, 
   const double& tolin, const double& az, const double& tevz, const int& iinc, 
   const int& lat, const int& lasym, /*const double& az2, const double& teff2, */
-  const double& cliq, const double& sb, const double& sb2, const double& teff ){
+  const double& sb, const double& sb2, const double& teff ){
 
   /*-------------------------------------------------------------------
    * Compute the secondary energy distribution scattering for cosine u.
@@ -35,7 +35,7 @@ inline auto sigu( int nemax, const double& e, const double& u, const double& tev
    sum=0;
    x[1-1]=0;
    y[1-1] = sig( e, x[1-1], xl, tev, alpha, beta, sab, az, tevz, lasym, 
-      /*az2, teff2,*/ lat, cliq, sb, sb2, teff, iinc );
+      /*az2, teff2,*/ lat, sb, sb2, teff, iinc );
    jbeta = -beta.size();
    if (lasym > 0) jbeta=1;
    j = 0;
@@ -51,7 +51,7 @@ inline auto sigu( int nemax, const double& e, const double& u, const double& tev
 
 
      do_113_116( jbeta, lat, x, y, e, tev, tevz, root1, u, alpha, beta, 
-         sab, az, lasym, /*az2,*/ teff, /*teff2,*/ cliq, sb, sb2, iinc );
+         sab, az, lasym, /*az2,*/ teff, /*teff2,*/ sb, sb2, iinc );
 
      //return;
      i = 2;
@@ -67,7 +67,7 @@ inline auto sigu( int nemax, const double& e, const double& u, const double& tev
 
 
        if ( do150( i, x, y, xm, ym, yt, test, tolmin, e, u, tev, alpha, beta, 
-         sab, tevz, lasym, az, /*az2, teff2,*/ lat, cliq, sb, sb2, teff, tol, 
+         sab, tevz, lasym, az, /*az2, teff2,*/ lat, sb, sb2, teff, tol, 
 	 iinc) ){continue;}
 
        //if (do150( i, x, y, xm, ym, yt, test )){ continue; }
@@ -80,7 +80,7 @@ inline auto sigu( int nemax, const double& e, const double& u, const double& tev
            if (xm > x[i-1] and xm < x[i-2]){
              ym=0.5*(y[i-2]+y[i-1]);
              yt = sig( e, xm, u, tev, alpha, beta, sab, az, tevz, lasym, 
-                 az2, teff2, lat, cliq, sb, sb2, teff, iinc );
+                 az2, teff2, lat, sb, sb2, teff, iinc );
              test = tol*abs(yt);
       
              if (abs(yt-ym) > test) {

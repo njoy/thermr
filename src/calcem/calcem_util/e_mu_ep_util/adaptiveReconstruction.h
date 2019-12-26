@@ -15,11 +15,11 @@ auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
 }
 
 
-auto adaptiveReconstruction( const double& teff, const double& cliq, 
+auto adaptiveReconstruction( const double& teff, 
   const int& iinc, const double& tevz, const int& lat, const int& lasym, 
   std::vector<double>& yy, std::vector<double>& yu, const double& sb, 
   const double& sb2, std::vector<double>& x, const std::vector<double>& alpha, 
-  const std::vector<double>& beta, const std::vector<std::vector<double>>& sab, 
+  const std::vector<double>& beta, const std::vector<double>& sab, 
   const double& az, std::vector<double>& uj, std::vector<double>& sj, 
   const double& tol, const double& tolmin, const double& mumax, int& i, 
   double& sum, const int& imax, const double& enow, 
@@ -35,7 +35,7 @@ auto adaptiveReconstruction( const double& teff, const double& cliq,
         double xm = sigfig(0.5*(x[i-2]+x[i-1]),7,0);
         if (xm > x[i-1] and xm < x[i-2]) {
           sigu( int(yu.size()), enow, xm, tev, alpha, beta, sab, yu, tol, az, 
-            tevz, iinc, lat, lasym, cliq, sb, sb2, teff );
+            tevz, iinc, lat, lasym, sb, sb2, teff );
           double ym = yy[i-1]+(xm-x[i-1])*(yy[i-2]-yy[i-1])/(x[i-2]-x[i-1]);
           if ( (x[i-2]-x[i-1]) > 0.25 or (std::abs(yu[0]-ym) > 2*tol*ym+tolmin) ){ 
             do575(i, x, yy, yu, xm );
