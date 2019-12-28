@@ -36,7 +36,7 @@ auto do_190(Range& muVec, Range& xsVec, Float& xn, Float& xil, Float& muLeft, Fl
   }
   
 
-  std::cout << (s|ranges::view::all) << std::endl;
+  std::cout << std::setprecision(15) << (s|ranges::view::all) << std::endl;
   //std::cout << muLeft << "   " << muVec[i-1] << std::endl;
 
   muLeft = xn;
@@ -277,9 +277,8 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
 
 
 
-  //---------------------------------------------------------------------------
   i = 3;
-  //---------------------------------------------------------------------------
+
   muVec[0] =  1.0; 
   muVec[2] = -1.0; 
   muVec[1] = (ep==0.0) ? 0.0 : 
@@ -405,38 +404,6 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
   }
 
 
-  //std::cout << (xsVec|ranges::view::all) << std::endl;
-  //std::cout << (muVec|ranges::view::all) << std::endl;
-
-
-
-
-
-
-  //std::cout << nbin << std::endl;
-
-  //std::cout << muVec[0] << "   " << muVec[1] << "    " << muVec[2] << std::endl;
-
-
-  //std::cout << i << std::endl;
-  //std::cout << sum << std::endl;
-
-  //std::cout << (muVec|ranges::view::all) << std::endl;
-  //std::cout << std::endl;
-  //std::cout << (xsVec|ranges::view::all) << std::endl;
-
-
-
-  //muVec[1] =  1.0; xsVec[1] =  1.0;
-
-
-  //Float xsLeft = xsVec[3];
-  //do_110(i, muVec, xsVec,  e,  ep, tev, alpha, beta, sab, az, tevz, lasym, 
-  //       lat, sb,  sb2,  teff, iinc, mu_tol,  tol,  ymax);
-  
-  //sum = sum + 0.5*(xsVec[i]);
-
-
 
 
 }
@@ -445,21 +412,15 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
 
 
 
+
+
+
+
+
+
+
+
 /*
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
 template <typename Range, typename Float>
 inline auto do_110_120_130_for_sigl( int& i, Range& x, Range& y, 
   const Float& e, const Float& ep, const Float& tev, const Float& tevz, 
@@ -472,11 +433,11 @@ inline auto do_110_120_130_for_sigl( int& i, Range& x, Range& y,
   Float& xl, int& j, Float& ymax, 
   Float& yl, const Float& tol, 
   const Float& xtol ){
-  /* For this, we fill up mu values into x, and S(a,b,mu) values into y (with
-   * a and b being fixed, and mu corresponding to the values in x). The grid
-   * is chosen adaptively. So let's consider x = [2, -8, -16, 0, 0, 0, ... ]
-   * (in reality 2-->1 and -16 --> -1, but this is just good for discussion now)
-   */
+  // For this, we fill up mu values into x, and S(a,b,mu) values into y (with
+  // a and b being fixed, and mu corresponding to the values in x). The grid
+  // is chosen adaptively. So let's consider x = [2, -8, -16, 0, 0, 0, ... ]
+  // (in reality 2-->1 and -16 --> -1, but this is just good for discussion now)
+  ///
 
 
 
@@ -489,8 +450,8 @@ inline auto do_110_120_130_for_sigl( int& i, Range& x, Range& y,
     // x = [   mu1      mu2      mu3     ...    mu_i     0    0   0 ... ]
     // y = [ s(mu1)   s(mu2)   s(mu3)    ...  s(mu_i)    0    0   0 ... ]
 
-    do_110(i, x, y, e, ep, tev, alpha, beta, sab, az, tevz, lasym, /*az2, 
-        teff2,*/ lat, sb, sb2, teff, iinc, xtol, tol, ymax);
+    do_110(i, x, y, e, ep, tev, alpha, beta, sab, az, tevz, lasym,  
+             lat, sb, sb2, teff, iinc, xtol, tol, ymax);
 
     // When do_100 returns, we x and y both have i-many nonzero entries
     // On the first iteration, xl = -1, and yl = S(a,b,mu=-1)
@@ -542,3 +503,4 @@ inline auto do_110_120_130_for_sigl( int& i, Range& x, Range& y,
 
 }
 
+*/
