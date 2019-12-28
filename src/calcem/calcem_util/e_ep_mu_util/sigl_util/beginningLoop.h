@@ -19,6 +19,7 @@ auto do_190(Range& muVec, Range& xsVec, Float& xn, Float& xil, Float& muLeft, Fl
             Float& fract, int& i, Float& gral, int& nL, int& nbin, Range&s, int& j, Float& sum){
   std::cout << " --- 190 --- " << std::endl;
   Float yn = xsLeft + (xsVec[i-1]-xsLeft)*(xn-muLeft)*xil;
+  //std::cout << std::setprecision(15)  << gral << std::endl;//<< "    " << fract << std::endl;
   gral = gral + (xn-muLeft)*(xsLeft*0.5*(xn+muLeft) + 
         (xsVec[i-1]-xsLeft)*xil*(-muLeft*0.5*(xn+muLeft)
             + (1.0/3.0)*(xn*xn+xn*muLeft+muLeft*muLeft)));
@@ -36,7 +37,7 @@ auto do_190(Range& muVec, Range& xsVec, Float& xn, Float& xil, Float& muLeft, Fl
   }
   
 
-  std::cout << std::setprecision(15) << (s|ranges::view::all) << std::endl;
+  //std::cout << std::setprecision(15) << (s|ranges::view::all) << std::endl;
   //std::cout << muLeft << "   " << muVec[i-1] << std::endl;
 
   muLeft = xn;
@@ -228,6 +229,9 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  //std::cout << std::setprecision(15) << beta << std::endl;
+  //std::cout << std::setprecision(15) << xsVec[0] << "    " << xsVec[1] << "    " << xsVec[2] << std::endl;
+  //return xsVec;
 
 
   Float muLeft = muVec[2],
@@ -386,7 +390,11 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
       }
 
       sum += add;
-      gral = gral + 0.5 * (xsLeft*muVec[i-1]-xsVec[i-1]*muLeft)*(muVec[i-1]+muLeft)+0.333333*(xsVec[i-1]-xsLeft)*(muVec[i-1]*muVec[i-1]+muVec[i-1]*muLeft+muLeft*muLeft);
+      double third = 0.333333333;
+      gral = gral + 0.5 * (xsLeft*muVec[i-1]-xsVec[i-1]*muLeft)*(muVec[i-1]+muLeft)+third*(xsVec[i-1]-xsLeft)*(muVec[i-1]*muVec[i-1]+muVec[i-1]*muLeft+muLeft*muLeft);
+      //std::cout << std::setprecision(15) << gral << std::endl;
+      //std::cout << (xsLeft*muVec[i-1]-xsVec[i-1]*muLeft) << std::endl;
+
       std::cout << " --- 250 ---  "<< std::endl;
       muLeft = muVec[i-1];
       xsLeft = xsVec[i-1];
