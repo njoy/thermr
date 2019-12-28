@@ -2,9 +2,10 @@
 #include "catch.hpp"
 #include "calcem/calcem_util/e_ep_mu_util/sigl_util/beginningLoop.h"
 #include <range/v3/all.hpp>
+#include "generalTools/testing.h"
 
 
-auto equal = [](auto x, auto y, double tol = 1e-6){return x == Approx(y).epsilon(tol);};
+//auto equal = [](auto x, auto y, double tol = 1e-6){return x == Approx(y).epsilon(tol);};
 
 /*
 TEST_CASE( "110" ){

@@ -4,15 +4,14 @@
 #ifndef CALCEM_E_MU_EP_SIGU_DO_113_116
 #define CALCEM_E_MU_EP_SIGU_DO_113_116
 
-inline auto do_113_116( int& jbeta, const int& lat, std::vector<double>& x, 
-  std::vector<double>& y, const double& e, const double& tev, const double& tevz,
-  const double& root1, const double& u,
-  const std::vector<double>& alpha, const std::vector<double>& beta, 
-  const std::vector<std::vector<double>>& sab, const double& az, 
-  const int lasym, /*const double& az2,*/ const double& teff, /*const double& teff2, */
-  const double& cliq, const double& sb, const double& sb2, const int& iinc){
+template <typename Range, typename Float>
+inline auto do_113_116( int& jbeta, const int& lat, Range& x, Range& y, 
+  const Float& e, Float& tev, const Float& tevz, const Float& u, 
+  const Range& alpha, const Range& beta,  const Range& sab, Float& az, 
+  const int lasym, const Float& teff, const Float& sb, const Float& sb2, 
+  const int& iinc){
 
-  //std::cout << 113 << std::endl;
+  Float root1 = (u*sqrt(e)+sqrt(u*u*e+(az-1)*(az+1)*e))/(az+1);
   do {
     // 113 continue
     if (jbeta == 0) jbeta=1;
@@ -26,18 +25,13 @@ inline auto do_113_116( int& jbeta, const int& lat, std::vector<double>& x,
 
   jbeta = jbeta-1;
    
-  //std::cout << 116 << std::endl;
   if (u < 0 and root1*root1 > 1.01*x[1] and root1*root1 < x[0]) {
-    x[0]=root1*root1;
+    x[0] = root1*root1;
   }
 
-  //x[0] = sigfig(x[0],8,0);
   x[0] = sigfig(x[0],8,1);
-  //std::cout << std::setprecision(25) << x[0] << "    " << x[1] << "     " << x[2] << std::endl;
-  //std::cout << sb2 << "        " << iinc << std::endl;
-  //std::cout << std::setprecision(25) << "x[0]    " << x[0] << std::endl;
-  y[0] = sig( e, x[0], u, tev, alpha, beta, sab, az, tevz, lasym, /*az2,
-      teff2,*/ lat, cliq, sb, sb2, teff, iinc );
+  y[0] = sig( e, x[0], u, tev, alpha, beta, sab, az, tevz, lasym, lat, sb, sb2, 
+              teff, iinc );
 } 
 
 #endif
