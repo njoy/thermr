@@ -1,12 +1,14 @@
-#include "catch.hpp"
-#include "calcem/calcem_util/e_ep_mu_util/360.h"
+//#include "catch.hpp"
+//#include "calcem/calcem_util/e_ep_mu_util/360.h"
 
 
+/*
 void vecHasZeros( const std::vector<double>& v, size_t i1, size_t i2 ){
   for ( size_t i = i1; i < i2; ++i ){
     REQUIRE( 0.0 == Approx( v[i] ).epsilon(1e-6) );
   }
 }
+*/
 
 /*
 TEST_CASE( "360" ){

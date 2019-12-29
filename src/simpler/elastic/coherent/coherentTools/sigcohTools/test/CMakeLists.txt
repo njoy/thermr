@@ -1,8 +1,8 @@
 
 add_executable( simpler.elastic.coherent.coherentTools.sigcohTools.test
+                form.test.cpp
                 legndr.test.cpp
-                terp.test.cpp
-                form.test.cpp )
+                terp.test.cpp )
 target_compile_options( simpler.elastic.coherent.coherentTools.sigcohTools.test PRIVATE ${${PREFIX}_common_flags}
 $<$<BOOL:${strict}>:${${PREFIX}_strict_flags}>$<$<CONFIG:DEBUG>:
 ${${PREFIX}_DEBUG_flags}

@@ -1,273 +1,279 @@
 #include "calcem/calcem_util/sig.h"
+//#include "calcem/calcem_util/e_ep_mu_util/sigl_util/beginningLoop.h"
+#include "general_util/sigfig.h"
 #include "coh/coh_util/sigcoh_util/legndr.h"
-#include "calcem/calcem_util/e_ep_mu_util/sigl_util/beginningLoop.h"
+#include <range/v3/all.hpp>
 #include <cmath>
+#include <tuple>
 
+template <typename Range, typename Float>
+auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e, 
+  const Float& ep, const Float& az, const Float& tev, const Range& alphas, 
+  const Range& betas, const Range& sab, int lasym, int lat, 
+  const Float& sigma_b, const Float& sigma_b2, const Float& teff, int iinc){
 
-inline auto do170(int& j, double& fract, double& sum, std::vector<double>& y,
-  std::vector<double>& x, double& yl, double& xn, double& xl, double& f, double& disc,
-  double& ytol, double& rf, int& i, double& xil, const double& sigmin){
- //std::cout << 170 << std::endl;
-  j=j+1;
+  Float beta = std::abs((ep-e)/tev);
+  if ( lat == 1 and iinc == 2 ){ beta *= tev/0.0253; }
 
-  double test=(fract-sum)*(y[i-1]-yl)/((x[i-1]-xl)*yl*yl);
-  if (std::abs(test) > ytol or yl < sigmin ){
-    //std::cout << 175 << std::endl;
-    f=(y[i-1]-yl)*xil;
-    rf=1/f;
-    disc=(yl*rf)*(yl*rf)+2*(fract-sum)*rf;
-    if (disc < 0.0) {
-       // write(strng,'(''disc='',1p,e12.4)') disc
-       // call mess('sigl',strng,'set to abs value and continue')
-       disc=std::abs(disc);
-    } // end if
-    if (f > 0.0) xn=xl-(yl*rf)+sqrt(disc);
-    if (f < 0.0) xn=xl-(yl*rf)-sqrt(disc);
-    if (xn > xl and xn <= x[i-1]) { 
-      // go to 190
-      return;
-    }
-    if (xn > xl and xn < (x[i-1]+ytol*(x[i-1]-xl))) {
-      // go to 180
-      //std::cout << 180 << std::endl;
-      // 180 continue
-      xn=x[i-1];
-      // go to 190
-      return;
-    } 
-    std::cout << "call error('sigl','no legal solution (quadratic path).',' ')" << std::endl;
+  muVec[0] =  1.0; 
+  muVec[2] = -1.0; 
+  muVec[1] = (ep==0.0) ? 0.0 : 
+                         0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev)
+                             * pow(e*ep,-0.5);
+  if (abs(muVec[1]) > 0.99){ muVec[1] = 0.99; }
 
+  xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+}
+
+template <typename Float>
+inline Float maxOf4Vals( const Float a, const Float b, const Float c, const Float d ){
+  return (a < b) ? (b < c ? (c < d ? d : c ) : (b < d ? d : b)) 
+                 : (a < c ? (c < d ? d : c ) : (a < d ? d : a));
+}
+
+template <typename Range, typename Float>
+auto populateXSvector(Range& xsVec, Float& xn, Float& invDeltaMu, Float& muLeft, Float& xsLeft, 
+  Float& fract, int& i, Float& gral, int& nL, int& nbin, Range&s, const int& j, Float& sum){
+  //std::cout << " --- 190 --- " << std::endl;
+  gral += (xn-muLeft) * 
+          ( xsLeft*0.5*(xn+muLeft) + 
+            (xsVec[i-1]-xsLeft)*invDeltaMu*(-muLeft*0.5*(xn+muLeft) + 
+            0.333333333*(xn*xn+xn*muLeft+muLeft*muLeft))
+          );
+
+  Float xbar = gral / fract;
+
+  if (nL < 0){
+    s[j] = xbar;
+  }
+  else {
+    Range p (nL,0.0);
+    legndr(xbar,p,nL);
+    for (int k = 1; k < nL; ++k){ s[k] += p[k]/nbin; }
   }
 
-  xn=xl+(fract-sum)/yl;
-  if (xn > x[i-1]) {
-    //std::cout << 180 << std::endl;
-    xn=x[i-1];
-    // go to 190
-    return;
-  }
+  xsLeft = xsLeft + (xsVec[i-1]-xsLeft)*(xn-muLeft)*invDeltaMu;
+  muLeft = xn;
+  sum  = 0.0;
+  gral = 0.0;
+}
 
-  // if (xn >= xl and xn <= x(i)) go to 190
-  if (xn < xl or xn > x[i-1]) {
-    std::cout << "call error('sigl','no legal solution.',' ')" << std::endl;
+
+template <typename Range, typename Float>
+auto getNextMuValue(Float& fract, Float& sum, Range& xsVec, Range& muVec, 
+  Float& xsLeft, Float& muLeft, int& i, Float& invDeltaMu ){
+  //std::cout << " --- 170 --- " << std::endl;
+  Float gral=0.0, xn;
+  Float test = (fract-sum)*(xsVec[i-1]-xsLeft)/((muVec[i-1]-muLeft)*xsLeft*xsLeft);
+
+  if ( xsLeft >= 1e-32 and abs(test) <= 1e-3 ){ // Could potentially do 180, 190
+      xn = muLeft + ( fract-sum )/xsLeft;
+      if ( xn > muVec[i-1] ){
+        //std::cout << " --- 180 --- " << std::endl;
+        return muVec[i-1];
+      } 
+      else if ( xn >= muLeft ){
+        return xn;
+      }
   }
-  // go to 190
-  return;
+  //std::cout << " --- 175 --- " << std::endl;
+  Float f = (xsVec[i-1]-xsLeft)*invDeltaMu;
+  Float sqrt_disc = pow(pow((xsLeft/f),2)+2.0*(fract-sum)/f,0.5);
+
+  xn = ( f > 0 ) ? muLeft - (xsLeft/f) + sqrt_disc 
+                 : muLeft - (xsLeft/f) - sqrt_disc;
+
+  if ( xn > muLeft ){
+    if ( xn <= muVec[i-1] ){ return xn; }
+    if ( xn < (muVec[i-1]+1e-3*(muVec[i-1]-muLeft))){ return muVec[i-1]; }
+  }
+  throw std::exception();
 }
 
 
 
-
-inline int do250( std::vector<double>& x, std::vector<double>& y, double& xl, double& yl,
-  int& i ){
-   //std::cout << "250" << std::endl;
-  xl=x[i-1];
-  yl=y[i-1];
-  i=i-1;
-  if (i > 1) {
-    return 150;
-  }
-  if (i == 1) {
-    return 160;
-  }
-
-  return 260;
-
+template <typename Range, typename Float>
+inline void shiftOver( int& i, Range& x, Range& y, Float& muMid, const Float& yt ){
+  // x = [   mu1      mu2          mu3            0    0   0 ... ]
+  // y = [ s(mu1)   s(mu2)       s(mu3)           0    0   0 ... ]
+  //  becomes 
+  // x = [   mu1      mu2      0.5*(mu2+mu3)     mu3   0   0 ... ]
+  // y = [ s(mu1)   s(mu2)   s(0.5*(mu2+mu3))  s(mu3)  0   0 ... ]
+  i++;
+  x[i-1] = x[i-2]; x[i-2] = muMid;
+  y[i-1] = y[i-2]; y[i-2] = yt;
 }
 
+template <typename Range, typename Float>
+inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Float& ep, 
+  const Float& tev, const Range& alphas, const Range& betas, const Range& sab, 
+  const Float& az, const int& lasym, const int& lat, 
+  const Float& sb, const Float& sb2, const Float& teff, const int& iinc, 
+  const Float& tol, const Float& xsMax){
 
-inline int do160(std::vector<double>& x, std::vector<double>& y, double& xl,
-  double& yl, int& i, double& xil, int& j, double& fract, int& nbin, double& sum,
-  double& gral, double& xn, double& shade ){
-
-  double add;
-  while ( true ){
-    //std::cout << "160" << std::endl;
-    add=0.5*(y[i-1]+yl)*(x[i-1]-xl);
-
-    if (x[i-1] == xl) {
-      // returns either 150, 160, or 260
-      int what_next = do250( x, y, xl, yl, i ); 
-      if ( what_next == 160 ){ continue; }
-      return what_next;
-    } 
-
-    xil=1/(x[i-1]-xl);
+  // If the spacing isn't fine enough, we'll bisect the grid
+  //
+  // x = [   mu1      mu2          mu3            0    0   0 ... ]
+  // y = [ s(mu1)   s(mu2)       s(mu3)           0    0   0 ... ]
+  //
+  //           will be turned into
+  //
+  // x = [   mu1      mu2      0.5*(mu2+mu3)     mu3   0   0 ... ]
+  // y = [ s(mu1)   s(mu2)   s(0.5*(mu2+mu3))  s(mu3)  0   0 ... ]
+  //
+  // where s(x) is the incoherent cross section [Eq. 225] evaluated at 
+  // cosine x
    
-    if (i == 1 and j == nbin-1) {
-      //std::cout << "165" << std::endl;
-      xn=x[i-1];
-      j=j+1;
-      return 190;
-
-    }
-
-    if (sum+add >= fract*shade and j < nbin-1){ 
-      return 170;
-
-       
-    }
-    sum=sum+add;
-    gral=gral+0.5*(yl*x[i-1]-y[i-1]*xl)*(x[i-1]+xl)
-      +(y[i-1]-yl)*(x[i-1]*x[i-1]+x[i-1]*xl+xl*xl)/3.0;
-     
-    // go to 250
-    // returns either 150, 160, or 260
-    int what_next = do250( x, y, xl, yl, i ); 
-    if ( what_next != 160 ){ 
-      // returns either 150 or 260
-      return what_next;
-    }
-  }
-}
-
-
-inline auto sigl( int nlin, double e, double ep,
-  double tev, std::vector<double> alpha, std::vector<double> beta,
-  std::vector<std::vector<double>> sab, std::vector<double>& s, double tolin,
-  double az, double tevz, int iinc, int lat, 
-  int lasym, /*double az2, double teff2,*/ double cliq, double sb,
-  double sb2, double teff ){
-
- /*-------------------------------------------------------------------
-  * This is called by calcem, and uses sig.
-  * * * Attempted description: * * *
-  * Calcem has to turn sig(E->E',mu) --> sig(E->E') by integrating 
-  * over mu. So we need to subdivide the cosine range until the 
-  * actual angular function (given here) is within a nice tolerance
-  *-------------------------------------------------------------------
-  * * * Actual description: * * *
-  * Compute the cross section and legendre components or equally-
-  * probable angles for the scattering from e to ep.  Uses linear
-  * reconstruction of the angular distribution computed by sig.
-  *-------------------------------------------------------------------
-  */
-  int nl,i,j,il,nbin;
-  double b,seep,sum,xl,yl,ymax;
-  double fract,gral,xil,xn,f,rf,disc,yn,xbar;
-  double tol,s1bb;
-  int imax=20;
-  int length_p = nlin > 0 ? nlin : 0;
-  std::vector<double> x(imax,0.0), y(imax,0.0), p(length_p,0.0);
-  // character(60)::strng
-  double xtol = 0.00001;
-  double ytol = 0.001;
-  double sigmin = 1.0e-32, eps = 1.0e-3;
-  double shade = 0.99999999; 
-
-  // constant factors
-  
-  // """ 
-  // A stact is first primed with the point at zero, and the first point above
-  // can be derived from the positive and negative values of beta from the 
-  // evaluator's beta grid using Eq. 226.
-  // """ 
-  // (pg. 170 of manual)
-  // So b is supposed to be the first nonzero value for our stack.
-  b = (lat == 1 and iinc == 2) ? (ep-e)/tevz : (ep-e)/tev; // Eq. 226
-  // lat == 1 means 
-
-  tol  = 0.5*tolin;
-  nl   = std::abs(nlin);
-  s1bb = sqrt(1+b*b);
-  sum  = 0;
-  i    = 3;
-  xl   = -1;
-  std::vector<double> sab2 (beta.size()*alpha.size());
-  yl = sig(e,ep,xl,tev,alpha,beta,sab2,az,tevz,lasym,lat,sb,sb2,teff,iinc);
-
-  seep = (ep == 0) ? 0.0 : 1.0/sqrt(e*ep);
-
-  // adaptive calculation of cross section
-
-  // Vary the cosine mu between 3 values. Calculate the corresponding
-  // incoherent cross sections, and then return ymax to be the maximum
-  // cross section of these three. 
-  // mu1 = -1, 
-  // mu2 = mu such that alpha equals sqrt(1+beta^2)
-  // mu3 = 1
-  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, 
-      lasym, teff,  lat, cliq, sb, sb2, iinc, eps, seep, s1bb );
-  //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )return;
-
-
-  auto out = do_110_120_130_for_sigl( i, x, y, e, ep, tev, tevz, alpha, beta, sab,  
-      az,  lasym, teff,  lat, cliq, sb, sb2, iinc, nl, sigmin, s, 
-      nbin, fract, xl, j, ymax, yl, tol, xtol );
-
-  if (std::get<2>(out)) { return; }
-
-  gral = std::get<0>(out);
-  sum  = std::get<1>(out);
-
-  ymax = adaptiveLinearization( x, y, e, ep, tev, tevz, alpha, beta, sab, az, 
-      lasym, teff,  lat, cliq, sb, sb2, iinc, eps, seep, s1bb );
-
-
-  bool go_straight_to_150_from_190 = true;
-  while ( true ){ 
-    if (go_straight_to_150_from_190){
-      //std::cout << "150" << std::endl;
-      do_110(i, x, y, e, ep, tev, alpha, beta, sab, az, tevz, lasym, /*az2, 
-          teff2,*/ lat, cliq, sb, sb2, teff, iinc, xtol, tol, ymax);
-
-    }
-    go_straight_to_150_from_190 = true; 
-
-    // check bins for this panel
-
-    int what_next = do160(x, y, xl, yl, i, xil, j, fract, nbin, sum, gral, 
-        xn, shade );
-    if (what_next == 150){ continue; }
-    if (what_next == 260){ return; }
-    if (what_next == 170 ){ do170(j, fract, sum, y, x, yl, xn, xl, f, disc, 
-        ytol, rf, i, xil, sigmin); }
-
-    //190 continue
-    yn = yl + (y[i-1]-yl) * (xn-xl) * xil;
-    gral = gral + (xn-xl)*( yl*0.5*(xn+xl) + (y[i-1]-yl)*xil*(-xl*0.5*(xn+xl) +
-      (xn*xn+xn*xl+xl*xl)/3.0) );
-    xbar = gral / fract;
-
-    // compute legendre components
-    if (nlin >= 0) {
-       legndr(xbar,p,nl);
-       for ( int il = 1; il < nl; ++il ){
-          s[il]=s[il]+p[il]/nbin;
-       } // end do
-    }
-    // output equally probable angles
-    else {
-       s[j]=xbar;
-    } // end if
-
-    // continue bin loop and linearization loop
-    xl = xn;
-    yl = yn;
-    sum = 0;
-    gral = 0;
-
-    if (j == nbin) { return; }
-    if (xl < x[i-1]) {
-      // go to 160
-      go_straight_to_150_from_190 = false; 
-      continue;
+  using std::abs;
+  Float muMid, xs_guess, xs_true;
+  while ( (unsigned) i < muVec.size() ){ // //std::cout << 110 << std::endl;
+    //std::cout << " --- 110 --- " << std::endl;
     
-    }
-   
-    // returns either 150, 160, or 260
-    what_next = do250( x, y, xl, yl, i ); 
-    if ( what_next == 160 ){  
-      go_straight_to_150_from_190 = false; 
-      continue;
-    }
-    if ( what_next == 150 ){
-      continue;
-    }
-    if (what_next == 260 ){
-      return;
-    }
+    muMid = 0.5*( muVec[i-2] + muVec[i-1] );
+    muMid = sigfig(muMid,8,0);
+    xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
+    xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,0.0253,lasym,lat,sb,sb2,teff,iinc);
 
-  }
+    if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*xsMax/50.0 and 
+           abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+xsMax/100.0 and 
+           (muVec[i-2]-muVec[i-1]) < 0.5 ) or
+          ( muVec[i-2]-muVec[i-1] < 1e-5 ) ) { 
+      return; 
+    }
+ 
+    shiftOver( i, muVec, xsVec, muMid, xs_true );
+  }  
+} 
+
+
+
+template <typename Range, typename Float>
+inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl, 
+  int lat, int iinc, Range& alphas, Range& betas, Range& sab, Float az,
+  int lasym, Float sigma_b, Float sigma_b2, Float teff ){
+    std::cout.precision (15);
+
+  using std::abs; using std::min; using std::pow;
+
+  Float tol = 0.5*tolin;
+
+  int nL = std::abs(nl);
+  int nbin = nL - 1;
+  
+  Float sum = 0, gral = 0;
+  Range muVec(20), xsVec(20);
+
+
+  int i = 3;
+  initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  Float muLeft = muVec[2],
+        xsLeft = xsVec[2];
+  Float xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
+
+
+
+  do {
+    do_110(i,muVec,xsVec, e, ep,tev,alphas,betas,sab,az,lasym,lat,sigma_b, sigma_b2, teff,iinc,tol, xsMax);
+    do { // If i = 2, then do this action twice. Else do it once
+      //std::cout << " --- 120 --- " << std::endl;
+      sum += 0.5*( xsVec[i-1] + xsLeft )*( muVec[i-1] - muLeft );
+      muLeft = muVec[i-1];
+      xsLeft = xsVec[i-1];
+      i -= 1;
+    } while ( i == 1 );
+
+  } while ( i > 1 );
+
+
+
+  std::vector<double> s(65,0.0);
+  s[0] = (sum <= 1e-32) ? 0.0 : sum;
+  //std::cout << " --- 130 --- " << std::endl;
+  Float fract = sum/(1.0*nbin);
+  sum = 0.0;
+  int j = 0;
+
+
+  i = 3;
+  initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  muLeft = muVec[2],
+  xsLeft = xsVec[2];
+  xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
+
+
+  Float xn = 0.0;
+
+  do { 
+    do_110(i,muVec,xsVec, e, ep,tev,alphas,betas,sab,az,lasym,lat,sigma_b, sigma_b2, teff,iinc,tol, xsMax);
+
+    do {
+      //std::cout << " --- 160 ---  "<< std::endl;
+      Float add = 0.5*(xsVec[i-1]+xsLeft)*(muVec[i-1]-muLeft);
+
+      if (muVec[i-1] == muLeft) { 
+          //std::cout << " --- 250 ---  "<< std::endl;
+          muLeft = muVec[i-1];
+          xsLeft = xsVec[i-1];
+          i -= 1;
+          if ( i < 1 ){ return s; }
+          if ( i > 1 ){ break; }
+      }
+
+      Float invDeltaMu = 1.0/(muVec[i-1]-muLeft);
+
+      if ( i == 1 and j == nbin-1 ){ //std::cout << " --- 165 ---  "<< std::endl;
+        j++;
+        xn = muVec[i-1];
+        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, nl, nbin, s, j, sum);
+        return s;
+      }
+      else if ( sum + add >= fract * 0.99999999 and j < nbin-1 ){
+        j++;
+        xn = getNextMuValue(fract, sum, xsVec, muVec, xsLeft, muLeft, i, invDeltaMu );
+        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, nl, nbin, s, j, sum);
+
+        if (muLeft < muVec[i-1] ){ continue; }
+        else { // 250
+          //std::cout << " --- 250 ---  "<< std::endl;
+          muLeft = muVec[i-1];
+          xsLeft = xsVec[i-1];
+          i -= 1;
+          if ( i < 1 ){ return s; }
+          if ( i > 1 ){ break; }
+        }
+      }
+
+      sum  += add;
+      gral += 0.5 * (xsLeft*muVec[i-1]-xsVec[i-1]*muLeft) * 
+                    (muVec[i-1]+muLeft) + 0.333333333*(xsVec[i-1]-xsLeft) * 
+                    (muVec[i-1]*muVec[i-1]+muVec[i-1]*muLeft+muLeft*muLeft);
+
+      muLeft = muVec[i-1];
+      xsLeft = xsVec[i-1];
+      i -= 1;
+      if ( i < 1 ){ return s; }
+      if ( i > 1 ){ break; }
+
+
+    } while ( i <= 1 );
+
+  } while ( i > 1 );
+
+
+  return s;
+
 
 }
+
+
+
+
+
+
+
+
+
+
+

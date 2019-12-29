@@ -1,7 +1,8 @@
-#define CATCH_CONFIG_MAIN 
-#include "catch.hpp"
-#include "calcem/calcem_util/e_ep_mu_util/310.h"
+//#define CATCH_CONFIG_MAIN 
+//#include "catch.hpp"
+//#include "calcem/calcem_util/e_ep_mu_util/310.h"
 
+/*
 void checkVecHasZeros(std::vector<double>& v, int index_0, int index_1 ){
   for ( int i = index_0; i < index_1; ++i ){
     REQUIRE( 0.0 == Approx(v[i]).epsilon(1e-6) );
@@ -186,4 +187,5 @@ TEST_CASE( "310" ){
 
 
 
+*/
 
