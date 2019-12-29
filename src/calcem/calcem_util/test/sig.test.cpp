@@ -250,24 +250,43 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
 
 
     WHEN( "weird approx #2 (largeish alpha,beta" ){ 
-
-       for (double& alphaVal : alpha){ alphaVal *= 100; }
-       for (double& betaVal  : beta ){ betaVal  *= 100; }
-
-
-       sab[1] = -226.0;
-
-        
-        e = 1.0e-1, ep = 6e-1, tev = 2e-1; u = -0.2;
-        sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz, lasym, lat, 
-                      sb, sb2, teff, iinc );
-
-        REQUIRE( 2.78824367E-5 == Approx( sigVal ).epsilon(1e-6) );
-
-      } // WHEN
+      for (double& alphaVal : alpha){ alphaVal *= 100; }
+      for (double& betaVal  : beta ){ betaVal  *= 100; }
+      sab[1] = -226.0;
+      e = 1.0e-1, ep = 6e-1, tev = 2e-1; u = -0.2;
+      sigVal = sig(e,ep,u,tev,alpha,beta,sab,az,tevz,lasym,lat,sb,sb2,teff,iinc);
+      REQUIRE( 2.78824367E-5 == Approx( sigVal ).epsilon(1e-6) );
+    } // WHEN
 
 
+    WHEN( "beta = 0" ){ 
+      tev = 2.5e-2; e = 1e-1, ep = 1e-1; 
+      sb = 4.0; teff = 0.12; lat = 1; iinc = 2; lasym = 0; az = 0.99917;
+      lat = 0;
 
+      std::vector<double> eVec {1e-1, 1e-2, 1e-3, 1e-5},
+                         muVec {-1.0,-0.2,0.0,1.0},
+                 correctVals = {
+        // mu = -1.0      -0.2          0.0          1.0 
+        0.27948044746, 0.503687172, 0.599753494, 21208.1883174, // e,ep = 1e-1
+        0.00000000000, 21.63653218, 23.70163351, 21208.1883174, // e,ep = 1e-2
+        52.9984618668, 68.42071997, 74.95114355, 21208.1883174, // e,ep = 1e-3
+        529.984637949, 684.2072246, 749.5114628, 21208.1883174  // e,ep = 1e-5
+      };
+
+
+      sb = 1.0;
+      for (size_t i = 0; i < eVec.size(); ++i){
+        for (size_t j = 0; j < muVec.size(); ++j){
+          REQUIRE( correctVals[i*muVec.size()+j] == 
+                   Approx(sig(eVec[i],eVec[i],muVec[j],tev,alpha,beta,sab,az,
+                          tevz,lasym,lat,sb,sb2,teff,iinc ) ).epsilon(1e-6) );
+          REQUIRE( 4.0*correctVals[i*muVec.size()+j] == 
+                   Approx(sig(eVec[i],eVec[i],muVec[j],tev,alpha,beta,sab,az,
+                      tevz,lasym,lat,4.0*sb,sb2,teff,iinc ) ).epsilon(1e-6) );
+        }
+      }
+    } // WHEN
 
   } // GIVEN
 } // TEST CASE

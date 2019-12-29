@@ -114,6 +114,7 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
 
   Float alpha = (e+ep-2*u*sqrt(e*ep))/(az*tev);
   Float beta  = (ep-e)/tev;
+  //std::cout << alpha << "   " << beta << std::endl;
   if ( alpha < amin ){ alpha = amin; }
 
   Float maxAlpha = alphas[alphas.size()-1],
