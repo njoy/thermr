@@ -154,6 +154,7 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
   // ........................................................................//
   double cliq = (sab[0] - sab[1])*alphas[0]/(betas[1]*betas[1]);
   if (cliq != 0.0 and alpha_scaled < alphas[0] and lasym != 1 and abs(beta_scaled) < test1){
+      //std::cout << "THIS   " << sab[0] << "   " << sab[1] << std::endl;
     s = sab[0] + log(alphas[0]/alpha_scaled)*0.5 - cliq*pow(beta_scaled,2)/alpha_scaled;
     return cutoff( sigc * sigma_b * exp(s-beta*0.5) );
   }

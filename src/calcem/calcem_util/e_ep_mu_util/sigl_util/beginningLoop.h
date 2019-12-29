@@ -19,13 +19,13 @@ auto do_190(Range& muVec, Range& xsVec, Float& xn, Float& xil, Float& muLeft, Fl
             Float& fract, int& i, Float& gral, int& nL, int& nbin, Range&s, int& j, Float& sum){
   std::cout << " --- 190 --- " << std::endl;
   Float yn = xsLeft + (xsVec[i-1]-xsLeft)*(xn-muLeft)*xil;
-  //std::cout << std::setprecision(15)  << gral << std::endl;//<< "    " << fract << std::endl;
   gral = gral + (xn-muLeft)*(xsLeft*0.5*(xn+muLeft) + 
         (xsVec[i-1]-xsLeft)*xil*(-muLeft*0.5*(xn+muLeft)
             + (1.0/3.0)*(xn*xn+xn*muLeft+muLeft*muLeft)));
   Float xbar = gral / fract;
 
   if ( nL >= 0 ){
+      //std::cout  << " HERE " << std::endl;
     Range p (nL,0.0);
     legndr(xbar,p,nL);
     for (int k = 1; k < nL; ++k){
@@ -36,9 +36,6 @@ auto do_190(Range& muVec, Range& xsVec, Float& xn, Float& xil, Float& muLeft, Fl
     s[j] = xbar;
   }
   
-
-  //std::cout << std::setprecision(15) << (s|ranges::view::all) << std::endl;
-  //std::cout << muLeft << "   " << muVec[i-1] << std::endl;
 
   muLeft = xn;
   xsLeft = yn;
@@ -54,10 +51,9 @@ auto do_190(Range& muVec, Range& xsVec, Float& xn, Float& xil, Float& muLeft, Fl
 template <typename Range, typename Float>
 auto do_170_175_180(Float& fract, Float& sum, Range& xsVec, Range& muVec, 
   Float& xsLeft, Float& muLeft, int& i, int& j, Float& xil ){
-
   std::cout << " --- 170 --- " << std::endl;
-  j++; 
   Float gral=0.0, xn, yn, xbar;
+  j++; 
 
   Float test = (fract-sum)*(xsVec[i-1]-xsLeft)/((muVec[i-1]-muLeft)*xsLeft*xsLeft);
   if ( xsLeft >= 1e-32 and abs(test) <= 1e-3 ){
@@ -82,7 +78,7 @@ auto do_170_175_180(Float& fract, Float& sum, Range& xsVec, Range& muVec,
   if (f < 0){ xn = muLeft - (xsLeft/f) - pow(disc,0.5); }
 
   if (xn > muLeft and xn <= muVec[i-1]){ 
-      std::cout << "to to 190" << std::endl; 
+      //std::cout << "to to 190" << std::endl; 
       return xn;
   }
   else if (xn > muLeft and xn < (muVec[i-1]+1e-3*(muVec[i-1]-muLeft))){ 
@@ -90,49 +86,10 @@ auto do_170_175_180(Float& fract, Float& sum, Range& xsVec, Range& muVec,
       xn = muVec[i-1];
       return xn;
   }
-  else { std::cout << "throw std::exception();" << std::endl; return 1.0; }
+  else { //std::cout << "throw std::exception();" << std::endl; 
+      return 1.0; }
   //else { throw std::exception(); }
 
-
-}
-
-
-
-template <typename Range, typename Float>
-inline auto adaptiveLinearization( Range& x, Range& y, const Float& e, 
-  const Float& ep, const Float& tev, const Float& tevz, const Range& alphas, 
-  const Range& betas, const Range& sab, const Float& az, 
-  const int& lasym, const Float& teff, const int& lat, 
-  const Float& sb, const Float& sb2, const int& iinc, const Float& eps, 
-  const Float& seep, const Float& s1bb  ){
-  /* So here we consider three angles - a cosine value of -1, a cosine value 
-   * that corresponds to alpha = sqrt(1+beta^2) [According to Eq. 227], and a
-   * cosine value of 1. We calculate the incoherent cross sections for all 
-   * of these angles (using sig), and determine the maximum cross section of 
-   * these three.
-   */
-
-  // prime stack for equally-probable angles
-  //std::cout << 130 << std::endl;
-  // adaptive linearization
-  // Consider a cosine mu equal to -1. What's the cross section?
-  x[2] = -1;
-  y[2] = sig(e,ep,x[2],tev,alphas,betas,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
-
-  // Consider a cosine mu that corresponds to an alpha value of sqrt(1+beta^2).
-  // What's the cross section?
-  x[1] = 0.5 * seep * ( e + ep - (s1bb-1) * az * tev );
-  if (std::abs(x[1]) > 1-eps) x[1] = 0.99;
-  x[1] = sigfig(x[1],8,0);
-  y[1] = sig(e,ep,x[1],tev,alphas,betas,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
-
-  // Consider a cosine mu equal to 1. What's the cross section?
-  x[0] = 1;
-  y[0] = sig(e,ep,x[0],tev,alphas,betas,sab,az,tevz,lasym,/*az2,teff2,*/lat,sb,sb2,teff,iinc);
-
-  Float ymax = maxOf3Vals(y[0],y[1],y[2]);
-  //if ( e >= 1.05 and e < 1.050001 and ep > 2.621273e-2 and ep < 2.621274e-2 )std::cout << "in sigl     " << y[1] << "     " << y[2] << std::endl;
-  return ( ymax < eps ) ? eps : ymax;
 
 }
 
@@ -172,13 +129,13 @@ inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Flo
    
   using std::abs;
   Float muMid, xs_guess, xs_true;
-  while ( (unsigned) i < muVec.size() ){ // std::cout << 110 << std::endl;
+  while ( (unsigned) i < muVec.size() ){ // //std::cout << 110 << std::endl;
     
     muMid = 0.5*( muVec[i-2] + muVec[i-1] );
     muMid = sigfig(muMid,8,0);
     xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
     xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,tevz,lasym,lat,sb,sb2,teff,iinc);
-    //std::cout << xs_guess << "   " << xs_true<< std::endl;
+    ////std::cout << xs_guess << "   " << xs_true<< std::endl;
     
     if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*ymax/50.0 and 
            abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+ymax/100.0 and 
@@ -199,6 +156,7 @@ template <typename Range, typename Float>
 inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl, 
   int lat, int iinc, Range& alphas, Range& betas, Range& sab, Float az,
   int lasym, Float sigma_b, Float sigma_b2, Float teff ){
+    std::cout.precision (15);
 
   Float yn = 0.0;
   Float xbar = 0.0;
@@ -229,17 +187,11 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,tevz,lasym,lat,sigma_b,sigma_b2,teff,iinc);
-  //std::cout << std::setprecision(15) << beta << std::endl;
-  //std::cout << std::setprecision(15) << xsVec[0] << "    " << xsVec[1] << "    " << xsVec[2] << std::endl;
-  //return xsVec;
-
 
   Float muLeft = muVec[2],
         xsLeft = xsVec[2];
 
   Float xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
-
-
 
   while ( true ){
     do_110(i, muVec, xsVec,  e,  ep, tev, alphas, betas, sab, az, tevz, lasym, 
@@ -269,6 +221,7 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
   }
 
   // 130
+  
   std::cout << " --- 130 --- " << std::endl;
   int nbin = nL - 1;
   Float fract = sum/(1.0*nbin);
@@ -299,32 +252,24 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
   xsLeft = xsVec[2];
 
   xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
-  //std::cout << (muVec|ranges::view::all) << std::endl;
-  //std::cout << std::endl;
-  //std::cout << (xsVec|ranges::view::all) << std::endl;
-  //return;
-
-
 
 
   Float xn=0.0;
 
   while (true){
     std::cout << " --- 150 ---  "<< std::endl;
-    // 150
     do_110(i, muVec, xsVec,  e,  ep, tev, alphas, betas, sab, az, tevz, lasym, 
            lat, sigma_b,  sigma_b2,  teff, iinc, tol,  xsMax);
 
 
 
+
     while (true){
       std::cout << " --- 160 ---  "<< std::endl;
-  //std::cout << xsLeft << std::endl;
-      // 160
       Float add = 0.5*(xsVec[i-1]+xsLeft)*(muVec[i-1]-muLeft);
 
 
-      if (muVec[i-1] == muLeft) {  // 250
+      if (muVec[i-1] == muLeft) { 
           std::cout << " --- 250 ---  "<< std::endl;
           muLeft = muVec[i-1];
           xsLeft = xsVec[i-1];
@@ -343,7 +288,6 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
           std::cout << " --- 165 ---  "<< std::endl;
           xn = muVec[i-1];
           j++;
-          //std::cout << "go to 190" << std::endl;
           int out = do_190(muVec, xsVec, xn, xil, muLeft, xsLeft, fract, i, gral, nl, nbin, s, j, sum);
           if (out == 260){
               std::cout << " --- 260 ---  "<< std::endl;
@@ -392,9 +336,6 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
       sum += add;
       double third = 0.333333333;
       gral = gral + 0.5 * (xsLeft*muVec[i-1]-xsVec[i-1]*muLeft)*(muVec[i-1]+muLeft)+third*(xsVec[i-1]-xsLeft)*(muVec[i-1]*muVec[i-1]+muVec[i-1]*muLeft+muLeft*muLeft);
-      //std::cout << std::setprecision(15) << gral << std::endl;
-      //std::cout << (xsLeft*muVec[i-1]-xsVec[i-1]*muLeft) << std::endl;
-
       std::cout << " --- 250 ---  "<< std::endl;
       muLeft = muVec[i-1];
       xsLeft = xsVec[i-1];
@@ -466,7 +407,7 @@ inline auto do_110_120_130_for_sigl( int& i, Range& x, Range& y,
 
     while ( true ){
 
-      // std::cout << 120 << std::endl;
+      // //std::cout << 120 << std::endl;
       
       // Sum is meant to be the integral of cross section across all values of
       // mu. 
