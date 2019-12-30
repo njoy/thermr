@@ -377,6 +377,7 @@
     "src/calcem/calcem_util/e_ep_mu_util/360.h",
     "src/calcem/calcem_util/e_ep_mu_util/380.h",
     "src/calcem/calcem_util/e_ep_mu_util/410.h",
+    "src/calcem/calcem_util/e_ep_mu_util/e_ep_mu.h",
     "src/calcem/calcem_util/e_ep_mu_util/sigl.h",
     "src/calcem/calcem_util/e_mu_ep_util/adaptiveReconstruction.h",
     "src/calcem/calcem_util/e_mu_ep_util/mainLoop.h",
@@ -438,6 +439,7 @@
       "src/calcem/calcem_util/e_ep_mu_util/test/360.test.cpp",
       "src/calcem/calcem_util/e_ep_mu_util/test/380.test.cpp",
       "src/calcem/calcem_util/e_ep_mu_util/test/410.test.cpp",
+      "src/calcem/calcem_util/e_ep_mu_util/test/e_ep_mu.test.cpp",
       "src/calcem/calcem_util/e_ep_mu_util/test/sigl.test.cpp"
     ],
     "calcem.calcem_util.e_mu_ep_util": [

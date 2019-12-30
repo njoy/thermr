@@ -252,6 +252,7 @@ add_library( thermr ${thermr_library_linkage}
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/360.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/380.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/410.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/e_ep_mu.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/sigl.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/adaptiveReconstruction.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/mainLoop.h"
