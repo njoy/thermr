@@ -70,69 +70,48 @@ inline auto sigu( int nemax, const Float& e, const Float& u, const Float& tev,
    yl = 0;
 
 
-   // set up next panel
-   while (true){  
-     std::cout << " --- 111 --- " << std::endl;
-     x[1] = x[0]; 
-     y[1] = y[0];
+  do {
+    std::cout << " --- 111 --- " << std::endl;
+    x[1] = x[0]; 
+    y[1] = y[0];
 
 
-     do_113_116( jbeta, lat, x, y, e, tev, tevz, u, alphas, betas, sab, az, 
-                 lasym, teff, sb, sb2, iinc );
+    do_113_116( jbeta, lat, x, y, e, tev, tevz, u, alphas, betas, sab, az, 
+                lasym, teff, sb, sb2, iinc );
 
-     int i = 1;
-     while ( true ){
+    int i = 1;
+    do {
 
-       do_150( i, imax, y, x, tolmin, tol, teff, xm, e, u, tev, alphas, 
-               betas, sab, az, tevz, lasym, lat, sb, sb2, iinc );
+      do_150( i, imax, y, x, tolmin, tol, teff, xm, e, u, tev, alphas, 
+              betas, sab, az, tevz, lasym, lat, sb, sb2, iinc );
 
-       while (true) {
-         std::cout << " --- 160 --- " << std::endl;
-         j += 1;
-         s1[j] = x[i];
-         s2[j] = y[i];
-         if ( j > 1 ) { sum += (y[i]+yl)*(x[i]-xl); }
-         xl = x[i];
-         yl = y[i];
+      do {
+        std::cout << " --- 160 --- " << std::endl;
+        j += 1;
+        s1[j] = x[i];
+        s2[j] = y[i];
+        if ( j > 1 ) { sum += (y[i]+yl)*(x[i]-xl); }
+        xl = x[i];
+        yl = y[i];
 
-         if (( j >= nemax-1 ) or ( jbeta > 0 and betas[jbeta-1] > bmax )){ 
-             std::cout << " --- 170 --- " << std::endl;
-             s1[0] = sum; s2[0] = j;
-             return;
-         } 
+        if (( j >= nemax-1 ) or ( jbeta > 0 and betas[jbeta-1] > bmax )){ 
+          std::cout << " --- 170 --- " << std::endl;
+          s1[0] = sum; s2[0] = j;
+          return;
+        } 
 
-         i -= 1;
-         if ( i > 0 or jbeta+1 <= int(betas.size())){ break; }
-
-         jbeta += 1;
-
-         if ( i == 0 ){ continue; }
+        --i;
+        if ( i > 0 ){ break; }
+        ++jbeta;
+        if ( jbeta <= int(betas.size())) { break; }
     
-         std::cout << " --- 170 --- " << std::endl;
-         s1[0] = sum; s2[0] = j;
+      } while (i == 0);
 
-         return;
-      }
+    } while(i > 0);
 
-      if ( i > 0 ){ 
-        continue; 
-      }
-      else if ( jbeta <= int(betas.size()) ){
-        jbeta +=1;
-        break;
-      }
-      else { 
-          std::cout << "something is wrong" << std::endl;
-          throw std::exception();
-      }
-
-
-
-    }
-
-  }
-
-   return;
+  } while( jbeta <= int(betas.size()));
+  std::cout << " --- 170 --- " << std::endl;
+  s1[0] = sum; s2[0] = j;
 }
 #endif
 
