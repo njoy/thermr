@@ -8,29 +8,31 @@
 
 
 template <typename Range, typename Float>
-auto do_150(int& i, int imax, Range& y, Range& x, Float tolmin, const Float& tol, 
-  const Float& teff,Float& xm, const Float& e, 
+auto do_150(int& i, Range& y, Range& x, Float tolmin, const Float& tol, 
+  const Float& teff, const Float& e, 
   const Float& u, const Float& tev, const Range& alphas, const Range& betas, 
   const Range& sab, const Float& az, const Float& tevz, int lasym,int lat, 
   const Float& sb, const Float& sb2, int iinc ){
 
-   while ( i != imax-1 ){
+   while ( i < int(x.size())-1 ){
      std::cout << " --- 150 --- " << std::endl; 
-     if ( i > 3-1 and 0.5*(y[i-1]+y[i-0])*(x[i-1]-x[i-0]) < tolmin ){ return; }
-     xm = 0.5*(x[i-1]+x[i-0]); xm = sigfig(xm,8,0);
-     if ( xm <= x[i-0] or xm >= x[i-1] ){ return; }
+     if ( i > 2 and 0.5*(y[i-1]+y[i])*(x[i-1]-x[i]) < tolmin ){ return; }
+
+     Float xMid = sigfig(0.5*(x[i-1]+x[i]),8,0);
+
+     if ( xMid <= x[i] or xMid >= x[i-1] ){ return; }
 
      Float yGuess = 0.5*(y[i-1]+y[i-0]),
-           yTrue = sig( e, xm, u, tev, alphas, betas, sab, az, tevz, lasym, lat, sb, sb2, teff, iinc );
+           yTrue = sig( e, xMid, u, tev, alphas, betas, sab, az, tevz, lasym, lat, sb, sb2, teff, iinc );
 
      // Point passes
      if ( abs(yTrue-yGuess) <= tol*abs(yTrue) ){ return; }
 
      // We need to bisect again
-     i += 1;
+     ++i;
      x[i] = x[i-1];
      y[i] = y[i-1];
-     x[i-1] = xm;
+     x[i-1] = xMid;
      y[i-1] = yTrue;
    }
 }
@@ -50,24 +52,15 @@ inline auto sigu( int nemax, const Float& e, const Float& u, const Float& tev,
    *-------------------------------------------------------------------
    */
    using std::abs;
-   int j, jbeta, imax=20;
-   Float sum, xl, yl, xm, test, tol, tolmin = 1.e-6, bmax = 20;
-   Range x(imax), y(imax), s(2*nemax);
+   int j=0, jbeta;
+   Float sum = 0.0, xl=0.0, yl=0.0, tolmin = 1.e-6, bmax = 20;
+   Range x(20,0.0), y(20,0.0), s(2*nemax,0.0);
    Float tevz = 0.0253;
 
-   tol=tolin;
-
-   // adaptive calculation of cross section
-   sum  = 0;
-   x[0] = 0;
    y[0] = sig( e, x[0], u, tev, alphas, betas, sab, az, tevz, lasym, 
                  lat, sb, sb2, teff, iinc );
 
-   jbeta = -betas.size();
-   if (lasym > 0) jbeta=1;
-   j = 0;
-   xl = 0;
-   yl = 0;
+   jbeta = (lasym > 0) ? 1 : -betas.size();
 
 
   do {
@@ -82,7 +75,7 @@ inline auto sigu( int nemax, const Float& e, const Float& u, const Float& tev,
     int i = 1;
     do {
 
-      do_150( i, imax, y, x, tolmin, tol, teff, xm, e, u, tev, alphas, 
+      do_150( i, y, x, tolmin, tolin, teff, e, u, tev, alphas, 
               betas, sab, az, tevz, lasym, lat, sb, sb2, iinc );
 
       do {
