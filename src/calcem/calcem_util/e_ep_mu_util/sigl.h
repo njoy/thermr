@@ -1,10 +1,11 @@
 #include "calcem/calcem_util/sig.h"
-//#include "calcem/calcem_util/e_ep_mu_util/sigl_util/beginningLoop.h"
-#include "general_util/sigfig.h"
+//#include "general_util/sigfig.h"
 #include "coh/coh_util/sigcoh_util/legndr.h"
 #include <range/v3/all.hpp>
 #include <cmath>
 #include <tuple>
+
+
 
 template <typename Range, typename Float>
 auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e, 
@@ -69,12 +70,11 @@ auto getNextMuValue(Float& fract, Float& sum, Range& xsVec, Range& muVec,
   Float test = (fract-sum)*(xsVec[i-1]-xsLeft)/((muVec[i-1]-muLeft)*xsLeft*xsLeft);
 
   if ( xsLeft >= 1e-32 and abs(test) <= 1e-3 ){ // Could potentially do 180, 190
-      xn = muLeft + ( fract-sum )/xsLeft;
-      if ( xn > muVec[i-1] ){
-        //std::cout << " --- 180 --- " << std::endl;
+      xn = muLeft + (fract-sum)/xsLeft;
+      if ( muVec[i-1] < xn ){ //std::cout << " --- 180 --- " << std::endl;
         return muVec[i-1];
       } 
-      else if ( xn >= muLeft ){
+      else if ( muLeft <= xn ){
         return xn;
       }
   }
@@ -85,11 +85,12 @@ auto getNextMuValue(Float& fract, Float& sum, Range& xsVec, Range& muVec,
   xn = ( f > 0 ) ? muLeft - (xsLeft/f) + sqrt_disc 
                  : muLeft - (xsLeft/f) - sqrt_disc;
 
-  if ( xn > muLeft ){
-    if ( xn <= muVec[i-1] ){ return xn; }
-    if ( xn < (muVec[i-1]+1e-3*(muVec[i-1]-muLeft))){ return muVec[i-1]; }
-  }
-  throw std::exception();
+  if ( xn <= muLeft ){ throw std::exception(); }
+
+  if ( xn <= muVec[i-1] ){ return xn; }
+  if ( xn < (muVec[i-1]+1e-3*(muVec[i-1]-muLeft))){ return muVec[i-1]; }
+  else { throw std::exception(); }
+
 }
 
 
@@ -111,38 +112,20 @@ inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Flo
   const Float& tev, const Range& alphas, const Range& betas, const Range& sab, 
   const Float& az, const int& lasym, const int& lat, 
   const Float& sb, const Float& sb2, const Float& teff, const int& iinc, 
-  const Float& tol, const Float& xsMax){
+  const Float& tol){
 
-  // If the spacing isn't fine enough, we'll bisect the grid
-  //
-  // x = [   mu1      mu2          mu3            0    0   0 ... ]
-  // y = [ s(mu1)   s(mu2)       s(mu3)           0    0   0 ... ]
-  //
-  //           will be turned into
-  //
-  // x = [   mu1      mu2      0.5*(mu2+mu3)     mu3   0   0 ... ]
-  // y = [ s(mu1)   s(mu2)   s(0.5*(mu2+mu3))  s(mu3)  0   0 ... ]
-  //
-  // where s(x) is the incoherent cross section [Eq. 225] evaluated at 
-  // cosine x
-   
+  Float xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
   using std::abs;
   Float muMid, xs_guess, xs_true;
-  while ( (unsigned) i < muVec.size() ){ // //std::cout << 110 << std::endl;
-    //std::cout << " --- 110 --- " << std::endl;
-    
-    muMid = 0.5*( muVec[i-2] + muVec[i-1] );
-    muMid = sigfig(muMid,8,0);
+  while ( (unsigned) i < muVec.size() ){ //std::cout << " --- 110 --- " << std::endl;
+    muMid = 0.5*( muVec[i-2] + muVec[i-1] ); //muMid = sigfig(muMid,8,0);
     xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
     xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,0.0253,lasym,lat,sb,sb2,teff,iinc);
 
     if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*xsMax/50.0 and 
            abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+xsMax/100.0 and 
            (muVec[i-2]-muVec[i-1]) < 0.5 ) or
-          ( muVec[i-2]-muVec[i-1] < 1e-5 ) ) { 
-      return; 
-    }
- 
+         ( muVec[i-2]-muVec[i-1] < 1e-5 ) ) { break; }
     shiftOver( i, muVec, xsVec, muMid, xs_true );
   }  
 } 
@@ -150,14 +133,14 @@ inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Flo
 
 
 template <typename Range, typename Float>
-inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl, 
+inline auto sigl(Float ep, Float e, Float tev, Float tol, int nl, 
   int lat, int iinc, Range& alphas, Range& betas, Range& sab, Float az,
   int lasym, Float sigma_b, Float sigma_b2, Float teff ){
-    std::cout.precision (15);
+  //std::cout.precision (15);
 
   using std::abs; using std::min; using std::pow;
 
-  Float tol = 0.5*tolin;
+  tol *= 0.5;
 
   int nL = std::abs(nl);
   int nbin = nL - 1;
@@ -170,12 +153,11 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
   initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   Float muLeft = muVec[2],
         xsLeft = xsVec[2];
-  Float xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
 
 
 
   do {
-    do_110(i,muVec,xsVec, e, ep,tev,alphas,betas,sab,az,lasym,lat,sigma_b, sigma_b2, teff,iinc,tol, xsMax);
+    do_110(i,muVec,xsVec, e, ep,tev,alphas,betas,sab,az,lasym,lat,sigma_b, sigma_b2, teff,iinc,tol);
     do { // If i = 2, then do this action twice. Else do it once
       //std::cout << " --- 120 --- " << std::endl;
       sum += 0.5*( xsVec[i-1] + xsLeft )*( muVec[i-1] - muLeft );
@@ -200,13 +182,12 @@ inline auto sigl(Float ep, Float e, Float tev, Float tolin, int nl,
   initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   muLeft = muVec[2],
   xsLeft = xsVec[2];
-  xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
 
 
   Float xn = 0.0;
 
   do { 
-    do_110(i,muVec,xsVec, e, ep,tev,alphas,betas,sab,az,lasym,lat,sigma_b, sigma_b2, teff,iinc,tol, xsMax);
+    do_110(i,muVec,xsVec, e, ep,tev,alphas,betas,sab,az,lasym,lat,sigma_b, sigma_b2, teff,iinc,tol);
 
     do {
       //std::cout << " --- 160 ---  "<< std::endl;

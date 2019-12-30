@@ -24,10 +24,10 @@ TEST_CASE( "110" ){
     } 
   } 
   double az = 0.99917, tevz = 2.53e-2, sigma_b = 163.72792237360667, 
-         sigma_b2 = 0.0, teff = 0.120441926577313, tol = 2.5e-2, ymax = 1e-3;
+         sigma_b2 = 0.0, teff = 0.120441926577313, tol = 2.5e-2;
   int lasym = 0, lat = 1, iinc = 2; 
 
-  do_110(i,x,y,e,ep,tev,alpha,beta,sab,az,lasym,lat,sigma_b,sigma_b2,teff,iinc,tol,ymax);
+  do_110(i,x,y,e,ep,tev,alpha,beta,sab,az,lasym,lat,sigma_b,sigma_b2,teff,iinc,tol);
   std::vector<double> 
     correct_x { 1.0, 0.0, -0.5, -0.75, -0.875, -0.9375, -0.96875, -0.984375, 
     -0.9921875, -0.99609375, -0.99804687, -0.99902343, -0.99951171, -0.99975585, 
