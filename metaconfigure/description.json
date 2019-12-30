@@ -381,8 +381,6 @@
     "src/calcem/calcem_util/e_mu_ep_util/adaptiveReconstruction.h",
     "src/calcem/calcem_util/e_mu_ep_util/mainLoop.h",
     "src/calcem/calcem_util/e_mu_ep_util/sigu.h",
-    "src/calcem/calcem_util/e_mu_ep_util/sigu_util/begin_sigu.h",
-    "src/calcem/calcem_util/e_mu_ep_util/sigu_util/do150.h",
     "src/calcem/calcem_util/sig_util/terpq.h",
     "src/coh/coh.h",
     "src/coh/coh_util/sigcoh.h",
@@ -446,10 +444,6 @@
       "src/calcem/calcem_util/e_mu_ep_util/test/adaptiveReconstruction.test.cpp",
       "src/calcem/calcem_util/e_mu_ep_util/test/mainLoop.test.cpp",
       "src/calcem/calcem_util/e_mu_ep_util/test/sigu.test.cpp"
-    ],
-    "calcem.calcem_util.e_mu_ep_util.sigu_util": [
-      "src/calcem/calcem_util/e_mu_ep_util/sigu_util/test/begin_sigu.test.cpp",
-      "src/calcem/calcem_util/e_mu_ep_util/sigu_util/test/do150.test.cpp"
     ],
     "calcem.calcem_util.sig_util": [
       "src/calcem/calcem_util/sig_util/test/terpq.test.cpp"
