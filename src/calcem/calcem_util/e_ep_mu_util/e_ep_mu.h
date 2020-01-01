@@ -1,11 +1,12 @@
 #include <iostream>
 #include "general_util/sigfig.h"
+#include "calcem/calcem_util/e_ep_mu_util/sigl.h"
 
 
 
-//template <typename Range, typename Float>
-template <typename Float>
-auto e_ep_mu( Float T, Float& teff, Float& teff2 ){
+template <typename Range, typename Float>
+//template <typename Float>
+auto e_ep_mu( Float T, Float& teff, Float& teff2, int nne, int nnl, int nl, Float tol, Float& sigma_b, Float& sigma_b2, Float az, int lasym, int lat, int iinc, const Range& alphas, const Range& betas, const Range& sab ){
   // should only be here if iform = 0
   std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
     1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 2.53e-4, 2.97e-4, 3.5e-4, 4.2e-4, 5.06e-4, 
@@ -42,8 +43,9 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2 ){
 
   int imax = 20;
   std::vector<double> esi(nne+1), xsi(nne+1), 
-  ubar(egrid.size()), p2(egrid.size()), p3(egrid.size()), x(imax);
+  ubar(egrid.size()), p2(egrid.size()), p3(egrid.size()), x(imax), y(65*imax,0.0); // This here is nlmax = 65
 
+  int j, jbeta, iskip;
   // loop over given incident energy grid
   while (true){
     std::cout << " --- 305 --- " << std::endl;
@@ -67,7 +69,68 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2 ){
       p3[ie-1] = 0.0;
       ep = 0.0;
       x[0] = ep;
+      //std::cout << enow << "   " << ep << std::endl;
+      auto s  = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+
+      for ( int il = 0; il < nl; ++il ){
+        y[il*imax+0] = s[il];
+        //y[i*imax+j] = y(i,j) where this goes up to y(nlmax,imax)
+      }
+      //std::cout << il*imax << "    " << y.size() << std::endl;
+      jbeta = -betas.size();
+      if (lasym > 0) jbeta = 1;
+      j = 0;
+      iskip = 0;
+
+
+      std::cout << " --- 311 --- " << std::endl;
+      x[1] = x[0];
+      for ( int il = 0; il < nl; ++il ){
+        y[il*imax+1] = y[il*imax+0];
+      }
+
+
+      while ( true ){ 
+        std::cout << " --- 313 --- " << std::endl;
+        if ( jbeta == 0 ){ jbeta = 1; }
+        if ( jbeta <= 0 ){ 
+          if ( lat == 1 ){ ep = enow - betas[-jbeta-1]*0.0253; }
+          else           { ep = enow - betas[-jbeta-1]*tev ; }
+          if ( ep == enow ){ ep = sigfig(enow,8,-1); }
+          else             { ep = sigfig(ep,  8, 0); }
+        }
+        else { 
+          if ( lat == 1 ){ ep = enow + betas[jbeta-1]*0.0253; }
+          else           { ep = enow + betas[jbeta-1]*tev ; }
+          if ( ep == enow ){ ep = sigfig(enow,8, 1); }
+          else             { ep = sigfig(ep,  8, 0); }
+        }
+        if ( ep > x[1] ){ 
+            break;
+        }
+        jbeta += 1;
+      }
+
+      std::cout << " --- 316 ---" << std::endl; 
+      ep = sigfig(ep,8,0);
+      x[0] = ep;
+      //std::cout << ep << "   " << enow << std::endl;
+      //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
+      s = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+      //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
       return;
+      for ( int il = 0; il < nl; ++il ){
+       y[il*imax+0] = s[il];
+      }
+      std::cout << y[0] << "   " << y[1] << std::endl;
+      std::cout << y[imax+0] << "   " << y[imax+1] << std::endl;
+
+
+
+
+
+
+
 
     }
 

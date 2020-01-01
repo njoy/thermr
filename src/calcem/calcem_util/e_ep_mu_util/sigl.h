@@ -15,6 +15,7 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
 
   Float beta = std::abs((ep-e)/tev);
   if ( lat == 1 and iinc == 2 ){ beta *= tev/0.0253; }
+  std::cout << "!!! " << sigma_b << std::endl;
 
   muVec[0] =  1.0; 
   muVec[2] = -1.0; 
@@ -26,6 +27,8 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  //std::cout << e << "   " << ep << "   " << muVec[2] << std::endl;
+  std::cout << tev << "   " << teff << "   " << std::endl;
 }
 
 template <typename Float>
@@ -134,7 +137,7 @@ inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Flo
 
 template <typename Range, typename Float>
 inline auto sigl(Float ep, Float e, Float tev, Float tol, int nl, 
-  int lat, int iinc, Range& alphas, Range& betas, Range& sab, Float az,
+  int lat, int iinc, const Range& alphas, const Range& betas, const Range& sab, Float az,
   int lasym, Float sigma_b, Float sigma_b2, Float teff ){
   //std::cout.precision (15);
 
@@ -169,9 +172,19 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int nl,
   } while ( i > 1 );
 
 
-
   std::vector<double> s(65,0.0);
   s[0] = (sum <= 1e-32) ? 0.0 : sum;
+
+  //std::cout << (xsVec|ranges::view::all) << std::endl;
+  //return s;
+
+
+
+  if ( sum <= 1e-32 ){
+      return s;
+  }
+
+
   //std::cout << " --- 130 --- " << std::endl;
   Float fract = sum/(1.0*nbin);
   sum = 0.0;
