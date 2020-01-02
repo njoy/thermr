@@ -15,7 +15,6 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
 
   Float beta = std::abs((ep-e)/tev);
   if ( lat == 1 and iinc == 2 ){ beta *= tev/0.0253; }
-  std::cout << "!!! " << sigma_b << std::endl;
 
   muVec[0] =  1.0; 
   muVec[2] = -1.0; 
@@ -28,7 +27,7 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
   xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   //std::cout << e << "   " << ep << "   " << muVec[2] << std::endl;
-  std::cout << tev << "   " << teff << "   " << std::endl;
+  //std::cout << tev << "   " << teff << "   " << std::endl;
 }
 
 template <typename Float>

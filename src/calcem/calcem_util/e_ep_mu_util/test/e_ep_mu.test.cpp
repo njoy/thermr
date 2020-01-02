@@ -17,15 +17,14 @@ TEST_CASE( "E-E'-mu" ){
       sab[i*betas.size()+j] = 0.01*((j+1) + 0.1*(i+1));
     } 
   } 
-  double az = 0.99917, tol = 2.5e-2;
-  int lasym = 0, lat = 1, iinc = 2; 
-
-
-
+  double az = 0.99917, tol = 5e-2;
+  int lasym = 0, lat = 1, iinc = 2, jmax = 55550;
   int nne = 88, nnl = -9, nl = 9;
   double T = 296.0, teff = 1397.671, teff2 = 0.0, sigma_b = 163.72792237360667, sigma_b2 = 0.0;
-  e_ep_mu( T, teff, teff2, nne, nnl, nl, tol, sigma_b, sigma_b2, az, lasym, lat, iinc, alphas, betas, sab );
+
+  std::cout.precision(15);
+
+  e_ep_mu( T, teff, teff2, jmax, nne, nnl, nl, tol, sigma_b, sigma_b2, az, lasym, lat, iinc, alphas, betas, sab );
 
 
 }
-

@@ -1,12 +1,61 @@
 #include <iostream>
 #include "general_util/sigfig.h"
 #include "calcem/calcem_util/e_ep_mu_util/sigl.h"
+#include "coh/coh_util/sigcoh_util/legndr.h"
+
+
+
+template <typename Range, typename Float>
+auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i, 
+  int& j, int nl, Float& ulast, Float& u2last, Float& u3last,
+  Range& ubar, Range& p2, Range& p3, int imax, int jmax, int ie ){
+  std::cout << " --- 360 --- " << std::endl;
+  j += 1;
+  Float uu,u2,u3;
+  int nll;
+  if ( j >= jmax ){ std::cout << "j is too big" << std::endl; throw std::exception(); }
+  if ( j > 1 ){ 
+      xsi[ie-1] += (x[i-1]-xlast)*(y[i-1]+ylast)*0.5;
+      uu = 0;
+      u2 = 0;
+      u3 = 0;
+      nll = 3;
+      Range p (4,0.0);
+      for ( int il = 1; il < nl; ++il ){
+        legndr( y[il*imax+i-1], p, nll );
+        uu += p[1];
+        u2 += p[2];
+        u3 += p[3];
+      }
+      uu /= (nl-1);
+      uu *= y[i-1];
+      u2 /= (nl-1);
+      u2 *= y[i-1];
+      u3 /= (nl-1);
+      u3 *= y[i-1];
+      ubar[ie-1] += 0.5*(x[i-1]-xlast)*(uu+ulast);
+      p2[ie-1] += 0.5*(x[i-1]-xlast)*(u2+u2last);
+      p3[ie-1] += 0.5*(x[i-1]-xlast)*(u3+u3last);
+
+
+  }
+  if ( j == 3 and xsi[ie-1] >= 5e-7 ){
+    j = 2;
+  }
+
+
+
+  std::cout << " --- 380 --- " << std::endl;
+  jscr = 7 + (j-1)*(nl+1);
+  //scr[jscr-1] = x[i-1];
+
+}
 
 
 
 template <typename Range, typename Float>
 //template <typename Float>
-auto e_ep_mu( Float T, Float& teff, Float& teff2, int nne, int nnl, int nl, Float tol, Float& sigma_b, Float& sigma_b2, Float az, int lasym, int lat, int iinc, const Range& alphas, const Range& betas, const Range& sab ){
+auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, int nl, Float tol, Float& sigma_b, Float& sigma_b2, Float az, int lasym, int lat, int iinc, const Range& alphas, const Range& betas, const Range& sab ){
   // should only be here if iform = 0
   std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
     1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 2.53e-4, 2.97e-4, 3.5e-4, 4.2e-4, 5.06e-4, 
@@ -22,6 +71,10 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int nne, int nnl, int nl, Floa
     1.7, 1.855, 2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 3.42, 3.75, 4.07, 4.46, 
     4.9, 5.35, 5.85, 6.4, 7.0, 7.65, 8.4, 9.15, 9.85, 10.0 };
 
+  Float xm, ym;
+  Float ylast = 0.0, xlast = 0.0, ulast = 0.0, u2last = 0.0, u3last = 0.0;
+  Float tolmin = 5e-7;
+  int i;
   
   Float kb = 8.6173303E-5;
   Float tev = kb*T;
@@ -118,12 +171,89 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int nne, int nnl, int nl, Floa
       //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
       s = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
       //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
-      return;
+      //return;
       for ( int il = 0; il < nl; ++il ){
        y[il*imax+0] = s[il];
       }
-      std::cout << y[0] << "   " << y[1] << std::endl;
-      std::cout << y[imax+0] << "   " << y[imax+1] << std::endl;
+      //std::cout << y[0] << "   " << y[1] << std::endl;
+      //std::cout << y[imax+0] << "   " << y[imax+1] << std::endl;
+      //return;
+
+      // adaptive subdivision of panel
+      i = 2;
+      bool breaking = false;
+      while ( true ){
+        //if ( i > 5 ){ return; }
+        std::cout << " --- 330 --- " << "   " << i << std::endl;
+        //std::cout << y[0] << "   " << y[1] << "   " << y[2] << std::endl;
+        if ( i == imax ){ 
+            //std::cout << " go to 360" << std::endl; 
+            do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
+                    ubar, p2, p3, imax, jmax, ie );
+            return;
+
+        }
+        if ( iskip == 1 ){ iskip = 0; 
+            //std::cout << " go to 360" << std::endl; 
+            do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
+                    ubar, p2, p3, imax, jmax, ie );
+            return;
+        }
+        if ( 0.5 * ( y[0*imax+(i-1)-1] + y[0*imax+(i)-1] ) *
+                   ( x[(i-1)-1] - x[(i)-1] ) < tolmin ){ 
+            //std::cout << " go to 360 " << std::endl; 
+            do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
+                    ubar, p2, p3, imax, jmax, ie );
+            return;
+        }
+
+  
+        xm = 0.5*(x[(i-1)-1]+x[(i)-1]);
+        xm = sigfig(xm,8,0);
+  
+        if ( xm <= x[i-1] or xm >= x[i-2] ){ 
+            std::cout << " go to 360 " << std::endl;
+        }
+
+        s = sigl(xm,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+        //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
+  
+        Float uu  = 0;
+        Float uum = 0;
+  
+        for ( int k = 0; k < nl; ++k ){
+          ym = ( x[i-2] == x[i-1] ) ? 
+            y[k*imax+i-1] :
+            y[k*imax+i-1] + (xm-x[i-1])*(y[k*imax+i-2]-y[k*imax+i-1])/(x[i-2]-x[i-1]);
+          
+          //std::cout << ym << std::endl;
+          if ( k > 0 ){ uu  += s[k]; }
+          if ( k > 0 ){ uum += ym  ; }
+          Float test = tol*abs(s[k]);
+          Float test2 = test;
+          if ( k > 0){ test2 = tol; }
+          if ( abs(s[k]-ym) > test2 ){
+              std::cout << " --- 410 ---" << std::endl;
+              i += 1;
+              x[i-1] = x[i-2];
+              x[i-2] = xm;
+              for ( int il = 0; il < nl; ++il ){
+                y[il*imax+i-1] = y[il*imax+i-2];
+                y[il*imax+i-2] = s[il];
+              }
+              breaking = true;
+          }
+        }
+        if (breaking == true){ continue; }
+        else { break; }
+      }
+      std::cout << " --- 350 --- " << std::endl;
+
+
+      return;
+
+
+
 
 
 
