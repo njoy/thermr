@@ -8,7 +8,8 @@
 template <typename Range, typename Float>
 auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i, 
   int& j, int nl, Float& ulast, Float& u2last, Float& u3last,
-  Range& ubar, Range& p2, Range& p3, int imax, int jmax, int ie ){
+  Range& ubar, Range& p2, Range& p3, int imax, int jmax, int ie, int& jnz, int& jbeta, 
+  int nbeta, Range& scr){
   std::cout << " --- 360 --- " << std::endl;
   j += 1;
   Float uu,u2,u3;
@@ -45,9 +46,71 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
 
 
 
+
   std::cout << " --- 380 --- " << std::endl;
-  jscr = 7 + (j-1)*(nl+1);
-  //scr[jscr-1] = x[i-1];
+  int jscr = 7 + (j-1)*(nl+1);
+  scr[jscr-1] = x[i-1];
+  if (y[i-1] >= 1e-9 ){ scr[jscr] = sigfig(y[i-1],9,0); }
+  else                { scr[jscr] = sigfig(y[i-1],8,0); }
+
+  for ( int il = 2; il <= nl; ++il ){
+    std::cout << il << std::endl;
+    scr[il+jscr-1] = sigfig(y[(il-1)*imax+i-1],9,0);
+    if (scr[il+jscr-1] > 1.0 ){ 
+      if (scr[il+jscr-1] > 1.0+0.0005 ){
+        std::cout << "call mess????" << std::endl; throw std::exception(); }
+      scr[il+jscr-1] = 1.0; }
+    if ( scr[il+jscr-1] < -1.0 ){
+      if (scr[il+jscr-1] < -(1.0+0.0005) ){
+        std::cout << "call mess????" << std::endl; throw std::exception(); }
+      scr[il+jscr-1] = -1.0; }
+  }
+
+
+
+  xlast = x[i-1];
+  ylast = y[0*imax +  i-1];
+  if (ylast != 0.0){ jnz = j; }
+  ulast = 0.0;
+  u2last = 0.0;
+  u3last = 0.0;
+  nll = 3;
+  Range p (4,0.0);
+  for (int il = 2; il <= nl; ++il){
+    legndr(y[(il-1)*imax+(i-1)],p,nll);
+    ulast  += p[1];
+    u2last += p[2];
+    u3last += p[3];
+  }
+  ulast  *= y[i-1]/(nl-1);
+  u2last *= y[i-1]/(nl-1);
+  u3last *= y[i-1]/(nl-1);
+  i -= 1;
+  //std::cout << ulast << "   " << u2last << "    " << u3last << std::endl;
+  //std::cout << p[1] << "   " << p[2] << "    " << p[3] << std::endl;
+  //std::cout << i << std::endl;
+  std::cout << scr[16] << "   " << scr[17] << "    " << scr[18] << std::endl;
+  std::cout << scr[19] << "   " << scr[20] << "    " << scr[21] << std::endl;
+  std::cout << scr[22] << "   " << scr[23] << "    " << scr[24] << std::endl;
+  std::cout << scr[25] << "   " << scr[26] << "    " << scr[27] << std::endl;
+
+  if ( i >= 2 ){ 
+      return 330;
+  }
+  jbeta += 1;
+  if (jbeta <= nbeta){
+      std::cout << " got to 311 " << std::endl;
+      return 311;
+  }
+  for ( int il = 0; il < nl; ++il ){
+    y[il*imax+i-1] = 0.0;
+  }
+  std::cout << " go to 430 " << std::endl;
+  return 430;
+
+
+
+
 
 }
 
@@ -71,6 +134,7 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
     1.7, 1.855, 2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 3.42, 3.75, 4.07, 4.46, 
     4.9, 5.35, 5.85, 6.4, 7.0, 7.65, 8.4, 9.15, 9.85, 10.0 };
 
+  Range scr(500000,0.0);
   Float xm, ym;
   Float ylast = 0.0, xlast = 0.0, ulast = 0.0, u2last = 0.0, u3last = 0.0;
   Float tolmin = 5e-7;
@@ -92,6 +156,7 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
   // nne  2
   
   int ie;
+  int jnz = 0;
   Float enow, ep;
 
   int imax = 20;
@@ -172,55 +237,37 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
       s = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
       //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
       //return;
-      for ( int il = 0; il < nl; ++il ){
-       y[il*imax+0] = s[il];
-      }
-      //std::cout << y[0] << "   " << y[1] << std::endl;
-      //std::cout << y[imax+0] << "   " << y[imax+1] << std::endl;
-      //return;
+      for ( int il = 0; il < nl; ++il ){ y[il*imax+0] = s[il]; }
 
       // adaptive subdivision of panel
       i = 2;
-      bool breaking = false;
+      bool beenTo380 = false;
+      bool goTo_330 = false;
+      Float uu  = 0;
+      Float uum = 0;
+ 
       while ( true ){
-        //if ( i > 5 ){ return; }
         std::cout << " --- 330 --- " << "   " << i << std::endl;
-        //std::cout << y[0] << "   " << y[1] << "   " << y[2] << std::endl;
-        if ( i == imax ){ 
-            //std::cout << " go to 360" << std::endl; 
-            do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
-                    ubar, p2, p3, imax, jmax, ie );
-            return;
 
-        }
-        if ( iskip == 1 ){ iskip = 0; 
-            //std::cout << " go to 360" << std::endl; 
-            do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
-                    ubar, p2, p3, imax, jmax, ie );
-            return;
-        }
-        if ( 0.5 * ( y[0*imax+(i-1)-1] + y[0*imax+(i)-1] ) *
-                   ( x[(i-1)-1] - x[(i)-1] ) < tolmin ){ 
-            //std::cout << " go to 360 " << std::endl; 
-            do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
-                    ubar, p2, p3, imax, jmax, ie );
-            return;
-        }
-
-  
-        xm = 0.5*(x[(i-1)-1]+x[(i)-1]);
+        Float quickTest = 0.5 * ( y[0*imax+(i-1)-1] + y[0*imax+(i)-1] ) * ( x[(i-1)-1] - x[(i)-1] ); 
+        xm = 0.5*(x[(i-1)-1]+x[(i)-1]); 
         xm = sigfig(xm,8,0);
-  
-        if ( xm <= x[i-1] or xm >= x[i-2] ){ 
-            std::cout << " go to 360 " << std::endl;
-        }
 
+        if ( i == imax or iskip == 1 or quickTest < tolmin or  
+            xm <= x[i-1] or xm >= x[i-2] ){ 
+            if ( i != imax and iskip == 1 ){ iskip = 0; }
+            auto out = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
+                    ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
+            beenTo380 = true;
+            if ( out == 330 ){ continue; }
+        }
+  
+  
         s = sigl(xm,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
         //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
   
-        Float uu  = 0;
-        Float uum = 0;
-  
+ 
+        goTo_330 = false;
         for ( int k = 0; k < nl; ++k ){
           ym = ( x[i-2] == x[i-1] ) ? 
             y[k*imax+i-1] :
@@ -241,26 +288,22 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
                 y[il*imax+i-1] = y[il*imax+i-2];
                 y[il*imax+i-2] = s[il];
               }
-              breaking = true;
+              goTo_330 = true;
           }
         }
-        if (breaking == true){ continue; }
-        else { break; }
+        if (goTo_330 == true){ continue; }
+        else { 
+          std::cout << " --- 350 --- " << std::endl;
+          Float test = 2*tol*abs(uu)+0.00001;
+          if ( abs(uu-uum) > test ){ std::cout << "go to 410" << std::endl; }
+          auto out = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
+                             ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
+          //std::cout << scr[6] << "   " << scr[7] << "   " << scr[8] << std::endl;
+          //for ( int i = 0; i <50 ; ++ i ){ std::cout << i << "   " << scr[i] << std::endl; }
+          return;
+          if ( out == 330 ){ continue; }
+        }
       }
-      std::cout << " --- 350 --- " << std::endl;
-
-
-      return;
-
-
-
-
-
-
-
-
-
-
 
     }
 
