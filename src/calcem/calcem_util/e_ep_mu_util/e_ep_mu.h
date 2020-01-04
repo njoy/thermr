@@ -6,6 +6,95 @@
 
 
 template <typename Range, typename Float>
+auto do_313( const int& lat, int& jbeta, const Float& enow, //Float& ep, 
+  const Range& betas, const Range& x, const Float& tev ){//, int& iskip ) {
+
+  Float ep = 0.0;
+  while ( true ){ 
+    std::cout << " --- 313 --- " << std::endl;
+    if ( jbeta == 0 ){ jbeta = 1; }
+    if ( jbeta <= 0 ){ 
+      if ( lat == 1 )  { ep = enow - betas[-jbeta-1]*0.0253; }
+      else             { ep = enow - betas[-jbeta-1]*tev ; }
+      if ( ep == enow ){ ep = sigfig(enow,8,-1); }
+      else             { ep = sigfig(ep,  8, 0); }
+    }
+    else { 
+      if ( lat == 1 )  { ep = enow + betas[jbeta-1]*0.0253; }
+      else             { ep = enow + betas[jbeta-1]*tev ; }
+      if ( ep == enow ){ ep = sigfig(enow,8, 1); }
+      else             { ep = sigfig(ep,  8, 0); }
+    }
+    //if ( ep > x[1] ){ break; }
+    if ( ep > x[1] ){
+        return ep; 
+    }
+    jbeta += 1;
+  }
+  return ep;
+} 
+
+
+
+
+template <typename Range, typename Float>
+auto do_410(int& i, Range& x, Range& y, Range& s, Float xm, int nl, int imax) {
+  std::cout << " --- 410 ---" << std::endl;
+  i += 1;
+  x[i-1] = x[i-2];
+  x[i-2] = xm;
+  for ( int il = 0; il < nl; ++il ){
+    y[il*imax+i-2] = y[il*imax+i-2];
+    y[il*imax+i-2] = s[il];
+  }
+
+}
+
+template <typename Range, typename Float> 
+auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr, 
+  const Range& x, const Range& y, Float& ulast, Float& u2last, Float& u3last,
+  Float& xlast, Float& ylast) {
+  std::cout << " --- 380 --- " << std::endl;
+  int jscr = 7 + (j-1)*(nl+1);
+  scr[jscr-1] = x[i-1];
+  if (y[i-1] >= 1e-9 ){ scr[jscr] = sigfig(y[i-1],9,0); }
+  else                { scr[jscr] = sigfig(y[i-1],8,0); }
+
+  for ( int il = 2; il <= nl; ++il ){
+    scr[il+jscr-1] = sigfig(y[(il-1)*imax+i-1],9,0);
+    if (scr[il+jscr-1] > 1.0 ){ 
+      if (scr[il+jscr-1] > 1.0+0.0005 ){
+        std::cout << "call mess????" << std::endl; throw std::exception(); }
+      scr[il+jscr-1] = 1.0; }
+    if ( scr[il+jscr-1] < -1.0 ){
+      if (scr[il+jscr-1] < -(1.0+0.0005) ){
+        std::cout << "call mess????" << std::endl; throw std::exception(); }
+      scr[il+jscr-1] = -1.0; }
+  }
+
+  xlast = x[i-1];
+  ylast = y[0*imax +  i-1];
+  if (ylast != 0.0){ jnz = j; }
+  ulast = 0.0;
+  u2last = 0.0;
+  u3last = 0.0;
+  //nll = 3;
+  Range p (4,0.0);
+  for (int il = 2; il <= nl; ++il){
+    legndr(y[(il-1)*imax+(i-1)],p,3);
+    ulast  += p[1];
+    u2last += p[2];
+    u3last += p[3];
+  }
+  ulast  *= y[i-1]/(nl-1);
+  u2last *= y[i-1]/(nl-1);
+  u3last *= y[i-1]/(nl-1);
+  i -= 1;
+}
+
+
+
+template <typename Range, typename Float>
 auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i, 
   int& j, int nl, Float& ulast, Float& u2last, Float& u3last,
   Range& ubar, Range& p2, Range& p3, int imax, int jmax, int ie, int& jnz, int& jbeta, 
@@ -46,66 +135,20 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
 
 
 
-
-  std::cout << " --- 380 --- " << std::endl;
-  int jscr = 7 + (j-1)*(nl+1);
-  scr[jscr-1] = x[i-1];
-  if (y[i-1] >= 1e-9 ){ scr[jscr] = sigfig(y[i-1],9,0); }
-  else                { scr[jscr] = sigfig(y[i-1],8,0); }
-
-  for ( int il = 2; il <= nl; ++il ){
-    std::cout << il << std::endl;
-    scr[il+jscr-1] = sigfig(y[(il-1)*imax+i-1],9,0);
-    if (scr[il+jscr-1] > 1.0 ){ 
-      if (scr[il+jscr-1] > 1.0+0.0005 ){
-        std::cout << "call mess????" << std::endl; throw std::exception(); }
-      scr[il+jscr-1] = 1.0; }
-    if ( scr[il+jscr-1] < -1.0 ){
-      if (scr[il+jscr-1] < -(1.0+0.0005) ){
-        std::cout << "call mess????" << std::endl; throw std::exception(); }
-      scr[il+jscr-1] = -1.0; }
-  }
-
-
-
-  xlast = x[i-1];
-  ylast = y[0*imax +  i-1];
-  if (ylast != 0.0){ jnz = j; }
-  ulast = 0.0;
-  u2last = 0.0;
-  u3last = 0.0;
-  nll = 3;
-  Range p (4,0.0);
-  for (int il = 2; il <= nl; ++il){
-    legndr(y[(il-1)*imax+(i-1)],p,nll);
-    ulast  += p[1];
-    u2last += p[2];
-    u3last += p[3];
-  }
-  ulast  *= y[i-1]/(nl-1);
-  u2last *= y[i-1]/(nl-1);
-  u3last *= y[i-1]/(nl-1);
-  i -= 1;
-  //std::cout << ulast << "   " << u2last << "    " << u3last << std::endl;
-  //std::cout << p[1] << "   " << p[2] << "    " << p[3] << std::endl;
-  //std::cout << i << std::endl;
-  std::cout << scr[16] << "   " << scr[17] << "    " << scr[18] << std::endl;
-  std::cout << scr[19] << "   " << scr[20] << "    " << scr[21] << std::endl;
-  std::cout << scr[22] << "   " << scr[23] << "    " << scr[24] << std::endl;
-  std::cout << scr[25] << "   " << scr[26] << "    " << scr[27] << std::endl;
+  do_380( i, imax, j, jnz, nl, scr, x, y, ulast, u2last, u3last, xlast, ylast);
 
   if ( i >= 2 ){ 
       return 330;
   }
   jbeta += 1;
   if (jbeta <= nbeta){
-      std::cout << " got to 311 " << std::endl;
+      //std::cout << " got to 311 " << std::endl;
       return 311;
   }
   for ( int il = 0; il < nl; ++il ){
     y[il*imax+i-1] = 0.0;
   }
-  std::cout << " go to 430 " << std::endl;
+  //std::cout << " go to 430 " << std::endl;
   return 430;
 
 
@@ -165,42 +208,42 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
 
   int j, jbeta, iskip;
   // loop over given incident energy grid
+  std::cout << " --- 305 --- " << std::endl;
+  ie = 0;
+
   while (true){
-    std::cout << " --- 305 --- " << std::endl;
-    ie = 0;
+    std::cout << " --- 310 --- " << std::endl;
+    ie = ie+1;
+    enow = egrid[ie-1];
+    if ( T > 3000.0 ){
+      std::cout << "do temp approx" << std::endl;
+      Float tone = 0.0253/kb;
+      Float elo = egrid[0];
+      enow = elo*exp(log(enow/elo)*log((T/tone)*egrid[egrid.size()-1]/elo)/log(egrid[egrid.size()-1]/elo));
+    }
+    enow = sigfig(enow,8,0);
+    esi[ie-1] = enow;
+    xsi[ie-1] = 0.0;
+    ubar[ie-1] = 0.0;
+    p2[ie-1] = 0.0;
+    p3[ie-1] = 0.0;
+    ep = 0.0;
+    x[0] = ep;
 
-    while (true){
-      std::cout << " --- 310 --- " << std::endl;
-      ie = ie+1;
-      enow = egrid[ie-1];
-      if ( T > 3000.0 ){
-        std::cout << "do temp approx" << std::endl;
-        Float tone = 0.0253/kb;
-        Float elo = egrid[0];
-        enow = elo*exp(log(enow/elo)*log((T/tone)*egrid[egrid.size()-1]/elo)/log(egrid[egrid.size()-1]/elo));
-      }
-      enow = sigfig(enow,8,0);
-      esi[ie-1] = enow;
-      xsi[ie-1] = 0.0;
-      ubar[ie-1] = 0.0;
-      p2[ie-1] = 0.0;
-      p3[ie-1] = 0.0;
-      ep = 0.0;
-      x[0] = ep;
-      //std::cout << enow << "   " << ep << std::endl;
-      auto s  = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+    auto s  = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
 
-      for ( int il = 0; il < nl; ++il ){
-        y[il*imax+0] = s[il];
-        //y[i*imax+j] = y(i,j) where this goes up to y(nlmax,imax)
-      }
-      //std::cout << il*imax << "    " << y.size() << std::endl;
-      jbeta = -betas.size();
-      if (lasym > 0) jbeta = 1;
-      j = 0;
-      iskip = 0;
+    for ( int il = 0; il < nl; ++il ){
+      y[il*imax+0] = s[il];
+      //y[i*imax+j] = y(i,j) where this goes up to y(nlmax,imax)
+    }
+    jbeta = -betas.size();
+    if (lasym > 0) jbeta = 1;
+    j = 0;
+    iskip = 0;
 
 
+    int output_380 = 0;
+    while (true){ 
       std::cout << " --- 311 --- " << std::endl;
       x[1] = x[0];
       for ( int il = 0; il < nl; ++il ){
@@ -208,106 +251,70 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
       }
 
 
-      while ( true ){ 
-        std::cout << " --- 313 --- " << std::endl;
-        if ( jbeta == 0 ){ jbeta = 1; }
-        if ( jbeta <= 0 ){ 
-          if ( lat == 1 ){ ep = enow - betas[-jbeta-1]*0.0253; }
-          else           { ep = enow - betas[-jbeta-1]*tev ; }
-          if ( ep == enow ){ ep = sigfig(enow,8,-1); }
-          else             { ep = sigfig(ep,  8, 0); }
-        }
-        else { 
-          if ( lat == 1 ){ ep = enow + betas[jbeta-1]*0.0253; }
-          else           { ep = enow + betas[jbeta-1]*tev ; }
-          if ( ep == enow ){ ep = sigfig(enow,8, 1); }
-          else             { ep = sigfig(ep,  8, 0); }
-        }
-        if ( ep > x[1] ){ 
-            break;
-        }
-        jbeta += 1;
-      }
+      ep = do_313( lat, jbeta, enow, betas, x, tev );//, iskip );
+
+
 
       std::cout << " --- 316 ---" << std::endl; 
       ep = sigfig(ep,8,0);
       x[0] = ep;
-      //std::cout << ep << "   " << enow << std::endl;
-      //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
       s = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-      //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
-      //return;
       for ( int il = 0; il < nl; ++il ){ y[il*imax+0] = s[il]; }
 
       // adaptive subdivision of panel
       i = 2;
-      bool beenTo380 = false;
-      bool goTo_330 = false;
       Float uu  = 0;
       Float uum = 0;
- 
-      while ( true ){
-        std::cout << " --- 330 --- " << "   " << i << std::endl;
-
+      
+      while (true){ 
+        std::cout << " --- 330 --- " << "   " << i << "   " << y[18] << std::endl;
         Float quickTest = 0.5 * ( y[0*imax+(i-1)-1] + y[0*imax+(i)-1] ) * ( x[(i-1)-1] - x[(i)-1] ); 
         xm = 0.5*(x[(i-1)-1]+x[(i)-1]); 
         xm = sigfig(xm,8,0);
 
-        if ( i == imax or iskip == 1 or quickTest < tolmin or  
-            xm <= x[i-1] or xm >= x[i-2] ){ 
-            if ( i != imax and iskip == 1 ){ iskip = 0; }
-            auto out = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
-                    ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
-            beenTo380 = true;
-            if ( out == 330 ){ continue; }
-        }
-  
-  
-        s = sigl(xm,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-        //std::cout << s[0] << "   " << s[1] << "    " << s[2] << std::endl;
-  
- 
-        goTo_330 = false;
-        for ( int k = 0; k < nl; ++k ){
-          ym = ( x[i-2] == x[i-1] ) ? 
-            y[k*imax+i-1] :
-            y[k*imax+i-1] + (xm-x[i-1])*(y[k*imax+i-2]-y[k*imax+i-1])/(x[i-2]-x[i-1]);
-          
-          //std::cout << ym << std::endl;
-          if ( k > 0 ){ uu  += s[k]; }
-          if ( k > 0 ){ uum += ym  ; }
-          Float test = tol*abs(s[k]);
-          Float test2 = test;
-          if ( k > 0){ test2 = tol; }
-          if ( abs(s[k]-ym) > test2 ){
-              std::cout << " --- 410 ---" << std::endl;
-              i += 1;
-              x[i-1] = x[i-2];
-              x[i-2] = xm;
-              for ( int il = 0; il < nl; ++il ){
-                y[il*imax+i-1] = y[il*imax+i-2];
-                y[il*imax+i-2] = s[il];
-              }
-              goTo_330 = true;
+        bool go_to_330 = false;
+        if ( not ( i == imax or iskip == 1 or quickTest < tolmin or xm <= x[i-1] or xm >= x[i-2] )){ 
+          // Don't immediately go to 360
+          for ( int k = 0; k < nl; ++k ){
+            ym = ( x[i-2] == x[i-1] ) ? 
+              y[k*imax+i-1] :
+              y[k*imax+i-1] + (xm-x[i-1])*(y[k*imax+i-2]-y[k*imax+i-1])/(x[i-2]-x[i-1]);
+            
+            if ( k > 0 ){ uu  += s[k]; uum += ym;  }
+
+            Float test2 = ( k > 0 ) ? tol : tol*abs(s[k]);
+            if ( abs(s[k]-ym) > test2 ){
+              do_410(i, x, y, s, xm, nl, imax);
+              go_to_330 = true;
+            }
           }
-        }
-        if (goTo_330 == true){ continue; }
-        else { 
+
           std::cout << " --- 350 --- " << std::endl;
-          Float test = 2*tol*abs(uu)+0.00001;
-          if ( abs(uu-uum) > test ){ std::cout << "go to 410" << std::endl; }
-          auto out = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
-                             ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
-          //std::cout << scr[6] << "   " << scr[7] << "   " << scr[8] << std::endl;
-          //for ( int i = 0; i <50 ; ++ i ){ std::cout << i << "   " << scr[i] << std::endl; }
-          return;
-          if ( out == 330 ){ continue; }
+          if ( abs(uu-uum) > 2.0*tol*abs(uu)+0.00001 ){ 
+              do_410(i, x, y, s, xm, nl, imax);
+              go_to_330 = true;
+          }
+
         }
-      }
+        if ( go_to_330 == true ){ continue; }
 
-    }
+        if ( i != imax and iskip == 1 ){ iskip = 0; }
+        output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
+                             ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
 
+        if ( output_380 == 330 ){ continue; }
+        break;
 
-  } 
+      } // 330 LOOP
+      if ( output_380 == 311 ){ continue; } 
+      break;
+
+    } // 311 LOOP
+
+    std::cout << " --- 430 --- " << std::endl;
+    return;
+
+  } // 310 LOOP
+
 
 }
