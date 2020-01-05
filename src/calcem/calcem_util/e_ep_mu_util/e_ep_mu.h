@@ -11,12 +11,37 @@ Float highTempApprox( const Float& T, const Float& enow, const Float& egrid_firs
   return elo*exp(log(enow/elo)*log((T/tone)*egrid_last/elo)/log(egrid_last/elo));
 }
 
+template <typename Range, typename Float>
+bool needMidpoint(const Range& x, const Range& y, const Float& xm, const int& imax, 
+  const int& i, const int& nl, const Range& s, const Float& tol ){
+
+  Float quickTest = 0.5*(y[0*imax+i-2] + y[0*imax+i-1])*(x[i-2] - x[i-1]), ym;
+
+  if ( not ( i == imax or quickTest < 5e-7 or xm <= x[i-1] or xm >= x[i-2] )){ 
+    Float uu  = 0, uum = 0;
+    for ( int k = 0; k < nl; ++k ){
+      ym = ( x[i-2] == x[i-1] ) ? 
+        y[k*imax+i-1] :
+        y[k*imax+i-1] + (xm-x[i-1])*(y[k*imax+i-2]-y[k*imax+i-1])/(x[i-2]-x[i-1]);
+
+      if ( k > 0 ){ uu  += s[k]; uum += ym;  }
+
+      Float test2 = ( k > 0 ) ? tol : tol*abs(s[k]);
+      if ( abs(s[k]-ym) > test2 ){ return true; } // need midpoint
+    }
+
+    std::cout << " --- 350 --- " << std::endl;
+    if (abs(uu-uum) > 2*tol*abs(uu)+0.00001){ return true; } // need midpoint
+  }
+  return false;
+}
+
 
 
 
 
 template <typename Range, typename Float>
-auto do_313( const int& lat, int& jbeta, const Float& E, //Float& Ep, 
+auto findFirstEprime( const int& lat, int& jbeta, const Float& E, //Float& Ep, 
   const Range& betas, const Range& x, const Float& tev ){//, int& iskip ) {
   // Given an incoming neutron energy E and some jbeta value, we're going to
   // look at all beta values (positive and negative) to see which is the first
@@ -47,7 +72,7 @@ auto do_313( const int& lat, int& jbeta, const Float& E, //Float& Ep,
 
 
 template <typename Range, typename Float>
-auto do_410(int& i, Range& x, Range& y, Range& s, Float xm, int nl, int imax) {
+auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, int nl, int imax) {
   std::cout << " --- 410 ---" << std::endl;
   i += 1;
   x[i-1] = x[i-2];
@@ -56,13 +81,13 @@ auto do_410(int& i, Range& x, Range& y, Range& s, Float xm, int nl, int imax) {
     y[il*imax+i-2] = y[il*imax+i-2];
     y[il*imax+i-2] = s[il];
   }
-
 }
 
 template <typename Range, typename Float> 
 auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr, 
   const Range& x, const Range& y, Float& ulast, Float& u2last, Float& u3last,
   Float& xlast, Float& ylast) {
+
   std::cout << " --- 380 --- " << std::endl;
   int jscr = 7 + (j-1)*(nl+1);
   scr[jscr-1] = x[i-1];
@@ -71,14 +96,9 @@ auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr
 
   for ( int il = 2; il <= nl; ++il ){
     scr[il+jscr-1] = sigfig(y[(il-1)*imax+i-1],9,0);
-    if (scr[il+jscr-1] > 1.0 ){ 
-      if (scr[il+jscr-1] > 1.0+0.0005 ){
-        std::cout << "call mess????" << std::endl; throw std::exception(); }
-      scr[il+jscr-1] = 1.0; }
-    if ( scr[il+jscr-1] < -1.0 ){
-      if (scr[il+jscr-1] < -(1.0+0.0005) ){
-        std::cout << "call mess????" << std::endl; throw std::exception(); }
-      scr[il+jscr-1] = -1.0; }
+    if ( abs(scr[il+jscr-1]) > 1.0 ){ 
+      if (abs(scr[il+jscr-1]) > 1.0+0.0005 ){std::cout<<"call mess"<<std::endl; throw std::exception(); }
+      scr[il+jscr-1] = sc[il+jscr-1]/abs(il+jscr-1); }
   }
 
   xlast = x[i-1];
@@ -87,7 +107,7 @@ auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr
   ulast = 0.0;
   u2last = 0.0;
   u3last = 0.0;
-  //nll = 3;
+
   Range p (4,0.0);
   for (int il = 2; il <= nl; ++il){
     legndr(y[(il-1)*imax+(i-1)],p,3);
@@ -98,7 +118,7 @@ auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr
   ulast  *= y[i-1]/(nl-1);
   u2last *= y[i-1]/(nl-1);
   u3last *= y[i-1]/(nl-1);
-  i -= 1;
+  --i;
 }
 
 
@@ -120,17 +140,11 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
       Range p (4,0.0);
       for ( int il = 1; il < nl; ++il ){
         legndr( y[il*imax+i-1], p, 3 );
-        uu += p[1];
-        u2 += p[2];
-        u3 += p[3];
+        uu += p[1]; u2 += p[2]; u3 += p[3];
       }
-      uu *= y[i-1]/(nl-1);
-      u2 *= y[i-1]/(nl-1);
-      u3 *= y[i-1]/(nl-1);
-      ubar[ie] += 0.5*(x[i-1]-xlast)*(uu+ulast);
-      p2[ie]   += 0.5*(x[i-1]-xlast)*(u2+u2last);
-      p3[ie]   += 0.5*(x[i-1]-xlast)*(u3+u3last);
-
+      uu *= y[i-1]/(nl-1); ubar[ie] += 0.5*(x[i-1]-xlast)*(uu+ulast);
+      u2 *= y[i-1]/(nl-1); p2[ie]   += 0.5*(x[i-1]-xlast)*(u2+u2last);
+      u3 *= y[i-1]/(nl-1); p3[ie]   += 0.5*(x[i-1]-xlast)*(u3+u3last);
   }
 
   if ( j == 3 and xsi[ie] >= 5e-7 ){ j = 2; }
@@ -138,24 +152,23 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
   do_380( i, imax, j, jnz, nl, scr, x, y, ulast, u2last, u3last, xlast, ylast);
 
   if ( i >= 2 )      { return 330; }
-  jbeta += 1;
-  if (jbeta <= nbeta){ return 311; }
+  ++jbeta;
+  if  ( jbeta <= nbeta){ return 311; }
   for ( int il = 0; il < nl; ++il ){ y[il*imax+i-1] = 0.0; }
   return 430;
-
-
-
-
-
 }
 
 
 
 template <typename Range, typename Float>
-//template <typename Float>
 auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, 
   int nl, Float tol, Float& sigma_b, Float& sigma_b2, Float az, int lasym, 
   int lat, int iinc, const Range& alphas, const Range& betas, const Range& sab ){
+  // nl = nbin + 1 where nbin is the number of (user-defined) equiprobable 
+  // angles that they want. 
+  // nnl = -nl to the best of my knowledge. The negative is what flags us that 
+  // we need to do the equiprobable angles and not the legendre components
+
   // should only be here if iform = 0
   std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
     1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 2.53e-4, 2.97e-4, 3.5e-4, 4.2e-4, 5.06e-4, 
@@ -174,7 +187,6 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
   Range scr(500000,0.0);
   Float xm, ym;
   Float ylast = 0.0, xlast = 0.0, ulast = 0.0, u2last = 0.0, u3last = 0.0;
-  Float tolmin = 5e-7;
   int i;
   
   Float kb = 8.6173303E-5;
@@ -200,9 +212,9 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
   ubar(egrid.size()), p2(egrid.size()), p3(egrid.size()), x(imax), y(65*imax,0.0); // This here is nlmax = 65
 
   int j, jbeta;
+
   // loop over given incident energy grid
   std::cout << " --- 305 --- " << std::endl;
-
   for ( size_t ie = 0; ie < egrid.size(); ++ie ){
     std::cout << " --- 310 --- " << std::endl;
 
@@ -215,7 +227,7 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
 
     auto s  = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
 
-    // Vector of xs fro E->E' for nnl equiprobable angles (if nnl < 0) else the
+    // Vector of xs for E->E' for nnl equiprobable angles (if nnl < 0) else the
     // legendre components (?)
 
     for ( int il = 0; il < nl; ++il ){
@@ -234,7 +246,7 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
         y[il*imax+1] = y[il*imax+0];
       }
 
-      ep = do_313( lat, jbeta, enow, betas, x, tev ); ep = sigfig(ep,8,0);
+      ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); ep = sigfig(ep,8,0);
 
       std::cout << " --- 316 ---" << std::endl; 
       x[0] = ep;
@@ -243,43 +255,19 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
 
       // adaptive subdivision of panel
       i = 2;
-      Float uu  = 0;
-      Float uum = 0;
-      
+     
       while (true){ 
         std::cout << " --- 330 --- " << "   " << i << "   " << y[18] << std::endl;
-        Float quickTest = 0.5 * ( y[0*imax+(i-1)-1] + y[0*imax+(i)-1] ) * ( x[(i-1)-1] - x[(i)-1] ); 
-        xm = 0.5*(x[(i-1)-1]+x[(i)-1]); 
-        xm = sigfig(xm,8,0);
 
-        bool go_to_330 = false;
-        if ( not ( i == imax or quickTest < tolmin or xm <= x[i-1] or xm >= x[i-2] )){ 
-          // Don't immediately go to 360
-          for ( int k = 0; k < nl; ++k ){
-            ym = ( x[i-2] == x[i-1] ) ? 
-              y[k*imax+i-1] :
-              y[k*imax+i-1] + (xm-x[i-1])*(y[k*imax+i-2]-y[k*imax+i-1])/(x[i-2]-x[i-1]);
-            
-            if ( k > 0 ){ uu  += s[k]; uum += ym;  }
+        Float xm = 0.5*(x[i-2]+x[i-1]); xm = sigfig(xm,8,0);
 
-            Float test2 = ( k > 0 ) ? tol : tol*abs(s[k]);
-            if ( abs(s[k]-ym) > test2 ){
-              do_410(i, x, y, s, xm, nl, imax);
-              go_to_330 = true;
-            }
-          }
-
-          std::cout << " --- 350 --- " << std::endl;
-          if ( abs(uu-uum) > 2.0*tol*abs(uu)+0.00001 ){ 
-              do_410(i, x, y, s, xm, nl, imax);
-              go_to_330 = true;
-          }
-
+        if ( needMidpoint(x, y, xm, imax, i, nl, s, tol) == true ){ 
+          insertPoint(i, x, y, s, xm, nl, imax);
+          continue; 
         }
-        if ( go_to_330 == true ){ continue; }
 
-        output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
-                             ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
+        output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last,
+          u3last, ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
 
         if ( output_380 == 330 ){ continue; }
         break;
