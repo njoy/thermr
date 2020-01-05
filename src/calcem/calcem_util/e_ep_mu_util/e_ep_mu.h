@@ -3,35 +3,44 @@
 #include "calcem/calcem_util/e_ep_mu_util/sigl.h"
 #include "coh/coh_util/sigcoh_util/legndr.h"
 
+template <typename Float>
+Float highTempApprox( const Float& T, const Float& enow, const Float& egrid_first, const Float& egrid_last ){
+  std::cout << "do temp approx" << std::endl;
+  Float kb = 8.6173303E-5;
+  Float tone = 0.0253/kb, elo = egrid_first;
+  return elo*exp(log(enow/elo)*log((T/tone)*egrid_last/elo)/log(egrid_last/elo));
+}
+
+
+
 
 
 template <typename Range, typename Float>
-auto do_313( const int& lat, int& jbeta, const Float& enow, //Float& ep, 
+auto do_313( const int& lat, int& jbeta, const Float& E, //Float& Ep, 
   const Range& betas, const Range& x, const Float& tev ){//, int& iskip ) {
+  // Given an incoming neutron energy E and some jbeta value, we're going to
+  // look at all beta values (positive and negative) to see which is the first
+  // one that could give us the desired outgoing energy (x[1]).
+  //
+  // Basically, we're trying to figure out the Ep the index of the lowest beta
+  // value that can be invoked, and the corresponding E' value.
 
-  Float ep = 0.0;
-  while ( true ){ 
-    std::cout << " --- 313 --- " << std::endl;
+  using std::abs;
+  int sign; Float Ep;
+
+  do {
+    //std::cout << " --- 313 --- " << std::endl;
     if ( jbeta == 0 ){ jbeta = 1; }
-    if ( jbeta <= 0 ){ 
-      if ( lat == 1 )  { ep = enow - betas[-jbeta-1]*0.0253; }
-      else             { ep = enow - betas[-jbeta-1]*tev ; }
-      if ( ep == enow ){ ep = sigfig(enow,8,-1); }
-      else             { ep = sigfig(ep,  8, 0); }
-    }
-    else { 
-      if ( lat == 1 )  { ep = enow + betas[jbeta-1]*0.0253; }
-      else             { ep = enow + betas[jbeta-1]*tev ; }
-      if ( ep == enow ){ ep = sigfig(enow,8, 1); }
-      else             { ep = sigfig(ep,  8, 0); }
-    }
-    //if ( ep > x[1] ){ break; }
-    if ( ep > x[1] ){
-        return ep; 
-    }
-    jbeta += 1;
-  }
-  return ep;
+    sign = abs(jbeta) / jbeta;
+    Ep = ( lat == 1 ) ? E + sign*betas[abs(jbeta)-1]*0.0253 
+                      : E + sign*betas[abs(jbeta)-1]*tev ;
+    Ep = ( Ep == E )  ? sigfig(E, 8, sign) : sigfig(Ep, 8, 0);
+    // This is the E' that we get with a beta value of betas[|jbeta|-1]
+    ++jbeta;
+  } while ( Ep <= x[1] );
+
+  jbeta -= 1;
+  return Ep;
 } 
 
 
@@ -96,59 +105,42 @@ auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr
 
 template <typename Range, typename Float>
 auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i, 
-  int& j, int nl, Float& ulast, Float& u2last, Float& u3last,
-  Range& ubar, Range& p2, Range& p3, int imax, int jmax, int ie, int& jnz, int& jbeta, 
+  int& j, int nl, Float& ulast, Float& u2last, Float& u3last, Range& ubar,
+  Range& p2, Range& p3, int imax, int jmax, int ie, int& jnz, int& jbeta, 
   int nbeta, Range& scr){
+
   std::cout << " --- 360 --- " << std::endl;
-  j += 1;
-  Float uu,u2,u3;
-  int nll;
+  ++j;
+
   if ( j >= jmax ){ std::cout << "j is too big" << std::endl; throw std::exception(); }
+
   if ( j > 1 ){ 
-      xsi[ie-1] += (x[i-1]-xlast)*(y[i-1]+ylast)*0.5;
-      uu = 0;
-      u2 = 0;
-      u3 = 0;
-      nll = 3;
+      xsi[ie] += (x[i-1]-xlast)*(y[i-1]+ylast)*0.5;
+      Float uu = 0, u2 = 0, u3 = 0;
       Range p (4,0.0);
       for ( int il = 1; il < nl; ++il ){
-        legndr( y[il*imax+i-1], p, nll );
+        legndr( y[il*imax+i-1], p, 3 );
         uu += p[1];
         u2 += p[2];
         u3 += p[3];
       }
-      uu /= (nl-1);
-      uu *= y[i-1];
-      u2 /= (nl-1);
-      u2 *= y[i-1];
-      u3 /= (nl-1);
-      u3 *= y[i-1];
-      ubar[ie-1] += 0.5*(x[i-1]-xlast)*(uu+ulast);
-      p2[ie-1] += 0.5*(x[i-1]-xlast)*(u2+u2last);
-      p3[ie-1] += 0.5*(x[i-1]-xlast)*(u3+u3last);
-
+      uu *= y[i-1]/(nl-1);
+      u2 *= y[i-1]/(nl-1);
+      u3 *= y[i-1]/(nl-1);
+      ubar[ie] += 0.5*(x[i-1]-xlast)*(uu+ulast);
+      p2[ie]   += 0.5*(x[i-1]-xlast)*(u2+u2last);
+      p3[ie]   += 0.5*(x[i-1]-xlast)*(u3+u3last);
 
   }
-  if ( j == 3 and xsi[ie-1] >= 5e-7 ){
-    j = 2;
-  }
 
-
+  if ( j == 3 and xsi[ie] >= 5e-7 ){ j = 2; }
 
   do_380( i, imax, j, jnz, nl, scr, x, y, ulast, u2last, u3last, xlast, ylast);
 
-  if ( i >= 2 ){ 
-      return 330;
-  }
+  if ( i >= 2 )      { return 330; }
   jbeta += 1;
-  if (jbeta <= nbeta){
-      //std::cout << " got to 311 " << std::endl;
-      return 311;
-  }
-  for ( int il = 0; il < nl; ++il ){
-    y[il*imax+i-1] = 0.0;
-  }
-  //std::cout << " go to 430 " << std::endl;
+  if (jbeta <= nbeta){ return 311; }
+  for ( int il = 0; il < nl; ++il ){ y[il*imax+i-1] = 0.0; }
   return 430;
 
 
@@ -161,7 +153,9 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
 
 template <typename Range, typename Float>
 //template <typename Float>
-auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, int nl, Float tol, Float& sigma_b, Float& sigma_b2, Float az, int lasym, int lat, int iinc, const Range& alphas, const Range& betas, const Range& sab ){
+auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, 
+  int nl, Float tol, Float& sigma_b, Float& sigma_b2, Float az, int lasym, 
+  int lat, int iinc, const Range& alphas, const Range& betas, const Range& sab ){
   // should only be here if iform = 0
   std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5, 
     1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 2.53e-4, 2.97e-4, 3.5e-4, 4.2e-4, 5.06e-4, 
@@ -198,7 +192,6 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
   // T    0    3  1  1  nne
   // nne  2
   
-  int ie;
   int jnz = 0;
   Float enow, ep;
 
@@ -206,40 +199,31 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
   std::vector<double> esi(nne+1), xsi(nne+1), 
   ubar(egrid.size()), p2(egrid.size()), p3(egrid.size()), x(imax), y(65*imax,0.0); // This here is nlmax = 65
 
-  int j, jbeta, iskip;
+  int j, jbeta;
   // loop over given incident energy grid
   std::cout << " --- 305 --- " << std::endl;
-  ie = 0;
 
-  while (true){
+  for ( size_t ie = 0; ie < egrid.size(); ++ie ){
     std::cout << " --- 310 --- " << std::endl;
-    ie = ie+1;
-    enow = egrid[ie-1];
-    if ( T > 3000.0 ){
-      std::cout << "do temp approx" << std::endl;
-      Float tone = 0.0253/kb;
-      Float elo = egrid[0];
-      enow = elo*exp(log(enow/elo)*log((T/tone)*egrid[egrid.size()-1]/elo)/log(egrid[egrid.size()-1]/elo));
-    }
+
+    enow = (T <= 3000) ? egrid[ie] 
+                       : highTempApprox(T,egrid[ie],egrid[0],egrid[egrid.size()-1]);
     enow = sigfig(enow,8,0);
-    esi[ie-1] = enow;
-    xsi[ie-1] = 0.0;
-    ubar[ie-1] = 0.0;
-    p2[ie-1] = 0.0;
-    p3[ie-1] = 0.0;
-    ep = 0.0;
-    x[0] = ep;
+
+    esi[ie] = enow; xsi[ie] = 0.0; ubar[ie] = 0.0;
+    p2 [ie] = 0.0;  p3[ie] = 0.0;  ep       = 0.0; x[0] = ep;
 
     auto s  = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+
+    // Vector of xs fro E->E' for nnl equiprobable angles (if nnl < 0) else the
+    // legendre components (?)
 
     for ( int il = 0; il < nl; ++il ){
       y[il*imax+0] = s[il];
       //y[i*imax+j] = y(i,j) where this goes up to y(nlmax,imax)
     }
-    jbeta = -betas.size();
-    if (lasym > 0) jbeta = 1;
-    j = 0;
-    iskip = 0;
+    jbeta = (lasym > 0) ? 1 : -betas.size();
+    j     = 0;
 
 
     int output_380 = 0;
@@ -250,13 +234,9 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
         y[il*imax+1] = y[il*imax+0];
       }
 
-
-      ep = do_313( lat, jbeta, enow, betas, x, tev );//, iskip );
-
-
+      ep = do_313( lat, jbeta, enow, betas, x, tev ); ep = sigfig(ep,8,0);
 
       std::cout << " --- 316 ---" << std::endl; 
-      ep = sigfig(ep,8,0);
       x[0] = ep;
       s = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
       for ( int il = 0; il < nl; ++il ){ y[il*imax+0] = s[il]; }
@@ -273,7 +253,7 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
         xm = sigfig(xm,8,0);
 
         bool go_to_330 = false;
-        if ( not ( i == imax or iskip == 1 or quickTest < tolmin or xm <= x[i-1] or xm >= x[i-2] )){ 
+        if ( not ( i == imax or quickTest < tolmin or xm <= x[i-1] or xm >= x[i-2] )){ 
           // Don't immediately go to 360
           for ( int k = 0; k < nl; ++k ){
             ym = ( x[i-2] == x[i-1] ) ? 
@@ -298,7 +278,6 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, in
         }
         if ( go_to_330 == true ){ continue; }
 
-        if ( i != imax and iskip == 1 ){ iskip = 0; }
         output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last, u3last, 
                              ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
 

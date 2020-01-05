@@ -4,12 +4,12 @@
 #include "generalTools/testing.h"
 #include <range/v3/all.hpp>
 
+/*
 
 TEST_CASE( "313" ) {
   int lat = 1, jbeta = -7, iskip = 0;
   double enow = 1e-5, ep = 0.0, tev = 2.5507297688E-2;
   std::vector<double> betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 }, x(20,0.0);
-
 
 
   GIVEN( "Various jbeta values, fixed enow" ){ 
@@ -60,6 +60,7 @@ TEST_CASE( "313" ) {
 
 
 } // TEST CASE
+*/
 
 
 
@@ -83,7 +84,7 @@ TEST_CASE( "E-E'-mu" ){
 
   std::cout.precision(15);
 
-  //e_ep_mu( T, teff, teff2, jmax, nne, nnl, nl, tol, sigma_b, sigma_b2, az, lasym, lat, iinc, alphas, betas, sab );
+  e_ep_mu( T, teff, teff2, jmax, nne, nnl, nl, tol, sigma_b, sigma_b2, az, lasym, lat, iinc, alphas, betas, sab );
 
 
 }
