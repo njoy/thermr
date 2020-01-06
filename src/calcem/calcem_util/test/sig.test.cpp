@@ -2,6 +2,45 @@
 #include "calcem/calcem_util/sig.h"
 #include <range/v3/all.hpp>
 
+
+
+TEST_CASE( "get alpha, beta indices" ){
+  std::vector<double> alphas { 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0 },
+                      betas  { 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0 };
+  double alpha = 6e-2, beta = 0.8;
+  REQUIRE( getIndices(alphas,alpha) == 4 );
+  REQUIRE( getIndices(betas, beta ) == 6 );
+  
+  alphas = { 1.1, 2.2, 3.3, 4.5, 5.8 };
+  betas  = { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
+
+  alpha = 1e-2, beta = 0.5;
+  REQUIRE( getIndices(alphas,alpha) == 1 );
+  REQUIRE( getIndices(betas, beta ) == 2 );
+
+  alpha = 2.6, beta = 1.35;
+  REQUIRE( getIndices(alphas,alpha) == 2 );
+  REQUIRE( getIndices(betas, beta ) == 3 );
+
+
+  alpha = 2.6, beta =-1.35;
+  REQUIRE( getIndices(alphas,alpha) == 2 );
+  REQUIRE( getIndices(betas, beta ) == 1 );
+
+  alpha = 8.6, beta =-5.35;
+  REQUIRE( getIndices(alphas,alpha) == 4 );
+  REQUIRE( getIndices(betas, beta ) == 1 );
+
+
+  
+  
+
+} // TEST CASE
+
+
+
+
+
 TEST_CASE( "sig - free gas (iinc = 1)" ){
   int iinc = 1;
 
@@ -290,6 +329,5 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
 
   } // GIVEN
 } // TEST CASE
-
 
 
