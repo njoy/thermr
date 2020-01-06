@@ -98,7 +98,7 @@ auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr
     scr[il+jscr-1] = sigfig(y[(il-1)*imax+i-1],9,0);
     if ( abs(scr[il+jscr-1]) > 1.0 ){ 
       if (abs(scr[il+jscr-1]) > 1.0+0.0005 ){std::cout<<"call mess"<<std::endl; throw std::exception(); }
-      scr[il+jscr-1] = sc[il+jscr-1]/abs(il+jscr-1); }
+      scr[il+jscr-1] = scr[il+jscr-1]/abs(il+jscr-1); }
   }
 
   xlast = x[i-1];
@@ -225,7 +225,7 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
     esi[ie] = enow; xsi[ie] = 0.0; ubar[ie] = 0.0;
     p2 [ie] = 0.0;  p3[ie] = 0.0;  ep       = 0.0; x[0] = ep;
 
-    auto s  = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+    auto s  = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
 
     // Vector of xs for E->E' for nnl equiprobable angles (if nnl < 0) else the
     // legendre components (?)
@@ -250,7 +250,7 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
 
       std::cout << " --- 316 ---" << std::endl; 
       x[0] = ep;
-      s = sigl(ep,enow,tev,tol,nnl,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+      s = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
       for ( int il = 0; il < nl; ++il ){ y[il*imax+0] = s[il]; }
 
       // adaptive subdivision of panel

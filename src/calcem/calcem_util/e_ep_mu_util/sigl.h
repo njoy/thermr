@@ -16,18 +16,15 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
   Float beta = std::abs((ep-e)/tev);
   if ( lat == 1 and iinc == 2 ){ beta *= tev/0.0253; }
 
-  muVec[0] =  1.0; 
   muVec[2] = -1.0; 
-  muVec[1] = (ep==0.0) ? 0.0 : 
-                         0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev)
-                             * pow(e*ep,-0.5);
-  if (abs(muVec[1]) > 0.99){ muVec[1] = 0.99; }
+  muVec[1] = (ep==0.0) ? 
+      0.0 
+    : std::min(0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5), 0.99);
+  muVec[0] =  1.0; 
 
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
-  //std::cout << e << "   " << ep << "   " << muVec[2] << std::endl;
-  //std::cout << tev << "   " << teff << "   " << std::endl;
 }
 
 template <typename Float>
@@ -38,7 +35,7 @@ inline Float maxOf4Vals( const Float a, const Float b, const Float c, const Floa
 
 template <typename Range, typename Float>
 auto populateXSvector(Range& xsVec, Float& xn, Float& invDeltaMu, Float& muLeft, Float& xsLeft, 
-  Float& fract, int& i, Float& gral, int& nL, int& nbin, Range&s, const int& j, Float& sum){
+  Float& fract, int& i, Float& gral, const int& nbin, Range&s, const int& j, bool equiprobableBins){
   //std::cout << " --- 190 --- " << std::endl;
   gral += (xn-muLeft) * 
           ( xsLeft*0.5*(xn+muLeft) + 
@@ -48,27 +45,26 @@ auto populateXSvector(Range& xsVec, Float& xn, Float& invDeltaMu, Float& muLeft,
 
   Float xbar = gral / fract;
 
-  if (nL < 0){
-    s[j] = xbar;
+  if (equiprobableBins){
+    s[j] = xbar; 
   }
-  else {
-    Range p (nL,0.0);
-    legndr(xbar,p,nL);
-    for (int k = 1; k < nL; ++k){ s[k] += p[k]/nbin; }
+  else {        // Here we fill in the legendre components
+    Range p (nbin+1,0.0);
+    legndr(xbar,p,nbin+1);
+    for (int k = 1; k < nbin+1; ++k){ s[k] += p[k]/nbin; }
   }
 
   xsLeft = xsLeft + (xsVec[i-1]-xsLeft)*(xn-muLeft)*invDeltaMu;
   muLeft = xn;
-  sum  = 0.0;
   gral = 0.0;
 }
 
 
 template <typename Range, typename Float>
-auto getNextMuValue(Float& fract, Float& sum, Range& xsVec, Range& muVec, 
+auto getNextMuValue(Float& fract, const Float& sum, Range& xsVec, Range& muVec, 
   Float& xsLeft, Float& muLeft, int& i, Float& invDeltaMu ){
   //std::cout << " --- 170 --- " << std::endl;
-  Float gral=0.0, xn;
+  Float xn;
   Float test = (fract-sum)*(xsVec[i-1]-xsLeft)/((muVec[i-1]-muLeft)*xsLeft*xsLeft);
 
   if ( xsLeft >= 1e-32 and abs(test) <= 1e-3 ){ // Could potentially do 180, 190
@@ -98,26 +94,24 @@ auto getNextMuValue(Float& fract, Float& sum, Range& xsVec, Range& muVec,
 
 
 template <typename Range, typename Float>
-inline void shiftOver( int& i, Range& x, Range& y, Float& muMid, const Float& yt ){
-  // x = [   mu1      mu2          mu3            0    0   0 ... ]
-  // y = [ s(mu1)   s(mu2)       s(mu3)           0    0   0 ... ]
-  //  becomes 
-  // x = [   mu1      mu2      0.5*(mu2+mu3)     mu3   0   0 ... ]
-  // y = [ s(mu1)   s(mu2)   s(0.5*(mu2+mu3))  s(mu3)  0   0 ... ]
+inline void shiftOver( int& i, Range& muVec, Range& xsVec, Float& muMid, const Float& xsTrue ){
+  // Inserts the xsTrue value adn muMid into their respective vectors. Increase
+  // i by one so that now we can check between midpoint and i-1 to see if we 
+  // need any additional points in there.
   i++;
-  x[i-1] = x[i-2]; x[i-2] = muMid;
-  y[i-1] = y[i-2]; y[i-2] = yt;
+  muVec[i-1] = muVec[i-2]; muVec[i-2] = muMid;
+  xsVec[i-1] = xsVec[i-2]; xsVec[i-2] = xsTrue;
 }
 
 template <typename Range, typename Float>
-inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Float& ep, 
-  const Float& tev, const Range& alphas, const Range& betas, const Range& sab, 
-  const Float& az, const int& lasym, const int& lat, 
+inline auto doWeNeedAMidpoint(int& i, Range& muVec, Range& xsVec, const Float& e, 
+  const Float& ep, const Float& tev, const Range& alphas, const Range& betas, 
+  const Range& sab, const Float& az, const int& lasym, const int& lat, 
   const Float& sb, const Float& sb2, const Float& teff, const int& iinc, 
   const Float& tol){
+  using std::abs;
 
   Float xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
-  using std::abs;
   Float muMid, xs_guess, xs_true;
   while ( (unsigned) i < muVec.size() ){ //std::cout << " --- 110 --- " << std::endl;
     muMid = 0.5*( muVec[i-2] + muVec[i-1] ); //muMid = sigfig(muMid,8,0);
@@ -135,104 +129,104 @@ inline auto do_110(int& i, Range& muVec, Range& xsVec, const Float& e, const Flo
 
 
 template <typename Range, typename Float>
-inline auto sigl(Float ep, Float e, Float tev, Float tol, int nl, 
-  int lat, int iinc, const Range& alphas, const Range& betas, const Range& sab, Float az,
-  int lasym, Float sigma_b, Float sigma_b2, Float teff ){
-  //std::cout.precision (15);
+inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc, 
+  const Range& alphas, const Range& betas, const Range& sab, Float az,
+  int lasym, Float sigma_b, Float sigma_b2, Float teff, const int nbin, 
+  bool equiprobableBins = true ){
 
   using std::abs; using std::min; using std::pow;
 
   tol *= 0.5;
 
-  int nL = std::abs(nl);
-  int nbin = nL - 1;
-  
   Float sum = 0, gral = 0;
   Range muVec(20), xsVec(20);
 
-
   int i = 3;
-  initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
+                        sigma_b,sigma_b2,teff,iinc);
   Float muLeft = muVec[2],
         xsLeft = xsVec[2];
 
-
-
+  // The outer loop will check between i-2 and i-1 to see if we need a midpoint
+  // in between there. if so, it'll put it in there and then check between 
+  // midpoint and i-1. If we don't need a midpoint, we go to the inner loop
+  // and move to the left and keep checking. 
   do {
-    do_110(i,muVec,xsVec, e, ep,tev,alphas,betas,sab,az,lasym,lat,sigma_b, sigma_b2, teff,iinc,tol);
+    //std::cout << muLeft << std::endl;
+    std::cout << (muVec|ranges::view::all) << std::endl;
+    doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
+                      sigma_b,sigma_b2,teff,iinc,tol);
+  std::cout << (muVec|ranges::view::all) << std::endl;
+  std::cout << std::endl;
     do { // If i = 2, then do this action twice. Else do it once
       //std::cout << " --- 120 --- " << std::endl;
+      //std::cout << i <<  "     " << muVec[i-1] << "    " << muLeft << std::endl;
       sum += 0.5*( xsVec[i-1] + xsLeft )*( muVec[i-1] - muLeft );
       muLeft = muVec[i-1];
       xsLeft = xsVec[i-1];
-      i -= 1;
+      --i;
     } while ( i == 1 );
-
   } while ( i > 1 );
 
-
   std::vector<double> s(65,0.0);
-  s[0] = (sum <= 1e-32) ? 0.0 : sum;
+  if ( sum <= 1e-32 ){ return s; }
 
-  //std::cout << (xsVec|ranges::view::all) << std::endl;
-  //return s;
+  //std::cout << (muVec|ranges::view::all) << std::endl;
+  //Float sum2 = 0.0;
+  //for (size_t j = 0; j < xsVec.size()-1; ++j ){
+  //  sum2 += 0.5*(xsVec[j]+xsVec[j+1])*(muVec[j]-muVec[j+1]);
+  //}
+  //std::cout << sum << "    " << sum2 << std::endl;
 
 
-
-  if ( sum <= 1e-32 ){
-      return s;
-  }
-
+  s[0] = sum;
 
   //std::cout << " --- 130 --- " << std::endl;
   Float fract = sum/(1.0*nbin);
   sum = 0.0;
   int j = 0;
 
-
-  i = 3;
-  initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
+                        sigma_b,sigma_b2,teff,iinc);
   muLeft = muVec[2],
   xsLeft = xsVec[2];
 
-
-  Float xn = 0.0;
+  i = 3;
 
   do { 
-    do_110(i,muVec,xsVec, e, ep,tev,alphas,betas,sab,az,lasym,lat,sigma_b, sigma_b2, teff,iinc,tol);
-
-    do {
-      //std::cout << " --- 160 ---  "<< std::endl;
-      Float add = 0.5*(xsVec[i-1]+xsLeft)*(muVec[i-1]-muLeft);
-
-      if (muVec[i-1] == muLeft) { 
-          //std::cout << " --- 250 ---  "<< std::endl;
+    doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
+                      sigma_b,sigma_b2,teff,iinc,tol);
+    do { //std::cout << " --- 160 ---  "<< std::endl;
+      if (muVec[i-1] == muLeft) {  //std::cout << " --- 250 ---  "<< std::endl;
           muLeft = muVec[i-1];
           xsLeft = xsVec[i-1];
-          i -= 1;
+          --i;
           if ( i < 1 ){ return s; }
           if ( i > 1 ){ break; }
       }
 
       Float invDeltaMu = 1.0/(muVec[i-1]-muLeft);
+      Float add = 0.5*(xsVec[i-1]+xsLeft)*(muVec[i-1]-muLeft);
 
       if ( i == 1 and j == nbin-1 ){ //std::cout << " --- 165 ---  "<< std::endl;
         j++;
-        xn = muVec[i-1];
-        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, nl, nbin, s, j, sum);
+        Float xn = muVec[i-1];
+        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, nbin, s, j, equiprobableBins);
+        sum = 0.0;
         return s;
       }
       else if ( sum + add >= fract * 0.99999999 and j < nbin-1 ){
         j++;
-        xn = getNextMuValue(fract, sum, xsVec, muVec, xsLeft, muLeft, i, invDeltaMu );
-        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, nl, nbin, s, j, sum);
+        Float xn = getNextMuValue(fract, sum, xsVec, muVec, xsLeft, muLeft, i, invDeltaMu );
+        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, nbin, s, j, equiprobableBins);
+        sum = 0.0;
 
         if (muLeft < muVec[i-1] ){ continue; }
-        else { // 250
+        else { 
           //std::cout << " --- 250 ---  "<< std::endl;
           muLeft = muVec[i-1];
           xsLeft = xsVec[i-1];
-          i -= 1;
+          --i;
           if ( i < 1 ){ return s; }
           if ( i > 1 ){ break; }
         }
@@ -245,19 +239,13 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int nl,
 
       muLeft = muVec[i-1];
       xsLeft = xsVec[i-1];
-      i -= 1;
-      if ( i < 1 ){ return s; }
-      if ( i > 1 ){ break; }
+      --i;
 
-
-    } while ( i <= 1 );
+    } while ( i == 1 );
 
   } while ( i > 1 );
 
-
   return s;
-
-
 }
 
 
