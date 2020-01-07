@@ -3,11 +3,10 @@
 #include <cmath>
 //#include "ENDFtk.hpp"
 
+template <typename Range, typename Float>
 auto iel( int mat, int itemp, int iold, int inew, int ne, int nex, 
-    std::vector<double>& tempr, std::vector<double>& fl, double za, 
-    std::vector<double>& scr, double awr, double emax, int natom, int nbin,
-    std::vector<double>& esi 
-    ){
+  Range& tempr, Range& fl, Float za, Range& scr, Float awr, Float emax, 
+  int natom, int nbin, Range& esi  ){
   /*-------------------------------------------------------------------
    * INCOHERENT ELASTIC SCATTERING
    *-------------------------------------------------------------------
@@ -20,15 +19,16 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
    */
    int idis,iex,iet,ix,nj,nr,np,ip,ir,ltt,nb,nw,matdp;
    int n,nup,nup1,isave,nne;
-   double dwa,c1,e,c2,uLeft,rc2,temp,tt1,ttn,tnxt,math,mth,mfh,mtref,sb;
-   double /*x1,r1x1,*/xsec,/*x2,*/uRight;
-   std::vector<double> ex(20), ej(20);
+   Float dwa,c1,e,c2,uLeft,rc2,temp,tt1,ttn,tnxt,math,mth,mfh,mtref,sb;
+   Float /*x1,r1x1,*/xsec,/*x2,*/uRight;
+   Range ex(20), ej(20);
    int nupmax = 10;
-   std::vector<double> tmp { 296,400,500,600,700,800,1000,1200 },
+   Range 
+     tmp { 296,400,500,600,700,800,1000,1200 },
      dwh { 8.4795, 9.0854, 9.8196, 10.676, 11.625, 12.643, 14.822, 17.125 },
      dwz { 1.9957, 2.6546, 3.2946, 4.5835, 5.2302, 6.5260, 7.8236 };
    
-   double c11a=162.88, c11b=296, c11c=34.957, c11d=350, c11e=40.282, c12a=81.44,
+   Float c11a=162.88, c11b=296, c11c=34.957, c11d=350, c11e=40.282, c12a=81.44,
 	  c13a=6.3366, up=1.1, dn=.9;
 
    dwa = 0; // This is just to fix uninitialized warning. NJOY doesn't 
@@ -94,7 +94,7 @@ auto iel( int mat, int itemp, int iold, int inew, int ne, int nex,
      nne=nne+1;
    }
    //allocate(xie(nne))
-   std::vector<double> xie( nne );
+   Range xie( nne );
 
    // write head and tab2 records for mf6
    // in lanl format

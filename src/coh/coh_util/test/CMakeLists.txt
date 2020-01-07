@@ -1,7 +1,7 @@
 
 add_executable( coh.coh_util.test
-                sigcoh.test.cpp
-                upstk.test.cpp )
+                upstk.test.cpp
+                sigcoh.test.cpp )
 target_compile_options( coh.coh_util.test PRIVATE ${${PREFIX}_common_flags}
 $<$<BOOL:${strict}>:${${PREFIX}_strict_flags}>$<$<CONFIG:DEBUG>:
 ${${PREFIX}_DEBUG_flags}
