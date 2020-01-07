@@ -20,6 +20,7 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
   muVec[1] = (ep==0.0) ? 
       0.0 
     : std::min(0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5), 0.99);
+  //muVec[1] = 0.6;
   muVec[0] =  1.0; 
 
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
@@ -118,11 +119,13 @@ inline auto doWeNeedAMidpoint(int& i, Range& muVec, Range& xsVec, const Float& e
     xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
     xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,0.0253,lasym,lat,sb,sb2,teff,iinc);
 
+    //std::cout << "             " << muVec[i-2] << "  " << muVec[i-1] << "   " <<  muMid << std::endl;
     if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*xsMax/50.0 and 
            abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+xsMax/100.0 and 
            (muVec[i-2]-muVec[i-1]) < 0.5 ) or
          ( muVec[i-2]-muVec[i-1] < 1e-5 ) ) { break; }
     shiftOver( i, muVec, xsVec, muMid, xs_true );
+    //std::cout << "                      " << (muVec|ranges::view::all) << std::endl;
   }  
 } 
 
@@ -147,17 +150,19 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   Float muLeft = muVec[2],
         xsLeft = xsVec[2];
 
+
   // The outer loop will check between i-2 and i-1 to see if we need a midpoint
   // in between there. if so, it'll put it in there and then check between 
   // midpoint and i-1. If we don't need a midpoint, we go to the inner loop
   // and move to the left and keep checking. 
+  //int counter = 1;
   do {
-    //std::cout << muLeft << std::endl;
-    std::cout << (muVec|ranges::view::all) << std::endl;
+    //std::cout << std::endl;
+    //std::cout << "   -----     " <<  (muVec|ranges::view::all) << std::endl;
     doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
                       sigma_b,sigma_b2,teff,iinc,tol);
-  std::cout << (muVec|ranges::view::all) << std::endl;
-  std::cout << std::endl;
+  //std::cout << (muVec|ranges::view::all) << std::endl;
+  //std::cout << std::endl;
     do { // If i = 2, then do this action twice. Else do it once
       //std::cout << " --- 120 --- " << std::endl;
       //std::cout << i <<  "     " << muVec[i-1] << "    " << muLeft << std::endl;
@@ -166,6 +171,7 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
       xsLeft = xsVec[i-1];
       --i;
     } while ( i == 1 );
+    //if (++counter>5) { break; }
   } while ( i > 1 );
 
   std::vector<double> s(65,0.0);
@@ -193,9 +199,12 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
 
   i = 3;
 
+  //int counter = 1;
   do { 
+    //std::cout << "   -----     " <<  (muVec|ranges::view::all) << std::endl;
     doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
                       sigma_b,sigma_b2,teff,iinc,tol);
+    //if (counter++ > 4){ return s; }
     do { //std::cout << " --- 160 ---  "<< std::endl;
       if (muVec[i-1] == muLeft) {  //std::cout << " --- 250 ---  "<< std::endl;
           muLeft = muVec[i-1];

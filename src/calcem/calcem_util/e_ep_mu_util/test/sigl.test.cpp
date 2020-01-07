@@ -49,6 +49,31 @@ TEST_CASE( "110" ){
 
 
 TEST_CASE( "sigl" ){
+    /*
+    {
+  double e = 1e-2, ep = 1e-3, tev = 0.025, tolin = 5e-2, az = 0.99917, 
+         sigma_b = 4.0, sigma_b2 = 0.0, teff = 0.12;
+  int nL = -9, lat = 1, iinc = 2, lasym = 0, nbin = 8;
+  bool equiprobableBins = true;
+  std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
+                       betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
+  std::vector<double> sab(alphas.size()*betas.size());
+  for ( size_t i = 0; i < alphas.size(); ++i ){
+    for ( size_t j = 0; j < betas.size(); ++j ){
+      sab[i*betas.size()+j] = 0.01*((j+1) + 0.1*(i+1));
+    } 
+  } 
+
+  std::vector<double> correct_s, s;
+
+  e = 2e-2;
+  ep = 1e-1;
+  tolin = 5;
+  s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,nbin,equiprobableBins);
+  */
+
+
+
     {
   double e = 1e-2, ep = 1e-3, tev = 0.025, tolin = 5e-2, az = 0.99917, 
          sigma_b = 4.0, sigma_b2 = 0.0, teff = 0.12;
@@ -71,7 +96,6 @@ TEST_CASE( "sigl" ){
   REQUIRE(ranges::equal(correct_s, s, equal));
 
 
-  /*
   ep = 1e-2;
   s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,nbin,equiprobableBins);
   correct_s = { 220.16164823349109, -0.14479545028098159, 0.16598934410207883, 0.40051344934325717, 0.59855092490738082, 0.75607791889432496, 0.87463820097482681, 0.95401954612035467, 0.99332099672089436, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
@@ -193,6 +217,7 @@ TEST_CASE( "sigl" ){
 
 
 
+  /*
   */
 
     }
