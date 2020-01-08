@@ -3,8 +3,9 @@
 #include "coh/coh_util/sigcoh_util/legndr.h"
 #include <iostream>
 
-bool finish( int& k, std::vector<double>& wrk, const double& f, int nw,
-  const double& tau_sq ){
+template <typename Range, typename Float>
+bool finish( int& k, Range& wrk, const Float& f, int nw,
+  const Float& tau_sq ){
   k = k + 1;
   if ((2*k) > nw) { 
     std::cout << "storage exceeded" << std::endl;
@@ -15,7 +16,8 @@ bool finish( int& k, std::vector<double>& wrk, const double& f, int nw,
 }
 
 
-auto tausq( int m1, int m2, int m3, double c1, double c2 ){
+template <typename Float>
+auto tausq( int m1, int m2, int m3, Float c1, Float c2 ){
   /* This function computes the value tau^2, which is defined in the General
    * Atomics HEXSCAT documentation. On pg. 62 of the HEXSCAT pdf document
    * (which is in HEXSCAT Appendix, Section 1: Formulation), we have that 
@@ -26,27 +28,28 @@ auto tausq( int m1, int m2, int m3, double c1, double c2 ){
   return (c1*(m1*m1+m2*m2+m1*m2)+c2*(m3*m3))*4*M_PI*M_PI;
 }
 
-void swapVals( double& a, double& b ){
-  double c = a; a = b; b = c;
+template <typename Float>
+void swapVals( Float& a, Float& b ){
+  Float c = a; a = b; b = c;
 }
   
-auto computeCrossSections( double e, std::vector<double>& fl, 
-    std::vector<double>& s, double emax, double scon, double recon, int nl, 
-    std::vector<double> p, int k ){
+template <typename Range, typename Float>
+auto computeCrossSections( Float e, Range& fl, Range& s, Float emax, Float scon, 
+  Float recon, int nl, Range p, int k ){
   // compute cross sections at this energy
-   double elim;
+   Float elim;
    for ( int il = 0; il < nl; ++il ){
       s[il]=0;
    }
    int last=0;
 
    for ( int i = 1; i <= k; ++i ){
-      double tau_sq=fl[2*i-2];
+      Float tau_sq=fl[2*i-2];
       elim=tau_sq*recon;
       // if (elim >= e) exit
-      double f=fl[2*i-1];
+      Float f=fl[2*i-1];
       if (e > emax) f=0;
-      double u=1-2*elim/e;
+      Float u=1-2*elim/e;
       // u here is equal to fl for l = 1 (P1 component).
       // This is defined in the General Atomics HEXSCAT paper, in Part 1 
       // Formulation. If l == 0, fl = 1. But if l == 1, then
@@ -70,9 +73,10 @@ auto computeCrossSections( double e, std::vector<double>& fl,
 
 
 
-auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat, 
-  double temp, double emax, int natom, std::vector<double>& fl, 
-  std::vector<double>& p, int k ){
+template <typename Range, typename Float>
+auto sigcoh( Float e, Float& enext, Range s, Range& wrk, int nl, int lat, 
+  Float temp, Float emax, int natom, Range& fl, 
+  Range& p, int k ){
  /*-------------------------------------------------------------------
   * Compute the first nl Legendre components of the coherent scatter-
   * ing at energy e from lattice type lat.  Here enext is the next
@@ -88,12 +92,12 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   *-------------------------------------------------------------------
   */
   int nw, i1m, l1, i2m, i3m;
-  double mass_n, econ, tsqx, a, c, amsc, scoh, wal2, wint, w1, w2, w3, tau_sq, 
+  Float mass_n, econ, tsqx, a, c, amsc, scoh, wal2, wint, w1, w2, w3, tau_sq, 
     tau, w, f, t2, ulim, phi, c1, c2, scon;
   
   // These are lattice factors. Apparently they were borrowed directly from
   // HEXSCAT code. 
-  double gr1 = 2.4573e-8, // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf
+  Float gr1 = 2.4573e-8, // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf
          gr2 = 6.700e-8,  // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf 
          be1 = 2.2856e-8, // http://periodictable.com/Properties/A/LatticeConstants.html
          be2 = 3.5832e-8, // http://periodictable.com/Properties/A/LatticeConstants.html 
@@ -102,36 +106,36 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
                           // II-VI and I-VII Compounds; Semimagnetic Compounds
 
   // These are masses
-  double gr3  = 12.011e0, 
+  Float gr3  = 12.011e0, 
          be3  = 9.01e0, 
          beo3 = 12.5e0;  // Mass of BeO is actually 25, but apparently we 
                          // divide by 2 because I suppose avg mass per atom
                          
   // These are the characteristic coherent cross sections for hte material.
   // These first appear in Eq. 222 on pg. 166.
-  double gr4 = 5.50, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
+  Float gr4 = 5.50, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
          be4 = 7.53, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
          beo4 = 1.0;
 
-  double cw = 0.658173e-15, hbar = 1.05457266e-27, amu = 1.6605402e-24, 
+  Float cw = 0.658173e-15, hbar = 1.05457266e-27, amu = 1.6605402e-24, 
          amassn = 1.008664904, ev = 1.60217733e-12;
   
   // eps is the current grouping factor, 5%. This is used to lump together 
   // multiple tau values, so as to save storage and run time.
-  double eps = 0.05;
+  Float eps = 0.05;
 
   // save k,recon,scon
 
 
   // Temperatures interpolated over when trying to get correct Debye-Waller
   // Coefficient.
-  std::vector<double> tmp {296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000};
+  Range tmp {296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000};
 
   // Debye Waller to interpolate over
   // This appears in Eq. 220 of the manual, as 'W' in the exponential term
   // This also appears in the General Atomics HEXSCAT report as the integral
   // shown below (as wal2 description)
-  std::vector<double> dwf ( tmp.size() );
+  Range dwf ( tmp.size() );
   if (lat == 1){       // GRAPHITE
     a = gr1; c = gr2; amsc = gr3; scoh = gr4/natom; 
     dwf = {2.1997,2.7448,3.2912,3.8510,4.4210,4.9969,6.1624,7.3387,9.6287,11.992};      
@@ -168,9 +172,9 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   * subsequent entries are used to compute the cross section.
   */
   if (e > 0) {
-    double recon = 1.0/econ;
+    Float recon = 1.0/econ;
     computeCrossSections( e, fl, s, emax, scon, recon, nl, p, k );
-    return std::vector<double> {};
+    return nl; //Range {};
   }
  
 
@@ -204,7 +208,7 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   ulim = emax * ev * 8.0 * mass_n / (hbar*hbar);
 
   nw = 10000;
-  std::vector<double> wrk(nw,0.0);
+  //Range wrk(nw,0.0);
 
 
   // compute and sort lattice factors.
@@ -238,7 +242,7 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
          
         // We consider l2 and -l2 because of Eq. 4 on pg. 4 of the General 
         // Atomics HEXSCAT appendix.
-        for ( double&& l2: { l2, -l2 } ){
+        for ( Float&& l2: { l2, -l2 } ){
           tau_sq = tausq(l1,l2,l3,c1,c2);
 
           if (tau_sq > 0 and tau_sq <= ulim ){
@@ -258,7 +262,7 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
                 // This uses a 5% (eps) grouping factor.
                 if (tau_sq < wrk[2*i-2] or tau_sq >= (1+eps)*wrk[2*i-2]){
                   if ( i == k ){ 
-                    if ( finish( k, wrk, f, nw, tau_sq ) ){ return wrk; }
+                    if ( finish( k, wrk, f, nw, tau_sq ) ){ return k; }
                     break;
                   }
                 }
@@ -269,7 +273,7 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
               }
             }
             else {
-              if ( finish( k, wrk, f, nw, tau_sq ) ){ return wrk; }
+              if ( finish( k, wrk, f, nw, tau_sq ) ){ return k; }
             }
           } 
         }
@@ -290,9 +294,7 @@ auto sigcoh( double e, double& enext, std::vector<double> s, int nl, int lat,
   wrk[2*k-1]=wrk[2*k-2-1];
   nw=2*k;
   enext=wrk[1-1]/econ;
-  nl=k;
-  return wrk;
-  // return wrk as fl
+  return k; // This is nbragg, the number of bragg edges found
 
 }
 

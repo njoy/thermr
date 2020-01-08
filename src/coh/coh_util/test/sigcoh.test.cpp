@@ -10,6 +10,8 @@ TEST_CASE( "sigcoh" ){
     std::vector<double> wrk_1_100 (100), s (6, 0.0), fl {};
     double e = 0, enext = 0, temp = 296, emax;
     int nl = 1, lat = 1, natom = 1;
+    std::vector<double> wrk(10000,0.0);
+    int nbragg;
 
     wrk_1_100 = { 8.79447930e15, 0.00000000000, 8.79447930e15, 0.00000000000, 
       3.5177917e16, 2.0984634e-8, 3.5177917e16, 2.0984634e-8, 7.9150313e16,
@@ -38,7 +40,9 @@ TEST_CASE( "sigcoh" ){
     WHEN( "smal value for emax" ){
       emax = 0.05;
       THEN ( "loops ranges are small (~4)" ){
-       auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
+       nbragg = sigcoh( e, enext, s, wrk, nl, lat, temp, emax, natom, fl, p, k );
+        REQUIRE( nbragg == 132 );
+
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( wrk_1_100[i] == Approx( wrk[i] ).epsilon(1e-6) );
         }
@@ -65,7 +69,6 @@ TEST_CASE( "sigcoh" ){
         for ( size_t  i = 264; i < wrk.size(); ++i ){ 
           REQUIRE( 0.0 == Approx( wrk[i] ).epsilon(1e-6) );
         }
-  
       } // THEN 
     } // WHEN
 
@@ -73,7 +76,8 @@ TEST_CASE( "sigcoh" ){
     WHEN( "Medium value for emax" ){
       emax = 1.2;
       THEN ( "loops ranges are moderate (~17)" ){
-       auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
+       auto nbragg = sigcoh( e, enext, s, wrk, nl, lat, temp, emax, natom, fl, p, k );
+        REQUIRE( nbragg == 294 );
 
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( wrk_1_100[i] == Approx( wrk[i] ).epsilon(1e-6) );
@@ -113,7 +117,8 @@ TEST_CASE( "sigcoh" ){
     WHEN( "large value for emax" ){
       emax = 5.5;
       THEN ( "loops ranges are large (~35)" ){
-       auto wrk = sigcoh( e, enext, s, nl, lat, temp, emax, natom, fl, p, k );
+       auto nbragg = sigcoh( e, enext, s, wrk, nl, lat, temp, emax, natom, fl, p, k );
+       REQUIRE( nbragg == 435 );
   
 
         for ( size_t i = 0; i < 100; ++i ){ 
@@ -171,11 +176,13 @@ TEST_CASE( "sigcoh" ){
         for ( size_t  i = 869; i < wrk.size(); ++i ){ 
           REQUIRE( 0.0 == Approx( wrk[i] ).epsilon(1e-6) );
         }
+
   
       } // THEN 
     } // WHEN
   } // GIVEN
 
+  /*
   GIVEN( "input energy is greater than 0" ){
     double e = 1.822326e-3, enext = 1.822326e-3, temp = 296.0, emax = 1.2;
     std::vector<double> s (10, 0.0), fl (588);
@@ -188,5 +195,9 @@ TEST_CASE( "sigcoh" ){
 
 
   } // GIVEN
+
+*/
+
+
 
 } // TEST CASE
