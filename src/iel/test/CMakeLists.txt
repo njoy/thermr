@@ -1,7 +1,5 @@
 
-add_executable( iel.test
-                iel.test.cpp
-                incoherentElastic.test.cpp )
+add_executable( iel.test incoherentElastic.test.cpp )
 target_compile_options( iel.test PRIVATE ${${PREFIX}_common_flags}
 $<$<BOOL:${strict}>:${${PREFIX}_strict_flags}>$<$<CONFIG:DEBUG>:
 ${${PREFIX}_DEBUG_flags}

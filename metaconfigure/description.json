@@ -399,10 +399,7 @@
     "src/calcem/calcem_util/e_mu_ep_util/adaptiveReconstruction.h",
     "src/calcem/calcem_util/e_mu_ep_util/sigu.h",
     "src/approximations/freeGas/freeGas.h",
-    "src/iel/iel.h",
     "src/iel/incoherentElastic.h",
-    "src/iel/iel_util/terpa.h",
-    "src/iel/iel_util/terp1.h",
     "src/generalTools/testing.h"
   ],
   "ignore pattern": "$^",
@@ -467,12 +464,7 @@
       "src/general_util/test/sigfig.test.cpp"
     ],
     "iel": [
-      "src/iel/test/iel.test.cpp",
       "src/iel/test/incoherentElastic.test.cpp"
-    ],
-    "iel.iel_util": [
-      "src/iel/iel_util/test/terpa.test.cpp",
-      "src/iel/iel_util/test/terp1.test.cpp"
     ],
     "simpler.elastic.coherent": [
       "src/simpler/elastic/coherent/test/coherent.test.cpp"
