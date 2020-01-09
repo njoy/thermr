@@ -1,5 +1,4 @@
 #include "calcem/calcem_util/sig.h"
-//#include "general_util/sigfig.h"
 #include "coh/coh_util/sigcoh_util/legndr.h"
 #include <range/v3/all.hpp>
 #include <cmath>
@@ -20,7 +19,6 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
   muVec[1] = (ep==0.0) ? 
       0.0 
     : std::min(0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5), 0.99);
-  //muVec[1] = 0.6;
   muVec[0] =  1.0; 
 
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
@@ -47,12 +45,12 @@ auto populateXSvector(Range& xsVec, Float& xn, Float& invDeltaMu, Float& muLeft,
   Float xbar = gral / fract;
 
   if (equiprobableBins){
-    s[j] = xbar; 
+    s[j-1] = xbar; 
   }
   else {        // Here we fill in the legendre components
     Range p (nbin+1,0.0);
     legndr(xbar,p,nbin+1);
-    for (int k = 1; k < nbin+1; ++k){ s[k] += p[k]/nbin; }
+    for (int k = 1; k < nbin+1; ++k){ s[k-1] += p[k]/nbin; }
   }
 
   xsLeft = xsLeft + (xsVec[i-1]-xsLeft)*(xn-muLeft)*invDeltaMu;
@@ -130,6 +128,33 @@ inline auto doWeNeedAMidpoint(int& i, Range& muVec, Range& xsVec, const Float& e
 } 
 
 
+template <typename Range, typename Float>
+inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc, 
+  const Range& alphas, const Range& betas, const Range& sab, Float az,
+  int lasym, Float sigma_b, Float sigma_b2, Float teff ){
+  using std::abs; using std::min; using std::pow;
+  int i = 3;
+  Float pdf = 0, gral = 0;
+  Range muVec(20), xsVec(20);
+  initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
+                        sigma_b,sigma_b2,teff,iinc);
+  Float muLeft = muVec[2], xsLeft = xsVec[2];
+  // The outer loop will check between i-2 and i-1 to see if we need a midpoint
+  // in between there. if so, it'll put it in there and then check between 
+  // midpoint and i-1. If we don't need a midpoint, we go to the inner loop
+  // and move to the left and keep checking. 
+  do {
+    doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
+                      sigma_b,sigma_b2,teff,iinc,tol);
+    do { // If i = 2, then do this action twice. Else do it once
+      pdf += 0.5*( xsVec[i-1] + xsLeft )*( muVec[i-1] - muLeft );
+      muLeft = muVec[i-1];
+      xsLeft = xsVec[i-1];
+      --i;
+    } while ( i == 1 );
+  } while ( i > 1 );
+  return pdf;
+}
 
 template <typename Range, typename Float>
 inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc, 
@@ -139,72 +164,26 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
 
   using std::abs; using std::min; using std::pow;
 
+  Range muVec(20), xsVec(20), s(nbin,0.0);
+
   tol *= 0.5;
+  Float pdf = getPDF(ep, e, tev, tol, lat, iinc, alphas, betas, sab, az, lasym, sigma_b, sigma_b2, teff);
+  if ( pdf <= 1e-32 ){ return s; }
 
-  Float sum = 0, gral = 0;
-  Range muVec(20), xsVec(20);
-
-  int i = 3;
+  //std::cout << " --- 130 --- " << std::endl;
   initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
                         sigma_b,sigma_b2,teff,iinc);
   Float muLeft = muVec[2],
-        xsLeft = xsVec[2];
+        xsLeft = xsVec[2],
+        gral   = 0,
+        sum    = 0,
+        fract  = pdf/(1.0*nbin);
 
+  int i = 3, j = 0;
 
-  // The outer loop will check between i-2 and i-1 to see if we need a midpoint
-  // in between there. if so, it'll put it in there and then check between 
-  // midpoint and i-1. If we don't need a midpoint, we go to the inner loop
-  // and move to the left and keep checking. 
-  //int counter = 1;
-  do {
-    //std::cout << std::endl;
-    //std::cout << "   -----     " <<  (muVec|ranges::view::all) << std::endl;
-    doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
-                      sigma_b,sigma_b2,teff,iinc,tol);
-  //std::cout << (muVec|ranges::view::all) << std::endl;
-  //std::cout << std::endl;
-    do { // If i = 2, then do this action twice. Else do it once
-      //std::cout << " --- 120 --- " << std::endl;
-      //std::cout << i <<  "     " << muVec[i-1] << "    " << muLeft << std::endl;
-      sum += 0.5*( xsVec[i-1] + xsLeft )*( muVec[i-1] - muLeft );
-      muLeft = muVec[i-1];
-      xsLeft = xsVec[i-1];
-      --i;
-    } while ( i == 1 );
-    //if (++counter>5) { break; }
-  } while ( i > 1 );
-
-  std::vector<double> s(65,0.0);
-  if ( sum <= 1e-32 ){ return s; }
-
-  //std::cout << (muVec|ranges::view::all) << std::endl;
-  //Float sum2 = 0.0;
-  //for (size_t j = 0; j < xsVec.size()-1; ++j ){
-  //  sum2 += 0.5*(xsVec[j]+xsVec[j+1])*(muVec[j]-muVec[j+1]);
-  //}
-  //std::cout << sum << "    " << sum2 << std::endl;
-
-
-  s[0] = sum;
-
-  //std::cout << " --- 130 --- " << std::endl;
-  Float fract = sum/(1.0*nbin);
-  sum = 0.0;
-  int j = 0;
-
-  initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
-                        sigma_b,sigma_b2,teff,iinc);
-  muLeft = muVec[2],
-  xsLeft = xsVec[2];
-
-  i = 3;
-
-  //int counter = 1;
   do { 
-    //std::cout << "   -----     " <<  (muVec|ranges::view::all) << std::endl;
     doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
                       sigma_b,sigma_b2,teff,iinc,tol);
-    //if (counter++ > 4){ return s; }
     do { //std::cout << " --- 160 ---  "<< std::endl;
       if (muVec[i-1] == muLeft) {  //std::cout << " --- 250 ---  "<< std::endl;
           muLeft = muVec[i-1];

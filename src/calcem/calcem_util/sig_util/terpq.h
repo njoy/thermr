@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
-#include "iel/iel_util/terp1.h"
+//#include "iel/iel_util/terp1.h"
+#include "calcem/calcem_util/sig_util/terp1.h"
 //auto terpq( double x1, double y1, double x2, double y2, double x3, double y3,
 //  double x, double y ){
 
