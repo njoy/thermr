@@ -98,27 +98,27 @@ auto sigcoh( Float e, Float& enext, Range s, Range& wrk, int nl, int lat,
   // These are lattice factors. Apparently they were borrowed directly from
   // HEXSCAT code. 
   Float gr1 = 2.4573e-8, // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf
-         gr2 = 6.700e-8,  // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf 
-         be1 = 2.2856e-8, // http://periodictable.com/Properties/A/LatticeConstants.html
-         be2 = 3.5832e-8, // http://periodictable.com/Properties/A/LatticeConstants.html 
-         beo1 = 2.695e-8, // https://link.springer.com/chapter/10.1007%2F10681719_737
-         beo2 = 4.39e-8;  // https://link.springer.com/chapter/10.1007%2F10681719_737
-                          // II-VI and I-VII Compounds; Semimagnetic Compounds
+        gr2 = 6.700e-8,  // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf 
+        be1 = 2.2856e-8, // http://periodictable.com/Properties/A/LatticeConstants.html
+        be2 = 3.5832e-8, // http://periodictable.com/Properties/A/LatticeConstants.html 
+        beo1 = 2.695e-8, // https://link.springer.com/chapter/10.1007%2F10681719_737
+        beo2 = 4.39e-8;  // https://link.springer.com/chapter/10.1007%2F10681719_737
+                         // II-VI and I-VII Compounds; Semimagnetic Compounds
 
   // These are masses
   Float gr3  = 12.011e0, 
-         be3  = 9.01e0, 
-         beo3 = 12.5e0;  // Mass of BeO is actually 25, but apparently we 
+        be3  = 9.01e0, 
+        beo3 = 12.5e0;  // Mass of BeO is actually 25, but apparently we 
                          // divide by 2 because I suppose avg mass per atom
                          
   // These are the characteristic coherent cross sections for hte material.
   // These first appear in Eq. 222 on pg. 166.
   Float gr4 = 5.50, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
-         be4 = 7.53, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
-         beo4 = 1.0;
+        be4 = 7.53, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
+        beo4 = 1.0;
 
   Float cw = 0.658173e-15, hbar = 1.05457266e-27, amu = 1.6605402e-24, 
-         amassn = 1.008664904, ev = 1.60217733e-12;
+        amassn = 1.008664904, ev = 1.60217733e-12;
   
   // eps is the current grouping factor, 5%. This is used to lump together 
   // multiple tau values, so as to save storage and run time.
@@ -233,9 +233,13 @@ auto sigcoh( Float e, Float& enext, Range s, Range& wrk, int nl, int lat,
         w1 = (l1 == l2) ? 1 : 2;
 
         // w2 is equal to M2 on pg 3 of General Atomics HEXSCAT appendix. 
-        if      (l1 == 0 and l2 == 0) { w2 = 0.5; }  // First l1, l2 iteration
-        else if (l2 == 0)             { w2 = 1;   }  // Any l1, first l2
-        else                          { w2 = 2;   }  
+        //if      (l1 == 0 and l2 == 0) { w2 = 0.5; }  // First l1, l2 iteration
+        //else if (l2 == 0)             { w2 = 1;   }  // Any l1, first l2
+        //else                          { w2 = 2;   }  
+        w2 = 2.0;
+        if ( l1 == 0 or  l2 == 0 ){ w2 = 1; }
+        if ( l1 == 0 and l2 == 0 ){ w2 = 0.5; }
+
         
         // w3 is equal to M3 on pg 3 of General Atomics HEXSCAT appendix. 
         w3 = (l3 == 0) ? 1 : 2;
