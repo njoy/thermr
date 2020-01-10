@@ -21,9 +21,12 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
     : std::min(0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5), 0.99);
   muVec[0] =  1.0; 
 
-  xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
-  xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
-  xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
+  xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,
+                 sigma_b2,teff,iinc);
+  xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,
+                 sigma_b2,teff,iinc);
+  xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,
+                 sigma_b2,teff,iinc);
 }
 
 template <typename Float>
@@ -33,8 +36,9 @@ inline Float maxOf4Vals( const Float a, const Float b, const Float c, const Floa
 }
 
 template <typename Range, typename Float>
-auto populateXSvector(Range& xsVec, Float& xn, Float& invDeltaMu, Float& muLeft, Float& xsLeft, 
-  Float& fract, int& i, Float& gral, const int& nbin, Range&s, const int& j, bool equiprobableBins){
+auto populateXSvector(Range& xsVec, Float& xn, Float& invDeltaMu, Float& muLeft, 
+  Float& xsLeft, Float& fract, int& i, Float& gral, const int& nbin, Range& s, 
+  const int& j, bool equiprobableBins){
   //std::cout << " --- 190 --- " << std::endl;
   gral += (xn-muLeft) * 
           ( xsLeft*0.5*(xn+muLeft) + 
@@ -42,14 +46,12 @@ auto populateXSvector(Range& xsVec, Float& xn, Float& invDeltaMu, Float& muLeft,
             0.333333333*(xn*xn+xn*muLeft+muLeft*muLeft))
           );
 
-  Float xbar = gral / fract;
-
   if (equiprobableBins){
-    s[j-1] = xbar; 
+    s[j-1] = gral / fract;  // xbar
   }
   else {        // Here we fill in the legendre components
     Range p (nbin+1,0.0);
-    legndr(xbar,p,nbin+1);
+    legndr(gral/fract,p,nbin+1);
     for (int k = 1; k < nbin+1; ++k){ s[k-1] += p[k]/nbin; }
   }
 
@@ -103,7 +105,7 @@ inline void shiftOver( int& i, Range& muVec, Range& xsVec, Float& muMid, const F
 }
 
 template <typename Range, typename Float>
-inline auto doWeNeedAMidpoint(int& i, Range& muVec, Range& xsVec, const Float& e, 
+inline auto addMidpointsRight(int& i, Range& muVec, Range& xsVec, const Float& e, 
   const Float& ep, const Float& tev, const Range& alphas, const Range& betas, 
   const Range& sab, const Float& az, const int& lasym, const int& lat, 
   const Float& sb, const Float& sb2, const Float& teff, const int& iinc, 
@@ -113,7 +115,7 @@ inline auto doWeNeedAMidpoint(int& i, Range& muVec, Range& xsVec, const Float& e
   Float xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
   Float muMid, xs_guess, xs_true;
   while ( (unsigned) i < muVec.size() ){ //std::cout << " --- 110 --- " << std::endl;
-    muMid = 0.5*( muVec[i-2] + muVec[i-1] ); //muMid = sigfig(muMid,8,0);
+    muMid    = 0.5*( muVec[i-2] + muVec[i-1] ); //muMid = sigfig(muMid,8,0);
     xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
     xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,0.0253,lasym,lat,sb,sb2,teff,iinc);
 
@@ -132,6 +134,9 @@ template <typename Range, typename Float>
 inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc, 
   const Range& alphas, const Range& betas, const Range& sab, Float az,
   int lasym, Float sigma_b, Float sigma_b2, Float teff ){
+  // This computes integral -1 -> +1 of sigma(E->E',mu) dmu
+  // through trapezoidal integration
+
   using std::abs; using std::min; using std::pow;
   int i = 3;
   Float pdf = 0, gral = 0;
@@ -144,7 +149,7 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   // midpoint and i-1. If we don't need a midpoint, we go to the inner loop
   // and move to the left and keep checking. 
   do {
-    doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
+    addMidpointsRight(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
                       sigma_b,sigma_b2,teff,iinc,tol);
     do { // If i = 2, then do this action twice. Else do it once
       pdf += 0.5*( xsVec[i-1] + xsLeft )*( muVec[i-1] - muLeft );
@@ -167,7 +172,10 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   Range muVec(20), xsVec(20), s(nbin,0.0);
 
   tol *= 0.5;
-  Float pdf = getPDF(ep, e, tev, tol, lat, iinc, alphas, betas, sab, az, lasym, sigma_b, sigma_b2, teff);
+
+  Float pdf = getPDF(ep, e, tev, tol, lat, iinc, alphas, betas, sab, az, lasym, 
+                     sigma_b, sigma_b2, teff);
+
   if ( pdf <= 1e-32 ){ return s; }
 
   //std::cout << " --- 130 --- " << std::endl;
@@ -175,43 +183,51 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
                         sigma_b,sigma_b2,teff,iinc);
   Float muLeft = muVec[2],
         xsLeft = xsVec[2],
-        gral   = 0,
-        sum    = 0,
+        gral   = 0.0,
+        sum    = 0.0,
+        // This ``fract'' is how much the integrated xs should be (roughly) 
+        // in each angle bin. 
         fract  = pdf/(1.0*nbin);
 
   int i = 3, j = 0;
 
   do { 
-    doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
+    addMidpointsRight(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
                       sigma_b,sigma_b2,teff,iinc,tol);
     do { //std::cout << " --- 160 ---  "<< std::endl;
-      if (muVec[i-1] == muLeft) {  //std::cout << " --- 250 ---  "<< std::endl;
-          muLeft = muVec[i-1];
-          xsLeft = xsVec[i-1];
-          --i;
-          if ( i < 1 ){ return s; }
-          if ( i > 1 ){ break; }
+      if (muVec[i-1] == muLeft) {  
+        // Is this our first time in the outer do loop? i.e. are we trying to
+        // compare -1 with -1? If so, let's just move i down one and try again.
+        //std::cout << " --- 250 ---  "<< std::endl;
+        --i;
+        if ( i < 1 ){ return s; }
+        if ( i > 1 ){ break; }
       }
 
       Float invDeltaMu = 1.0/(muVec[i-1]-muLeft);
+
+      // This is the integrated little block of xs (from muLeft -> muVec[i-1]).
+      // We're going to want to see if adding this to the sum will make us reach
+      // our desired xs from fract (recall that fract is the xs we will have 
+      // in each bin if they're perfectly equiprobable).
       Float add = 0.5*(xsVec[i-1]+xsLeft)*(muVec[i-1]-muLeft);
 
       if ( i == 1 and j == nbin-1 ){ //std::cout << " --- 165 ---  "<< std::endl;
         j++;
         Float xn = muVec[i-1];
-        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, nbin, s, j, equiprobableBins);
-        sum = 0.0;
+        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, 
+                         nbin, s, j, equiprobableBins);
         return s;
       }
       else if ( sum + add >= fract * 0.99999999 and j < nbin-1 ){
         j++;
         Float xn = getNextMuValue(fract, sum, xsVec, muVec, xsLeft, muLeft, i, invDeltaMu );
-        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, nbin, s, j, equiprobableBins);
+        populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, 
+                         nbin, s, j, equiprobableBins);
         sum = 0.0;
 
         if (muLeft < muVec[i-1] ){ continue; }
-        else { 
-          //std::cout << " --- 250 ---  "<< std::endl;
+        else {  //std::cout << " --- 250 ---  "<< std::endl;
           muLeft = muVec[i-1];
           xsLeft = xsVec[i-1];
           --i;
