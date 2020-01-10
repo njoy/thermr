@@ -89,54 +89,24 @@ TEST_CASE( "Get pdf value" ){
 
   e = 1e-2;
 
-  ep = 1e-1;
-  pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-  correctPDF = 71.844290065748709;
-  REQUIRE( pdfVal == Approx(correctPDF).epsilon(1e-6) );
-
-  ep = 1e-2;
-  pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-  correctPDF = 220.16164823349109;
-  REQUIRE( pdfVal == Approx(correctPDF).epsilon(1e-6) );
-
-  ep = 1e-3;
-  pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-  correctPDF = 61.173606284237110;
-  REQUIRE( pdfVal == Approx(correctPDF).epsilon(1e-6) );
-
-  ep = 1e-4;
-  pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-  correctPDF = 19.661973513357161;
-  REQUIRE( pdfVal == Approx(correctPDF).epsilon(1e-6) );
-
-  ep = 1e-5;
-  pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-  correctPDF = 6.2278467641892856;
-  REQUIRE( pdfVal == Approx(correctPDF).epsilon(1e-6) );
+  std::vector<double> correctPDFVals { 71.84429, 220.1616, 61.17360, 19.66197, 6.227846 };
+  std::vector<double> finalEnergies  { 1e-1, 1e-2, 1e-3, 1e-4, 1e-5 };
+  for ( size_t i = 0; i < finalEnergies.size(); ++i ){
+    ep = finalEnergies[i];
+    pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+    REQUIRE( pdfVal == Approx(correctPDFVals[i]).epsilon(1e-6) );
+  }
 
 
   e  = 1e-1; 
+  correctPDFVals = { 262.937411, 1.02706201, 0.32551817, 0.10296110 };
+  finalEnergies = { 1e-2, 1e-3, 1e-4, 1e-5 };
+  for ( size_t i = 0; i < finalEnergies.size(); ++i ){
+    ep = finalEnergies[i];
+    pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
+    REQUIRE( pdfVal == Approx(correctPDFVals[i]).epsilon(1e-6) );
+  }
 
-
-  ep = 1e-2;
-  pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-  correctPDF = 262.93741124947837;
-  REQUIRE( pdfVal == Approx(correctPDF).epsilon(1e-6) );
-
-  ep = 1e-3;
-  pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-  correctPDF = 1.0270620185618347;
-  REQUIRE( pdfVal == Approx(correctPDF).epsilon(1e-6) );
-
-  ep = 1e-4;
-  pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-  correctPDF = 0.32551817299148672;
-  REQUIRE( pdfVal == Approx(correctPDF).epsilon(1e-6) );
-
-  ep = 1e-5;
-  pdfVal = getPDF(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff);
-  correctPDF = 0.10296110075056517;
-  REQUIRE( pdfVal == Approx(correctPDF).epsilon(1e-6) );
 
 
 
@@ -197,41 +167,21 @@ TEST_CASE( "sigl" ){
       
       e = 1e-2;
       // E = 1e-2 eV
-      ep = 1e0;
-      s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-               sigma_b2,teff,nbin,equiprobableBins);
-      correct_s = { 0.0, 0.0 };
-      REQUIRE(ranges::equal(correct_s, s, equal));
 
-      ep = 1e-1;
-      s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-               sigma_b2,teff,nbin,equiprobableBins);
-      correct_s = { -0.187799385, 0.604079066 };
-      REQUIRE(ranges::equal(correct_s, s, equal));
-
-      ep = 1e-2;
-      s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-               sigma_b2,teff,nbin,equiprobableBins);
-      correct_s = { 0.25506456701577712, 0.89451416567549080 };
-      REQUIRE(ranges::equal(correct_s, s, equal));
-
-      ep = 1e-3;
-      s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-               sigma_b2,teff,nbin,equiprobableBins);
-      correct_s = { -0.50027914237570981, 0.49967273169159532 };
-      REQUIRE(ranges::equal(correct_s, s, equal));
-
-      ep = 1e-4;
-      s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-               sigma_b2,teff,nbin,equiprobableBins);
-      correct_s = { -0.50009372429257648, 0.49990146179768563 };
-      REQUIRE(ranges::equal(correct_s, s, equal));
-
-      ep = 1e-5;
-      s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-               sigma_b2,teff,nbin,equiprobableBins);
-      correct_s = { -0.50003017219492185, 0.4999693461869932 };
-      REQUIRE(ranges::equal(correct_s, s, equal));
+      std::vector<std::vector<double>> correctMuVecs {
+        {  0.0000000, 0.0000000 },
+        { -0.1877993, 0.6040790 },
+        {  0.2550645, 0.8945141 },
+        { -0.5002791, 0.4996727 },
+        { -0.5000937, 0.4999014 },
+        { -0.5000301, 0.4999693 } };
+      std::vector<double> finalEnergies { 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5 };
+      for ( size_t i = 0; i < correctMuVecs.size(); ++i ){
+        ep = finalEnergies[i];
+        s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                 sigma_b2,teff,nbin,equiprobableBins);
+        REQUIRE(ranges::equal(correctMuVecs[i], s, equal));
+      }
 
 
 
@@ -245,31 +195,23 @@ TEST_CASE( "sigl" ){
 
       nbin = 8;
   ep = 1e-1;
-  s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,nbin,equiprobableBins);
-  correct_s = {-0.48647654336295154, -0.28577865744470676, -8.8254959343803965E-2, 0.10934278668830079, 0.30704325144135147, 0.50477104242836623, 0.70270321344353548, 0.90176859041415269};
-  REQUIRE(ranges::equal(correct_s, s, equal));
+      std::vector<std::vector<double>> correctMuVecs {
+{-0.4864765, -0.285778, -0.0882549, 0.10934278, 0.30704325, 0.50477104, 0.70270321, 0.90176859 },
+{-0.1447954,  0.165989,  0.4005134, 0.598550924, 0.75607791, 0.87463820, 0.95401954, 0.99332099 },
+{-0.8750342, -0.625260, -0.3753526,-0.125469544, 0.12447684, 0.37451189, 0.62447532, 0.87522679 },
+{-0.8750080, -0.625091, -0.3751193,-0.125156114, 0.12483210, 0.37484817, 0.62485204, 0.87507351 },
+{-0.8750021, -0.625029, -0.3750385,-0.125050067, 0.12494679, 0.37495231, 0.62495468, 0.87502358 } };
+
+      std::vector<double> finalEnergies { 1e-1, 1e-2, 1e-3, 1e-4, 1e-5 };
+      for ( size_t i = 0; i < correctMuVecs.size(); ++i ){
+        ep = finalEnergies[i];
+        s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                 sigma_b2,teff,nbin,equiprobableBins);
+        REQUIRE(ranges::equal(correctMuVecs[i], s, equal));
+      }
 
 
-  ep = 1e-2;
-  s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,nbin,equiprobableBins);
-  correct_s = { -0.14479545028098159, 0.16598934410207883, 0.40051344934325717, 0.59855092490738082, 0.75607791889432496, 0.87463820097482681, 0.95401954612035467, 0.99332099672089436};
-  REQUIRE(ranges::equal(correct_s, s, equal));
 
-  ep = 1e-3;
-  correct_s = {-0.87503424644581240, -0.62526004804699387, -0.37535265378315336, -0.12546954443858765, 0.12447684514433568, 0.37451189318707867, 0.62447532003983108, 0.87522679160684391};
-  s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,nbin,equiprobableBins);
-  REQUIRE(ranges::equal(correct_s, s, equal));
-
-
-  ep = 1e-4;
-  s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,nbin,equiprobableBins);
-  correct_s = {-0.87500800464553019, -0.62509139062387742, -0.37511937787300242, -0.12515611411904232,  0.12483210150811240,  0.37484817883993737, 0.62485204314697129, 0.87507351378686860};
-  REQUIRE(ranges::equal(correct_s, s, equal));
-
-  ep = 1e-5;
-  s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,nbin,equiprobableBins);
-  correct_s = {-0.87500211825460317, -0.62502992284537084, -0.37503857945425939, -0.12505006715664307, 0.12494679820216802, 0.37495231013203850, 0.62495468630262829, 0.87502358904232658};
-  REQUIRE(ranges::equal(correct_s, s, equal));
 
     } // WHEN
 
