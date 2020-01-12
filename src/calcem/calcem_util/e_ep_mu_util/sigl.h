@@ -20,6 +20,7 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
       0.0 
     : std::min(0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5), 0.99);
   muVec[0] =  1.0; 
+  muVec[1] = 0.0;
 
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
   xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,sigma_b2,teff,iinc);
@@ -117,13 +118,12 @@ inline auto doWeNeedAMidpoint(int& i, Range& muVec, Range& xsVec, const Float& e
     xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
     xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,0.0253,lasym,lat,sb,sb2,teff,iinc);
 
-    //std::cout << "             " << muVec[i-2] << "  " << muVec[i-1] << "   " <<  muMid << std::endl;
     if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*xsMax/50.0 and 
            abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+xsMax/100.0 and 
            (muVec[i-2]-muVec[i-1]) < 0.5 ) or
          ( muVec[i-2]-muVec[i-1] < 1e-5 ) ) { break; }
     shiftOver( i, muVec, xsVec, muMid, xs_true );
-    //std::cout << "                      " << (muVec|ranges::view::all) << std::endl;
+    std::cout << "       " << (muVec|ranges::view::all) << std::endl;
   }  
 } 
 
@@ -133,9 +133,8 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   const Range& alphas, const Range& betas, const Range& sab, Float az,
   int lasym, Float sigma_b, Float sigma_b2, Float teff ){
   using std::abs; using std::min; using std::pow;
-  int i = 3;
-  Float pdf = 0, gral = 0;
-  Range muVec(20), xsVec(20);
+  Float pdf = 0;
+  Range muVec(20,0.0), xsVec(20,0.0);
   initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
                         sigma_b,sigma_b2,teff,iinc);
   Float muLeft = muVec[2], xsLeft = xsVec[2];
@@ -143,6 +142,7 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   // in between there. if so, it'll put it in there and then check between 
   // midpoint and i-1. If we don't need a midpoint, we go to the inner loop
   // and move to the left and keep checking. 
+  int i = 3;
   do {
     doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
                       sigma_b,sigma_b2,teff,iinc,tol);
@@ -182,6 +182,8 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   int i = 3, j = 0;
 
   do { 
+     std::cout << std::endl;
+     std::cout << (muVec|ranges::view::all) << std::endl;
     doWeNeedAMidpoint(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
                       sigma_b,sigma_b2,teff,iinc,tol);
     do { //std::cout << " --- 160 ---  "<< std::endl;
@@ -193,6 +195,7 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
           if ( i > 1 ){ break; }
       }
 
+      std::cout << "now I'm confident with " << muLeft << "  and   " << muVec[i-1] << "      " << i <<  "   " << j << std::endl;
       Float invDeltaMu = 1.0/(muVec[i-1]-muLeft);
       Float add = 0.5*(xsVec[i-1]+xsLeft)*(muVec[i-1]-muLeft);
 
@@ -204,8 +207,14 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
         return s;
       }
       else if ( sum + add >= fract * 0.99999999 and j < nbin-1 ){
+        // Here, we're trying to get sum+add as close to possible as fract. 
+        // Fract is equalt to the cross section (integrated over all mu) divided
+        // by the number of bins. So we're going to keep on adding to this sum
+        // tally and giving it more and more bin bits until it looks like its 
+        // about to overflow.
         j++;
         Float xn = getNextMuValue(fract, sum, xsVec, muVec, xsLeft, muLeft, i, invDeltaMu );
+        std::cout << "         XN   " << xn << std::endl;
         populateXSvector(xsVec, xn, invDeltaMu, muLeft, xsLeft, fract, i, gral, nbin, s, j, equiprobableBins);
         sum = 0.0;
 

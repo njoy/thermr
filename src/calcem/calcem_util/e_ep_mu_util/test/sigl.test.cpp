@@ -8,6 +8,7 @@
 
 
 
+/*
 
 
 TEST_CASE( "110" ){
@@ -47,6 +48,7 @@ TEST_CASE( "110" ){
 }
 
 
+*/
 
 
 /*
@@ -122,13 +124,8 @@ TEST_CASE( "Get pdf value" ){
 
 
 } // TEST CASE
-
-
-
-
-
-
 */
+
 
 
 TEST_CASE( "sigl" ){
@@ -148,7 +145,11 @@ TEST_CASE( "sigl" ){
   } 
 
   std::vector<double> correct_s, s;
+  ep = 1e-1;
+  s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,nbin,equiprobableBins);
 
+
+  /*
   ep = 1e-1;
   s = sigl(ep,e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,nbin,equiprobableBins);
   correct_s = {-0.48647654336295154, -0.28577865744470676, -8.8254959343803965E-2, 0.10934278668830079, 0.30704325144135147, 0.50477104242836623, 0.70270321344353548, 0.90176859041415269};
@@ -272,15 +273,15 @@ TEST_CASE( "sigl" ){
 
 
 
-  /*
+
+
   */
-
-
     }
-
 
 }
 
+/*
+*/
 
 /*
 
