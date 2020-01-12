@@ -4,14 +4,14 @@
 #include <iostream>
 
 template <typename Range, typename Float>
-bool finish( int& k, Range& wrk, const Float& f, int nw,
-  const Float& tau_sq ){
+bool finish( int& k, const Float& f, int nw,
+  const Float& tau_sq, Range& vec1, Range& vec2 ){
   k = k + 1;
   if ((2*k) > nw) { 
     std::cout << "storage exceeded" << std::endl;
     return true;
   }
-  wrk[2*k-2] = tau_sq; wrk[2*k-1] = f;
+  vec1[k-1] = tau_sq; vec2[k-1] = f;
   return false;
 }
 
@@ -74,9 +74,8 @@ auto computeCrossSections( Float e, Range& fl, Range& s, Float emax, Float scon,
 
 
 template <typename Range, typename Float>
-auto sigcoh( Float e, Float& enext, Range s, Range& wrk, int nl, int lat, 
-  Float temp, Float emax, int natom, Range& fl, 
-  Range& p, int k ){
+auto sigcoh( Float e, Float& enext, Range s, int nl, int lat, 
+  Float temp, Float emax, int natom, Range& fl, Range& p, int k, Range& vec1, Range& vec2 ){
  /*-------------------------------------------------------------------
   * Compute the first nl Legendre components of the coherent scatter-
   * ing at energy e from lattice type lat.  Here enext is the next
@@ -204,7 +203,6 @@ auto sigcoh( Float e, Float& enext, Range s, Range& wrk, int nl, int lat,
   ulim = emax * ev * 8.0 * mass_n / (hbar*hbar);
 
   nw = 10000;
-  //Range wrk(nw,0.0);
 
 
   // compute and sort lattice factors.
@@ -260,20 +258,20 @@ auto sigcoh( Float e, Float& enext, Range s, Range& wrk, int nl, int lat,
                 // closely spaced together, so a range of tau values can be 
                 // lumped together to give a single effective tau_i and f_i.
                 // This uses a 5% (eps) grouping factor.
-                if (tau_sq < wrk[2*i-2] or tau_sq >= (1+eps)*wrk[2*i-2]){
+                if (tau_sq < vec1[i] or tau_sq >= (1+eps)*vec1[i]){
                   if ( i == k ){ 
-                    if ( finish( k, wrk, f, nw, tau_sq ) ){ return k; }
+                    if ( finish( k, f, nw, tau_sq, vec1, vec2 ) ){ return k; }
                     break;
                   }
                 }
-                else {                        // because got rid of continue
-                  wrk[2*i-1]=wrk[2*i-1]+f;    // statement
+                else {                        
+                  vec2[i] += f;
                   break;
                 }
               }
             }
             else {
-              if ( finish( k, wrk, f, nw, tau_sq ) ){ return k; }
+              if ( finish( k, f, nw, tau_sq, vec1, vec2 ) ){ return k; }
             }
           } 
         }
@@ -283,17 +281,19 @@ auto sigcoh( Float e, Float& enext, Range s, Range& wrk, int nl, int lat,
 
   for ( int i = 1; i <= k - 1; ++i ){
     for ( int j = i + 1; j <= k; ++j ){
-      if (wrk[2*j-1-1] < wrk[2*i-1-1]) {
-        swapVals( wrk[2*j-2], wrk[2*i-2] );
-        swapVals( wrk[2*j-1], wrk[2*i-1] );
+      if (vec1[j-1] < vec1[i-1]) {
+        swapVals( vec1[j-1], vec1[i-1] );
+        swapVals( vec2[j-1], vec2[i-1] );
       } 
+
     }
   }
   k += 1;
-  wrk[2*k-2]=ulim;
-  wrk[2*k-1]=wrk[2*k-2-1];
+  vec1[k-1] = ulim;
+  vec2[k-1] = vec2[k-2];
   nw=2*k;
-  enext=wrk[1-1]/econ;
+  //enext=wrk[1-1]/econ;
+  enext=vec1[0]/econ;
   return k; // This is nbragg, the number of bragg edges found
 
 }
