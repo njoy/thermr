@@ -104,17 +104,16 @@ auto sigcoh( Float e, Float& enext, Range s, Range& wrk, int nl, int lat,
         beo1 = 2.695e-8, // https://link.springer.com/chapter/10.1007%2F10681719_737
         beo2 = 4.39e-8;  // https://link.springer.com/chapter/10.1007%2F10681719_737
                          // II-VI and I-VII Compounds; Semimagnetic Compounds
-
   // These are masses
   Float gr3  = 12.011e0, 
         be3  = 9.01e0, 
         beo3 = 12.5e0;  // Mass of BeO is actually 25, but apparently we 
-                         // divide by 2 because I suppose avg mass per atom
+                        // divide by 2 because I suppose avg mass per atom
                          
   // These are the characteristic coherent cross sections for hte material.
   // These first appear in Eq. 222 on pg. 166.
-  Float gr4 = 5.50, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
-        be4 = 7.53, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
+  Float gr4  = 5.50, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
+        be4  = 7.53, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
         beo4 = 1.0;
 
   Float cw = 0.658173e-15, hbar = 1.05457266e-27, amu = 1.6605402e-24, 
@@ -123,9 +122,6 @@ auto sigcoh( Float e, Float& enext, Range s, Range& wrk, int nl, int lat,
   // eps is the current grouping factor, 5%. This is used to lump together 
   // multiple tau values, so as to save storage and run time.
   Float eps = 0.05;
-
-  // save k,recon,scon
-
 
   // Temperatures interpolated over when trying to get correct Debye-Waller
   // Coefficient.
