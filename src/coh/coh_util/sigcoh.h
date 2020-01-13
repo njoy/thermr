@@ -4,10 +4,9 @@
 #include <iostream>
 
 template <typename Range, typename Float>
-bool finish( int& k, const Float& f, int nw,
-  const Float& tau_sq, Range& vec1, Range& vec2 ){
-  k = k + 1;
-  if ((2*k) > nw) { 
+bool finish( int& k, const Float& f, const Float& tau_sq, Range& vec1, Range& vec2 ){
+  k++;
+  if ((unsigned) k > vec1.size()){
     std::cout << "storage exceeded" << std::endl;
     return true;
   }
@@ -21,9 +20,7 @@ auto tausq( int m1, int m2, int m3, Float c1, Float c2 ){
   /* This function computes the value tau^2, which is defined in the General
    * Atomics HEXSCAT documentation. On pg. 62 of the HEXSCAT pdf document
    * (which is in HEXSCAT Appendix, Section 1: Formulation), we have that 
-   *
    *     tau^2/4pi^2  = (4/3a^2) * ( l1^2 + l2^2 + l1*l2 ) + l3 / c^2
-   *
    */
   return (c1*(m1*m1+m2*m2+m1*m2)+c2*(m3*m3))*4*M_PI*M_PI;
 }
@@ -34,48 +31,41 @@ void swapVals( Float& a, Float& b ){
 }
   
 template <typename Range, typename Float>
-auto computeCrossSections( Float e, Range& fl, Range& s, Float emax, Float scon, 
+auto computeCrossSections( Float e, Range& vec1, Range& vec2, Range& s, Float emax, Float scon, 
   Float recon, int nl, Range p, int k ){
   // compute cross sections at this energy
    Float elim;
-   for ( int il = 0; il < nl; ++il ){
-      s[il]=0;
-   }
-   int last=0;
+   for ( int il = 0; il < nl; ++il ){ s[il]=0; }
+   int last = 0;
 
    for ( int i = 1; i <= k; ++i ){
-      Float tau_sq=fl[2*i-2];
-      elim=tau_sq*recon;
+      Float tau_sq=vec1[2*i-2];
+      elim = tau_sq*recon;
       // if (elim >= e) exit
-      Float f=fl[2*i-1];
-      if (e > emax) f=0;
-      Float u=1-2*elim/e;
+      Float f = ( e > emax ) ? 0.0 : vec2[2*i-1];
+      Float u = 1-2*elim/e;
       // u here is equal to fl for l = 1 (P1 component).
       // This is defined in the General Atomics HEXSCAT paper, in Part 1 
       // Formulation. If l == 0, fl = 1. But if l == 1, then
       //            fl = 1 - tau^2 lambda^2 / 8 pi^2
       //    which simplifies to 
       //                 1 - tau^2 hbar^2 / 4 m_n E
-
-      int lmax=nl-1;
-      legndr(u,p,lmax);
+      legndr(u,p,nl-1);
       for ( int il = 0; il < nl; ++il ){
-         s[il]=s[il]+f*p[il];
+         s[il] += f*p[il];
       }
-      if (i == k) last=1;
+      if (i == k) { last = 1; }
    }
    for ( int il = 0; il < nl; ++il ){
-      s[il]=s[il]*scon/e;
+      s[il] *= scon/e;
    }
    if (last == 1 or elim > emax ) { elim=emax; }
 }
 
 
 
-
 template <typename Range, typename Float>
-auto sigcoh( Float e, Float& enext, Range s, int nl, int lat, 
-  Float temp, Float emax, int natom, Range& fl, Range& p, int k, Range& vec1, Range& vec2 ){
+auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1, Range& vec2 ){
  /*-------------------------------------------------------------------
   * Compute the first nl Legendre components of the coherent scatter-
   * ing at energy e from lattice type lat.  Here enext is the next
@@ -90,12 +80,10 @@ auto sigcoh( Float e, Float& enext, Range s, int nl, int lat,
   * nl returns no. of Bragg edges on initialization call.
   *-------------------------------------------------------------------
   */
-  int nw, i1m, l1, i2m, i3m;
-  Float mass_n, econ, tsqx, a, c, amsc, scoh, wal2, wint, w1, w2, w3, tau_sq, 
-    tau, w, f, t2, ulim, phi, c1, c2, scon;
+  int l1;
+  Float w, f;
   
-  // These are lattice factors. Apparently they were borrowed directly from
-  // HEXSCAT code. 
+  // These are lattice factors (borrowed from HEXSCAT)
   Float gr1 = 2.4573e-8, // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf
         gr2 = 6.700e-8,  // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf 
         be1 = 2.2856e-8, // http://periodictable.com/Properties/A/LatticeConstants.html
@@ -108,7 +96,6 @@ auto sigcoh( Float e, Float& enext, Range s, int nl, int lat,
         be3  = 9.01e0, 
         beo3 = 12.5e0;  // Mass of BeO is actually 25, but apparently we 
                         // divide by 2 because I suppose avg mass per atom
-                         
   // These are the characteristic coherent cross sections for hte material.
   // These first appear in Eq. 222 on pg. 166.
   Float gr4  = 5.50, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
@@ -118,19 +105,16 @@ auto sigcoh( Float e, Float& enext, Range s, int nl, int lat,
   Float cw = 0.658173e-15, hbar = 1.05457266e-27, amu = 1.6605402e-24, 
         amassn = 1.008664904, ev = 1.60217733e-12;
   
-  // eps is the current grouping factor, 5%. This is used to lump together 
-  // multiple tau values, so as to save storage and run time.
-  Float eps = 0.05;
-
   // Temperatures interpolated over when trying to get correct Debye-Waller
   // Coefficient.
-  Range tmp {296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000};
+  Range temps {296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000};
 
   // Debye Waller to interpolate over
   // This appears in Eq. 220 of the manual, as 'W' in the exponential term
   // This also appears in the General Atomics HEXSCAT report as the integral
   // shown below (as wal2 description)
-  Range dwf ( tmp.size() );
+  Range dwf ( temps.size() );
+  Float a, c, amsc, scoh;
   if (lat == 1){       // GRAPHITE
     a = gr1; c = gr2; amsc = gr3; scoh = gr4/natom; 
     dwf = {2.1997,2.7448,3.2912,3.8510,4.4210,4.9969,6.1624,7.3387,9.6287,11.992};      
@@ -144,8 +128,8 @@ auto sigcoh( Float e, Float& enext, Range s, int nl, int lat,
     dwf = {2.153,2.6374,3.1348,3.6513,4.1798,4.7164,5.8052,6.9068,0,0};
   } 
   else {
-    a = 0.0; c = 0.0; amsc = 0.0; scoh = 0.0;
     std::cout << "OH NO! Error over here. Illegal lat value" << std::endl;
+    throw std::exception();
   }
 
 
@@ -155,23 +139,10 @@ auto sigcoh( Float e, Float& enext, Range s, int nl, int lat,
   * reciprocal lattice wave vectors and structure factors are computed, 
   * sorted into shells, and stored for later use.
   */
-  mass_n = amassn * amu;     // mass of neutron in grams
-  econ = ev * 8 * ( mass_n / hbar ) / hbar;
-  tsqx = econ / 20;
-  scon = scoh * ( 16.0 * M_PI*M_PI )/( 2.0 * a * a * c * sqrt(3) * econ );
-
-
- /* If energy is greater than zero, the stored list is used to compute the 
-  * cross section. For ENDF-6 format materials, the initialization step is 
-  * used to organize the data already read from MF=7/MT=2 by rdelas, and 
-  * subsequent entries are used to compute the cross section.
-  */
-  if (e > 0) {
-    Float recon = 1.0/econ;
-    computeCrossSections( e, fl, s, emax, scon, recon, nl, p, k );
-    return nl; //Range {};
-  }
- 
+  Float mass_n = amassn * amu;     // mass of neutron in grams
+  Float econ = ev * 8 * ( mass_n / hbar ) / hbar;
+  Float tsqx = econ / 20;
+  Float scon = scoh * ( 16.0 * M_PI*M_PI )/( 2.0 * a * a * c * sqrt(3) * econ );
 
 
   // wal2 is (supposed to be) equal to
@@ -186,65 +157,44 @@ auto sigcoh( Float e, Float& enext, Range s, int nl, int lat,
   // In this case, the main equation we're trying to compute ( Eq. 1 in the
   // GA HEXSCAT documentation, on pg. 1 ) can be computed using an exponential 
   // term 
-  //
   //                exp[ ( -hbar^2 tau^2 / 2 ) * wal2 ]
-  //
 
-  wal2 = terp(tmp,dwf,temp,2);
-
-  c1 = 4.0 / ( 3.0 * a * a );
-  c2 = 1.0 / ( c * c );
-  wint = cw * amsc * wal2;
-  t2 = hbar / ( 2.0 * amu * amsc );
-
+  Float wal2 = terp(temps,dwf,temp,2),
+        wint = cw*amsc*wal2,
+          c1 = 4.0/(3.0*a*a),
+          c2 = 1.0/(c*c),
+          t2 = hbar/(2.0*amu*amsc);
   // This is the tau^2 value that corresponds to the maximum considered energy.
   // Calculated according to Eq. 223.
   //ulim = econ * emax;
-  ulim = emax * ev * 8.0 * mass_n / (hbar*hbar);
+  Float ulim = emax * ev * 8.0 * mass_n / (hbar*hbar);
 
-  nw = 10000;
-
-
-  // compute and sort lattice factors.
-  k = 0;
-
-  // phi = ( tau_max/2pi )^2
-  phi = ulim / ( 4 * M_PI * M_PI ); 
+  int k = 0;
+  Float phi = ulim / ( 4 * M_PI * M_PI );  // phi = ( tau_max/2pi )^2
 
   // l1 --> 0 : a * tau_max / 2pi + 1
   // l1max = alpha * sqrt(phi), on pg 63 of the HEXSCAT document pdf. 
-  i1m = a * sqrt(phi) + 1;
+  int i1m = a * sqrt(phi) + 1;
 
   for ( int l1 = 0; l1 < i1m; ++l1 ){
-    i2m = 0.5 * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) ) + 1;
+    int i2m = 0.5 * ( l1 + sqrt( 3 * ( a * a * phi - l1 * l1 ) ) ) + 1;
 
     for ( int l2 = l1; l2 < i2m; ++l2 ){
-      i3m = c * sqrt(phi - c1*( l1*l1 + l2*l2 - l1*l2 )) + 1;
+      int i3m = c * sqrt(phi - c1*( l1*l1 + l2*l2 - l1*l2 )) + 1;
 
       for ( int l3 = 0; l3 < i3m; ++l3 ){
 
-        // w1 is equal to M1 on pg 3 of General Atomics HEXSCAT appendix. 
-        w1 = (l1 == l2) ? 1 : 2;
-
-        // w2 is equal to M2 on pg 3 of General Atomics HEXSCAT appendix. 
-        //if      (l1 == 0 and l2 == 0) { w2 = 0.5; }  // First l1, l2 iteration
-        //else if (l2 == 0)             { w2 = 1;   }  // Any l1, first l2
-        //else                          { w2 = 2;   }  
-        w2 = 2.0;
-        if ( l1 == 0 or  l2 == 0 ){ w2 = 1; }
-        if ( l1 == 0 and l2 == 0 ){ w2 = 0.5; }
-
-        
-        // w3 is equal to M3 on pg 3 of General Atomics HEXSCAT appendix. 
-        w3 = (l3 == 0) ? 1 : 2;
+        Float w1 = (l1 == l2) ? 1 : 2; // M1 on pg.3 of HEXSCAT appendix
+        Float w2 = (l1 == 0 and l2 == 0) ? 0.5 
+                 : (l1 == 0 or l2 == 0 ) ? 1.0 : 2.0; // M2 in HEXSCAT appendix
+        Float w3 = (l3 == 0) ? 1 : 2;  // M3 on pg.3 of HEXSCAT appendix
          
-        // We consider l2 and -l2 because of Eq. 4 on pg. 4 of the General 
-        // Atomics HEXSCAT appendix.
+        // Consider +/- l2 because of Eq. 4 on pg. 4 of the HEXSCAT appendix.
         for ( Float&& l2: { l2, -l2 } ){
-          tau_sq = tausq(l1,l2,l3,c1,c2);
+          Float tau_sq = tausq(l1,l2,l3,c1,c2);
 
           if (tau_sq > 0 and tau_sq <= ulim ){
-            tau = sqrt(tau_sq);
+            Float tau = sqrt(tau_sq);
 
             // w1*w2*w3 --> weighting factor M, as dfined on pg. 3 of the 
             // General Atomics HEXSCAT appendix
@@ -258,9 +208,11 @@ auto sigcoh( Float e, Float& enext, Range s, int nl, int lat,
                 // closely spaced together, so a range of tau values can be 
                 // lumped together to give a single effective tau_i and f_i.
                 // This uses a 5% (eps) grouping factor.
-                if (tau_sq < vec1[i] or tau_sq >= (1+eps)*vec1[i]){
+                if (tau_sq < vec1[i] or tau_sq >= 1.05*vec1[i]){
                   if ( i == k ){ 
-                    if ( finish( k, f, nw, tau_sq, vec1, vec2 ) ){ return k; }
+                    if (finish(k,f,tau_sq,vec1,vec2)){ 
+                      return std::make_tuple(k,scon); 
+                    }
                     break;
                   }
                 }
@@ -271,7 +223,9 @@ auto sigcoh( Float e, Float& enext, Range s, int nl, int lat,
               }
             }
             else {
-              if ( finish( k, f, nw, tau_sq, vec1, vec2 ) ){ return k; }
+              if (finish(k,f,tau_sq,vec1,vec2)){ 
+                return std::make_tuple(k,scon); 
+              }
             }
           } 
         }
@@ -279,28 +233,95 @@ auto sigcoh( Float e, Float& enext, Range s, int nl, int lat,
     } 
   }
 
-  for ( int i = 1; i <= k - 1; ++i ){
-    for ( int j = i + 1; j <= k; ++j ){
-      if (vec1[j-1] < vec1[i-1]) {
-        swapVals( vec1[j-1], vec1[i-1] );
-        swapVals( vec2[j-1], vec2[i-1] );
+  for ( int i = 0; i < k - 1; ++i ){
+    for ( int j = i + 1; j < k; ++j ){
+      if (vec1[j] < vec1[i]) {
+        swapVals(vec1[j], vec1[i]);
+        swapVals(vec2[j], vec2[i]);
       } 
 
     }
   }
-  k += 1;
+
+  ++k;
   vec1[k-1] = ulim;
   vec2[k-1] = vec2[k-2];
-  nw=2*k;
-  //enext=wrk[1-1]/econ;
-  enext=vec1[0]/econ;
-  return k; // This is nbragg, the number of bragg edges found
+  return std::make_tuple(k,scon); 
+  // This is nbragg, the number of bragg edges found, and some material specific
+  // constants
 
 }
 
 
 
 
+
+/*
+
+template <typename Range, typename Float>
+auto sigcoh( Float e, Float& enext, Range s, int nl, int lat, 
+  Float temp, Float emax, int natom, Range& fl, Range& p, int k, Range& vec1, 
+  Range& vec2 ){
+ //-------------------------------------------------------------------
+ // Compute the first nl Legendre components of the coherent scatter-
+ // ing at energy e from lattice type lat.  Here enext is the next
+ // Bragg edge.  Initialize if e=0.  A list of reciprocal lattice
+ // shells and weights is precomputed and stored for use at all e.
+ // Long, closely-spaced shells are grouped together to speed up the
+ // calculation.
+ //       lat=1  graphite
+ //       lat=2  be
+ //       lat=3  beo
+ //       lat=10 read from endf6
+ // nl returns no. of Bragg edges on initialization call.
+ //-------------------------------------------------------------------
+ //
+
+
+ // If this is the first entry (E=0) for an ENDF-III type material, the 
+ // appropriate lattice constants are selected and the Debye-Waller coefficient 
+ // is obtained for the desired temperature by interpolation. Then the 
+ // reciprocal lattice wave vectors and structure factors are computed, 
+ // sorted into shells, and stored for later use.
+ //
+
+  Float hbar = 1.05457266e-27, amu = 1.6605402e-24, 
+        amassn = 1.008664904, ev = 1.60217733e-12;
+
+  // CHANGE THIS THIS SHOULD BE OUTPUT FROM THE PREPARE BRAGG EDGES
+  Float scon = 0.0;
+ 
+  //Float amu = 1.6605402e-24;
+  //Float amassn = 1.008664904;
+  Float mass_n = amassn * amu;     // mass of neutron in grams
+  Float econ = ev * 8 * ( mass_n / (hbar*hbar) );
+
+ // If energy is greater than zero, the stored list is used to compute the 
+ // cross section. For ENDF-6 format materials, the initialization step is 
+ // used to organize the data already read from MF=7/MT=2 by rdelas, and 
+ // subsequent entries are used to compute the cross section.
+ //
+
+
+  if (e > 0) {
+    Float recon = 1.0/econ;
+    //computeCrossSections( e, fl, s, emax, scon, recon, nl, p, k );
+    return nl; //Range {};
+  }
+  auto out = prepareBraggEdges(lat, temp, emax, natom, vec1, vec2);
+  enext=vec1[0]/econ;
+  int nbragg = std::get<0>(out);
+        scon = std::get<1>(out);
+
+  return nbragg;
+
+ 
+}
+
+
+
+
+*/
 
 
 
