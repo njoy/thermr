@@ -2,6 +2,7 @@
 #include "coh/coh_util/sigcoh_util/terp.h"
 #include "coh/coh_util/sigcoh_util/legndr.h"
 #include <iostream>
+#include <range/v3/all.hpp>
 
 template <typename Range, typename Float>
 bool finish( int& k, const Float& f, const Float& tau_sq, Range& vec1, Range& vec2 ){
@@ -31,19 +32,21 @@ void swapVals( Float& a, Float& b ){
 }
   
 template <typename Range, typename Float>
-auto computeCrossSections( Float e, Range& vec1, Range& vec2, Range& s, Float emax, Float scon, 
-  Float recon, int nl, Range p, int k ){
+auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax, Float scon, 
+  Float recon, int nl, int nbragg ){
   // compute cross sections at this energy
    Float elim;
+   Range s(nl,0.0);
    for ( int il = 0; il < nl; ++il ){ s[il]=0; }
    int last = 0;
+   Range p(nl,0.0);
 
-   for ( int i = 1; i <= k; ++i ){
-      Float tau_sq=vec1[2*i-2];
+   for ( int i = 0; i < nbragg; ++i ){
+      Float tau_sq=vec1[i];
       elim = tau_sq*recon;
-      // if (elim >= e) exit
-      Float f = ( e > emax ) ? 0.0 : vec2[2*i-1];
-      Float u = 1-2*elim/e;
+      if (elim >= e) { break; }
+      Float f = ( e > emax ) ? 0.0 : vec2[i];
+      Float u = 1.0-2.0*elim/e;
       // u here is equal to fl for l = 1 (P1 component).
       // This is defined in the General Atomics HEXSCAT paper, in Part 1 
       // Formulation. If l == 0, fl = 1. But if l == 1, then
@@ -54,12 +57,18 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Range& s, Float em
       for ( int il = 0; il < nl; ++il ){
          s[il] += f*p[il];
       }
-      if (i == k) { last = 1; }
+
+      //std::cout << "p    " << 1.0/e << "   " << (p|ranges::view::all) << std::endl;
+      //std::cout << "S" << "   " << p[2] << "   "  << f<< "   " << s[2] << std::endl;
+      //std::cout << i+1 << "   " << "TSQ" << "   " << f << std::endl;
+      //std::cout << (s|ranges::view::all) << std::endl;
+      if (i == nbragg-1) { last = 1; }
    }
    for ( int il = 0; il < nl; ++il ){
       s[il] *= scon/e;
    }
    if (last == 1 or elim > emax ) { elim=emax; }
+   return s;
 }
 
 
@@ -251,87 +260,6 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   // constants
 
 }
-
-
-
-
-
-/*
-
-template <typename Range, typename Float>
-auto sigcoh( Float e, Float& enext, Range s, int nl, int lat, 
-  Float temp, Float emax, int natom, Range& fl, Range& p, int k, Range& vec1, 
-  Range& vec2 ){
- //-------------------------------------------------------------------
- // Compute the first nl Legendre components of the coherent scatter-
- // ing at energy e from lattice type lat.  Here enext is the next
- // Bragg edge.  Initialize if e=0.  A list of reciprocal lattice
- // shells and weights is precomputed and stored for use at all e.
- // Long, closely-spaced shells are grouped together to speed up the
- // calculation.
- //       lat=1  graphite
- //       lat=2  be
- //       lat=3  beo
- //       lat=10 read from endf6
- // nl returns no. of Bragg edges on initialization call.
- //-------------------------------------------------------------------
- //
-
-
- // If this is the first entry (E=0) for an ENDF-III type material, the 
- // appropriate lattice constants are selected and the Debye-Waller coefficient 
- // is obtained for the desired temperature by interpolation. Then the 
- // reciprocal lattice wave vectors and structure factors are computed, 
- // sorted into shells, and stored for later use.
- //
-
-  Float hbar = 1.05457266e-27, amu = 1.6605402e-24, 
-        amassn = 1.008664904, ev = 1.60217733e-12;
-
-  // CHANGE THIS THIS SHOULD BE OUTPUT FROM THE PREPARE BRAGG EDGES
-  Float scon = 0.0;
- 
-  //Float amu = 1.6605402e-24;
-  //Float amassn = 1.008664904;
-  Float mass_n = amassn * amu;     // mass of neutron in grams
-  Float econ = ev * 8 * ( mass_n / (hbar*hbar) );
-
- // If energy is greater than zero, the stored list is used to compute the 
- // cross section. For ENDF-6 format materials, the initialization step is 
- // used to organize the data already read from MF=7/MT=2 by rdelas, and 
- // subsequent entries are used to compute the cross section.
- //
-
-
-  if (e > 0) {
-    Float recon = 1.0/econ;
-    //computeCrossSections( e, fl, s, emax, scon, recon, nl, p, k );
-    return nl; //Range {};
-  }
-  auto out = prepareBraggEdges(lat, temp, emax, natom, vec1, vec2);
-  enext=vec1[0]/econ;
-  int nbragg = std::get<0>(out);
-        scon = std::get<1>(out);
-
-  return nbragg;
-
- 
-}
-
-
-
-
-*/
-
-
-
-
-
-
-
-
-
-
 
 
 

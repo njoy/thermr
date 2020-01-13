@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "coh/coh_util/sigcoh.h"
+#include "generalTools/testing.h"
 
 
 
@@ -8,22 +9,171 @@
 
 
 TEST_CASE( "full sigcoh" ){
-  GIVEN( " " ){
+  GIVEN( "Specify vec1 and vec2" ){
     double enext = 4.555814e-4; 
-    double e = 2*enext;
+    double e = 5*enext;
     double scon = 321038.08426486229;
-    int nbragg = 265;
+    int nbragg = 21;
     double temp = 296.0;
     double recon = 5.1803120897651768E-020;
     double emax = 0.01;
-    int nl = 1;
 
     std::vector<double> vec1 { 8.794479E+15, 8.794479E+15, 3.517792E+16, 3.517792E+16, 7.915031E+16, 7.915031E+16, 8.717302E+16, 8.717302E+16, 8.717302E+16, 9.596750E+16, 9.596750E+16, 9.596750E+16, 1.223509E+17, 1.223509E+17, 1.223509E+17, 1.407117E+17, 1.407117E+17, 1.663233E+17, 1.663233E+17, 1.663233E+17, 1.930386E+17, 2.315842E+77 },
-        vec2 { 0.000000E+00, 0.000000E+00, 2.098463E-08, 2.098463E-08, 0.000000E+00, 0.000000E+00, 1.626950E-09, 1.626950E-09, 1.626950E-09, 9.266134E-09, 9.266134E-09, 9.266134E-09, 2.702515E-09, 2.702515E-09, 2.702515E-09, 9.995415E-09, 9.995415E-09, 6.814547E-09, 6.814547E-09, 6.814547E-09, 6.814547E-09, 0.000000E+00 };
+        vec2 { 0.000000E+00, 0.000000E+00, 2.0984634382E-08, 2.098463E-08, 0.000000E+00, 0.000000E+00, 1.626950E-09, 1.626950E-09, 1.626950E-09, 9.266134E-09, 9.266134E-09, 9.266134E-09, 2.702515E-09, 2.702515E-09, 2.702515E-09, 9.995415E-09, 9.995415E-09, 6.814547E-09, 6.814547E-09, 6.814547E-09, 6.814547E-09, 0.000000E+00 };
 
-    std::vector<double> s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, p, k );
+    WHEN( "1 legendre order requested" ){
+      int nl = 1;
+      std::vector<double> s(nl), correct_s(nl);
+    
+      e = 2*enext;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 0.0 };
+      REQUIRE( ranges::equal( s, correct_s, equal ) );
 
 
+      e = 5*enext;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 5.914962 };
+      REQUIRE( ranges::equal( s, correct_s, equal ) );
+
+      e = 10*enext;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 3.301423 };
+      REQUIRE( ranges::equal( s, correct_s, equal ) );
+
+    } // WHEN
+
+    WHEN( "2 legendre orders requested" ){
+      int nl = 2;
+      std::vector<double> s(nl), correct_s(nl);
+    
+      e = 2*enext;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 0.0, 0.0 };
+      REQUIRE( ranges::equal( s, correct_s, equal ) );
+
+
+      e = 5*enext;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 5.914962, -3.548978 };
+      REQUIRE( ranges::equal( s, correct_s, equal ) );
+
+      e = 10*enext;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 3.301423, 0.253589 };
+      REQUIRE( ranges::equal( s, correct_s, equal ) );
+
+    } // WHEN
+    WHEN( "6 legendre orders requested" ){
+      int nl = 6;
+      std::vector<double> s(nl), correct_s(nl);
+    
+      e = 2*enext;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+      REQUIRE( ranges::equal( s, correct_s, equal ) );
+
+      e = 5.0*enext;
+      std::cout.precision(8);
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 5.914962, -3.548978, 0.236601, 2.129384, -2.413305, 0.9028636 };
+      REQUIRE( ranges::equal( s, correct_s, equal_1e5 ) );
+
+      e = 10*enext;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = {  3.301423, 0.253589, -0.975299, -1.136607, 0.972065, 0.650655 };
+      REQUIRE( ranges::equal( s, correct_s, equal ) );
+
+    } // WHEN
+
+
+
+
+
+
+  } // GIVEN
+
+  GIVEN( "Generate vec1 and vec2" ){
+    //double enext = 4.555814e-4; 
+    //double e = 5*enext;
+    //double scon = 321038.08426486229;
+    //int nbragg = 21;
+    //double temp = 296.0;
+    double recon = 5.1803120897651768E-020;
+    //double emax = 0.01;
+
+    int lat = 1, numAtoms = 1;
+    double temp = 296.0, emax = 5.0;
+    std::vector<double> vec1 (5000,0.0), vec2 (5000,0.0);
+    auto out = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
+    int nbragg = std::get<0>(out);
+    double scon = std::get<1>(out);
+    int nl = 6;
+    double e;
+    double enext = vec1[0]*recon;
+    //std::cout << nbragg << "   " << scon << std::endl;
+    //std::cout << vec1[0] << "  " << vec1[1] << "   " << vec1[2] << std::endl;
+    //std::cout << vec2[0] << "  " << vec2[1] << "   " << vec2[2] << std::endl;
+
+
+    WHEN( "6 legendre orders requested" ){
+      int nl = 6;
+      std::vector<double> s(nl), correct_s(nl);
+    
+      e = 4.5*enext;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      //std::cout << (s|ranges::view::all) << std::endl;
+      correct_s = { 6.5721801, -5.1116975, 2.677559, -6.3113173E-2, -1.9222654, 2.7416631 };
+      REQUIRE( ranges::equal( s, correct_s, equal_1e5 ) );
+
+      e = 5e-3;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 4.7930036, -1.2866930, 0.8225749, -2.6573778, 1.8506794, -0.4372194};
+      REQUIRE( ranges::equal( s, correct_s, equal_1e5 ) );
+
+      e = 1e-2;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = {3.954885, 3.841215E-2, -0.4141841, 2.026154E-2, -0.5485786, -0.2275314 };
+      REQUIRE( ranges::equal( s, correct_s, equal_1e5 ) );
+
+      e = 5e-2;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 4.27152692,  0.14710828, -0.10428120, -0.17718228, -0.15135743,  0.2949411 };
+      REQUIRE( ranges::equal( s, correct_s, equal_1e5 ) );
+
+      e = 1e-1;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = { 3.55695493,  0.47038331, -0.05936697, -0.08632814, -0.02295011, -0.0795200 };
+      REQUIRE( ranges::equal( s, correct_s, equal_1e5 ) );
+
+      e = 5e-1;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = {  1.20998945,  0.68960776,  0.26347381,  0.06295571,  0.00161684, -0.01757571 };
+      REQUIRE( ranges::equal( s, correct_s, equal_1e5 ) );
+
+      e = 1.0;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = {  0.61093467,  0.47352888,  0.28935976,  0.14131377,  0.05405410,  0.01325907 };
+      REQUIRE( ranges::equal( s, correct_s, equal_1e5 ) );
+
+      e = 5.0;
+      s = computeCrossSections( e, vec1, vec2, emax, scon, recon, nl, nbragg );
+      correct_s = {  0.12220358,  0.11670004,  0.10642297,  0.09267128,  0.07704040,  0.06111820 };
+      REQUIRE( ranges::equal( s, correct_s, equal_1e5 ) );
+
+
+
+
+
+
+
+
+
+
+
+
+
+    } // WHEN
   } // GIVEN
 } // TEST CASE
 
@@ -42,7 +192,6 @@ TEST_CASE( "full sigcoh" ){
 
 
 TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
-  int k = 0;
   std::vector<double> p(6);
   GIVEN( "graphite is the requested material" ){
     double temp = 296, emax;
