@@ -7,73 +7,46 @@
 
 TEST_CASE( "full sigcoh" ){
   GIVEN( "Specify vec1 and vec2" ){
-    double enext = 4.555814e-4; 
-    double e = 5*enext;
+    double eFirstBragg = 4.555814e-4; 
+    double e;
     double scon = 321038.08426486229;
     int nbragg = 21;
     double temp = 296.0;
-    double recon = 5.1803120897651768E-020;
+    double recon = 5.1803120897E-20;
     double emax = 0.01;
+    double eNext;
 
-    std::vector<double> vec1 { 8.794479E+15, 8.794479E+15, 3.517792E+16, 3.517792E+16, 7.915031E+16, 7.915031E+16, 8.717302E+16, 8.717302E+16, 8.717302E+16, 9.596750E+16, 9.596750E+16, 9.596750E+16, 1.223509E+17, 1.223509E+17, 1.223509E+17, 1.407117E+17, 1.407117E+17, 1.663233E+17, 1.663233E+17, 1.663233E+17, 1.930386E+17, 2.315842E+77 },
-        vec2 { 0.000000E+00, 0.000000E+00, 2.0984634382E-08, 2.098463E-08, 0.000000E+00, 0.000000E+00, 1.626950E-09, 1.626950E-09, 1.626950E-09, 9.266134E-09, 9.266134E-09, 9.266134E-09, 2.702515E-09, 2.702515E-09, 2.702515E-09, 9.995415E-09, 9.995415E-09, 6.814547E-09, 6.814547E-09, 6.814547E-09, 6.814547E-09, 0.000000E+00 };
-    std::vector<double> energies { 2*enext, 5*enext, 10*enext };
+    std::vector<double> 
+    vec1 { 8.794479E15, 8.794479E15, 3.517792E16, 3.517792E16, 7.915031E16, 
+    7.915031E16, 8.717302E16, 8.717302E16, 8.717302E16, 9.596750E16, 9.596750E16, 
+    9.596750E16, 1.223509E17, 1.223509E17, 1.223509E17, 1.407117E17, 1.407117E17, 
+    1.663233E17, 1.663233E17, 1.663233E17, 1.930386E17, 2.315842E77 },
+    vec2 { 0.000000E00, 0.000000E00, 2.0984634382E-8, 2.098463E-8, 0.000000E00, 
+    0.000000E00, 1.626950E-9, 1.626950E-9, 1.626950E-9, 9.266134E-9, 9.266134E-9, 
+    9.266134E-9, 2.702515E-9, 2.702515E-9, 2.702515E-9, 9.995415E-9, 9.995415E-9, 
+    6.814547E-9, 6.814547E-9, 6.814547E-9, 6.814547E-9, 0.000000E00 };
+
+    std::vector<double> epVec { 2*eFirstBragg, 5*eFirstBragg, 10*eFirstBragg};
     std::vector<std::vector<double>> sVariousEp{
       { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }, 
       { 5.914962,-3.548978, 0.236601, 2.129384,-2.413305, 0.9028636 },
       { 3.301423, 0.253589,-0.975299,-1.136607, 0.972065, 0.650655 } };
+    std::vector<double> nextBraggEdge { 1.822325E-3, 4.100232E-3, 4.971415E-3 };
     
     WHEN( "Some number of legendre order are requested" ){
       for ( int nl = 1; nl <= 6; ++nl ){
-        THEN( "That number of s vector entries are returned" ){
-          std::vector<double> s(nl), sThisEp(nl);
-          for (size_t i = 0; i < energies.size(); ++i){
+        std::vector<double> s(nl,0.0), sThisEp(nl);
+        THEN( "That number of s vector entries are returned, as well as the "
+              "energy of the next bragg peak" ){
+          for (size_t i = 0; i < epVec.size(); ++i){
             copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
-            s = computeCrossSections( energies[i], vec1, vec2, emax, scon, recon, 
-                                      nl, nbragg );
+            eNext = computeCrossSections( epVec[i], vec1, vec2, emax, scon, recon,
+                                      s, nbragg );
+            REQUIRE( eNext == Approx(nextBraggEdge[i]).epsilon(1e-6) );
             REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
           }
         } // THEN
       } 
-    } // WHEN
-
-    WHEN( "1 legendre order requested" ){
-      int nl = 1;
-      THEN( "The first entry of the s vector is returned" ){
-        std::vector<double> s(nl), sThisEp(nl);
-        for (size_t i = 0; i < energies.size(); ++i){
-          copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
-          s = computeCrossSections( energies[i], vec1, vec2, emax, scon, recon, 
-                                    nl, nbragg );
-          REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
-        }
-      } // THEN
-    } // WHEN
-
-    WHEN( "4 legendre order requested" ){
-      int nl = 4;
-      THEN( "The first four entries of the s vector are returned" ){
-        std::vector<double> s(nl), sThisEp(nl);
-        for (size_t i = 0; i < energies.size(); ++i){
-          copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
-          s = computeCrossSections( energies[i], vec1, vec2, emax, scon, recon, 
-                                    nl, nbragg );
-          REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
-        }
-      } // THEN
-    } // WHEN
-
-    WHEN( "6 legendre order requested" ){
-      int nl = 6;
-      THEN( "All six entries of the s vector are returned" ){
-        std::vector<double> s(nl), sThisEp(nl);
-        for (size_t i = 0; i < energies.size(); ++i){
-          copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
-          s = computeCrossSections( energies[i], vec1, vec2, emax, scon, recon, 
-                                    nl, nbragg );
-          REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
-        }
-      } // THEN
     } // WHEN
   } // GIVEN
 
@@ -85,13 +58,14 @@ TEST_CASE( "full sigcoh" ){
     int nbragg = std::get<0>(out);
     double recon = 5.1803120897E-20;
     double scon  = std::get<1>(out);
-    double enext = vec1[0]*recon;
+    double eNext;
 
     using std::copy;
 
-    std::vector<double> energyVec {4.5*enext,5e-3,1e-2,5e-2,1e-1,5e-1,1,5};
+    std::vector<double> epVec {5e-3,1e-2,5e-2,1e-1,5e-1,1,5};
+    std::vector<double> nextBraggEdge { 0.0063381, 0.0113895, 0.0500739, 
+      0.1014105, 0.5212158, 1.0063780, 5.0000010 };
     std::vector<std::vector<double>> sVariousEp {
-      { 6.572180,-5.111697,  2.677559,-0.06311317,-1.9222654, 2.7416631 },
       { 4.793003,-1.286693,  0.822574,-2.6573778,  1.8506794,-0.4372194 },
       { 3.954885, 0.0384121,-0.414184, 0.0202615, -0.5485786,-0.2275314 },
       { 4.271526, 0.147108, -0.104281,-0.177182,  -0.1513574, 0.2949411 },
@@ -100,28 +74,20 @@ TEST_CASE( "full sigcoh" ){
       { 0.610934, 0.473528,  0.289359, 0.141313,   0.0540541, 0.0132590 },
       { 0.122203, 0.116700,  0.106422, 0.092671,   0.0770404, 0.0611182 } };
 
-    WHEN( "2 legendre orders requested" ){
-      int nl = 2;
-      THEN( "The first two entries of the s vector are returned" ){
-        std::vector<double> s(nl), sThisEp(nl);
-        for (size_t i = 0; i < energyVec.size(); ++i){
-          copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
-          s = computeCrossSections( energyVec[i], vec1, vec2, emax, scon, recon, 
-                                    nl, nbragg );
-          REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
-        }
-      } // THEN
-    } // WHEN
-    WHEN( "6 legendre orders requested" ){
-      int nl = 6;
-      THEN( "All six entries of the s vector are returned" ){
-        std::vector<double> s(nl);
-        for (size_t i = 0; i < energyVec.size(); ++i){
-          s = computeCrossSections( energyVec[i], vec1, vec2, emax, scon, recon, 
-                                    nl, nbragg );
-          REQUIRE( ranges::equal( s, sVariousEp[i], equal_1e5 ) );
-        }
-      } // THEN
+    WHEN( "Some number of legendre order are requested" ){
+      for ( int nl = 1; nl <= 6; ++nl ){
+        THEN( "That number of s vector entries are returned, as well as the "
+              "energy of the next bragg peak" ){
+          std::vector<double> s(nl,0.0), sThisEp(nl);
+          for (size_t i = 0; i < epVec.size(); ++i){
+            copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
+            eNext = computeCrossSections( epVec[i], vec1, vec2, emax, scon, recon, 
+                                      s, nbragg );
+            REQUIRE( eNext == Approx(nextBraggEdge[i]).epsilon(1e-6) );
+            REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
+          }
+        } // THEN
+      } 
     } // WHEN
   } // GIVEN
 } // TEST CASE

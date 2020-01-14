@@ -1,6 +1,7 @@
 #include "coh/coh_util/sigcoh_util/form.h"
 #include "coh/coh_util/sigcoh_util/terp.h"
 #include "coh/coh_util/sigcoh_util/legndr.h"
+#include "general_util/sigfig.h"
 #include <iostream>
 #include <range/v3/all.hpp>
 
@@ -31,47 +32,6 @@ void swapVals( Float& a, Float& b ){
   Float c = a; a = b; b = c;
 }
   
-template <typename Range, typename Float>
-auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax, Float scon, 
-  Float recon, int nl, int nbragg ){
-  // compute cross sections at this energy
-   Float elim;
-   Range s(nl,0.0);
-   for ( int il = 0; il < nl; ++il ){ s[il]=0; }
-   int last = 0;
-   Range p(nl,0.0);
-
-   for ( int i = 0; i < nbragg; ++i ){
-      Float tau_sq=vec1[i];
-      elim = tau_sq*recon;
-      if (elim >= e) { break; }
-      Float f = ( e > emax ) ? 0.0 : vec2[i];
-      Float u = 1.0-2.0*elim/e;
-      // u here is equal to fl for l = 1 (P1 component).
-      // This is defined in the General Atomics HEXSCAT paper, in Part 1 
-      // Formulation. If l == 0, fl = 1. But if l == 1, then
-      //            fl = 1 - tau^2 lambda^2 / 8 pi^2
-      //    which simplifies to 
-      //                 1 - tau^2 hbar^2 / 4 m_n E
-      legndr(u,p,nl-1);
-      for ( int il = 0; il < nl; ++il ){
-         s[il] += f*p[il];
-      }
-
-      //std::cout << "p    " << 1.0/e << "   " << (p|ranges::view::all) << std::endl;
-      //std::cout << "S" << "   " << p[2] << "   "  << f<< "   " << s[2] << std::endl;
-      //std::cout << i+1 << "   " << "TSQ" << "   " << f << std::endl;
-      //std::cout << (s|ranges::view::all) << std::endl;
-      if (i == nbragg-1) { last = 1; }
-   }
-   for ( int il = 0; il < nl; ++il ){
-      s[il] *= scon/e;
-   }
-   if (last == 1 or elim > emax ) { elim=emax; }
-   return s;
-}
-
-
 
 template <typename Range, typename Float>
 auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1, Range& vec2 ){
@@ -93,13 +53,14 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   Float w, f;
   
   // These are lattice factors (borrowed from HEXSCAT)
-  Float gr1 = 2.4573e-8, // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf
-        gr2 = 6.700e-8,  // http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf 
-        be1 = 2.2856e-8, // http://periodictable.com/Properties/A/LatticeConstants.html
-        be2 = 3.5832e-8, // http://periodictable.com/Properties/A/LatticeConstants.html 
-        beo1 = 2.695e-8, // https://link.springer.com/chapter/10.1007%2F10681719_737
-        beo2 = 4.39e-8;  // https://link.springer.com/chapter/10.1007%2F10681719_737
-                         // II-VI and I-VII Compounds; Semimagnetic Compounds
+  Float 
+    gr1 = 2.4573e-8,//http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf
+    gr2 = 6.700e-8, //http://www.phy.ohiou.edu/~asmith/NewATOMS/HOPG.pdf 
+    be1 = 2.2856e-8,//http://periodictable.com/Properties/A/LatticeConstants.html
+    be2 = 3.5832e-8,//http://periodictable.com/Properties/A/LatticeConstants.html 
+    beo1 = 2.695e-8,//https://link.springer.com/chapter/10.1007%2F10681719_737
+    beo2 = 4.39e-8; //https://link.springer.com/chapter/10.1007%2F10681719_737
+                    // II-VI and I-VII Compounds; Semimagnetic Compounds
   // These are masses
   Float gr3  = 12.011e0, 
         be3  = 9.01e0, 
@@ -259,6 +220,48 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   // This is nbragg, the number of bragg edges found, and some material specific
   // constants
 
+}
+
+
+
+template <typename Range, typename Float>
+auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax, 
+  Float scon, Float recon, Range& s, int nbragg ){
+  // compute cross sections at this energy
+   Float elim;
+   for ( Float& sVal : s ){ sVal = 0.0; }
+   int nl = s.size();
+   Range p(nl,0.0);
+   int last = 0;
+
+   for ( int i = 0; i < nbragg; ++i ){
+      Float tau_sq=vec1[i];
+      elim = tau_sq*recon;
+      if (elim >= e) { break; }
+      Float f = ( e > emax ) ? 0.0 : vec2[i];
+      Float u = 1.0-2.0*elim/e;
+      // u here is equal to fl for l = 1 (P1 component).
+      // This is defined in the General Atomics HEXSCAT paper, in Part 1 
+      // Formulation. If l == 0, fl = 1. But if l == 1, then
+      //            fl = 1 - tau^2 lambda^2 / 8 pi^2
+      //    which simplifies to 
+      //                 1 - tau^2 hbar^2 / 4 m_n E
+      legndr(u,p,nl-1);
+      for ( int il = 0; il < nl; ++il ){
+         s[il] += f*p[il];
+      }
+      if (i == nbragg-1) { last = 1; }
+   }
+   for ( int il = 0; il < nl; ++il ){
+      s[il] *= scon/e;
+   }
+   if (last == 1 or elim > emax ) { elim=emax; }
+
+   Float enext = sigfig(elim,7,-1);
+   if (e > sigfig(enext,7,-1)){
+     enext = sigfig(enext,7,+1);
+   }
+   return enext;
 }
 
 
