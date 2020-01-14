@@ -7,14 +7,13 @@
 
 TEST_CASE( "full sigcoh" ){
   GIVEN( "Specify vec1 and vec2" ){
-    double eFirstBragg = 4.555814e-4; 
-    double e;
-    double scon = 321038.08426486229;
+    double eFirstBragg = 4.555814e-4,
+           scon = 321038.08426486229,
+           temp = 296.0,
+           recon = 5.1803120897E-20,
+           emax = 0.01,
+           eNext;
     int nbragg = 21;
-    double temp = 296.0;
-    double recon = 5.1803120897E-20;
-    double emax = 0.01;
-    double eNext;
 
     std::vector<double> 
     vec1 { 8.794479E15, 8.794479E15, 3.517792E16, 3.517792E16, 7.915031E16, 
@@ -49,16 +48,17 @@ TEST_CASE( "full sigcoh" ){
       } 
     } // WHEN
   } // GIVEN
-
-  GIVEN( "Use bragg function to generate vec1 and vec2" ){
-    int lat = 1, numAtoms = 1;
-    double temp = 296.0, emax = 5.0;
+  
+  GIVEN( "that vec1 and vec2 are generated using the bragg function" ){
     std::vector<double> vec1 (5000,0.0), vec2 (5000,0.0);
-    auto out = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
-    int nbragg = std::get<0>(out);
-    double recon = 5.1803120897E-20;
+    int lat = 1, numAtoms = 1;
+    double temp = 296.0, 
+           emax = 5.0,
+           recon = 5.1803120897E-20,
+           eNext;
+    auto     out = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
+    int   nbragg = std::get<0>(out);
     double scon  = std::get<1>(out);
-    double eNext;
 
     using std::copy;
 
@@ -83,6 +83,90 @@ TEST_CASE( "full sigcoh" ){
             copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
             eNext = computeCrossSections( epVec[i], vec1, vec2, emax, scon, recon, 
                                       s, nbragg );
+            REQUIRE( eNext == Approx(nextBraggEdge[i]).epsilon(1e-6) );
+            REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
+          }
+        } // THEN
+      } 
+    } // WHEN
+  } // GIVEN
+
+
+  GIVEN( "various materials are considered" ){
+    std::vector<double> vec1 (5000,0.0), vec2 (5000,0.0);
+    WHEN( "choose beryllium metal" ){
+      int lat = 2, numAtoms = 2;
+      double temp = 450.0, 
+             emax = 6.0,
+             recon = 5.1803120897E-20,
+             eNext;
+      auto     out = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
+      int   nbragg = std::get<0>(out);
+      double scon  = std::get<1>(out);
+  
+      using std::copy;
+  
+      std::vector<double> epVec {5e-3,1e-2,5e-2,1e-1,5e-1,1,5};
+      std::vector<double> nextBraggEdge { 0.00521980, 0.01159117, 0.05334958, 
+        0.10194200, 0.50731040, 1.04618600, 5.05927600 };
+      std::vector<std::vector<double>> sVariousEp {
+        { 0.0000000, 0.0000000, 0.00000000, 0.0000000, 0.0000000, 0.0000000 },
+        { 2.9931375,-0.9115081,-1.02714765, 1.0923217, 0.1193862,-0.8561407 },
+        { 2.4814615, 0.0644388,-0.03095040,-0.2134906,-0.1475377,-0.0424251 },
+        { 1.7162921, 0.4093202,-0.00669899,-0.0765414,-0.0683251,-0.0886656 },
+        { 0.4207632, 0.3202388, 0.18757344, 0.0830685, 0.0231448,-0.0035101 },
+        { 0.2104190, 0.1852464, 0.14351891, 0.0975608, 0.0575074, 0.0282319 },
+        { 0.0420838, 0.0410769, 0.03913204, 0.0363792, 0.0329951, 0.0291842 } };
+  
+      for ( int nl = 1; nl <= 6; ++nl ){
+        THEN( "That number of s vector entries are returned, as well as the "
+              "energy of the next bragg peak" ){
+          std::vector<double> s(nl,0.0), sThisEp(nl);
+          for (size_t i = 0; i < epVec.size(); ++i){
+            copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
+            eNext = computeCrossSections( epVec[i], vec1, vec2, emax, scon, recon,  
+                                        s, nbragg );
+            REQUIRE( eNext == Approx(nextBraggEdge[i]).epsilon(1e-6) );
+            REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
+          }
+        } // THEN
+      } 
+    } // WHEN
+
+    WHEN( "choose beryllium oxide" ){
+      int lat = 3, numAtoms = 2;
+      double temp  = 650.0, 
+             emax  = 8.0,
+             recon = 5.1803120897E-20,
+             eNext;
+      auto     out = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
+      int   nbragg = std::get<0>(out);
+      double scon  = std::get<1>(out);
+  
+      using std::copy;
+
+      std::vector<double> epVec {5e-3,1e-2,5e-2,1e-1,5e-1,1,5};
+      std::vector<double> nextBraggEdge { 0.007999063, 0.011263090, 0.050768090, 
+        0.100972500, 0.501767000, 1.003862000, 5.001879000 };
+          
+      std::vector<std::vector<double>> sVariousEp {
+        { 4.468878,-3.1164850, 1.2491054, 0.0939664,-0.4165726, 0.0251270 },
+        { 2.821455,-0.0140015,-0.9892607,-0.2559700, 0.3532396, 0.5913847 },
+        { 3.869033, 0.1763646,-0.1249929,-0.3130906,-0.1266984,-0.3194389 },
+        { 2.812010, 0.6460590,-0.0658992,-0.0747775,-0.1566545,-0.0726861 },
+        { 0.717623, 0.5324232, 0.2982827, 0.1236309, 0.0290206,-0.0106603 },
+        { 0.358949, 0.3124967, 0.2368809, 0.1559373, 0.0879284, 0.0402760 },
+        { 0.071789, 0.0699317, 0.0663538, 0.0613156, 0.0551662, 0.0483043 } };
+
+  
+      for ( int nl = 1; nl <= 6; ++nl ){
+        THEN( "That number of s vector entries are returned, as well as the "
+              "energy of the next bragg peak" ){
+          std::vector<double> s(nl,0.0), sThisEp(nl);
+          for (size_t i = 0; i < epVec.size(); ++i){
+            copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
+            eNext = computeCrossSections( epVec[i], vec1, vec2, emax, scon, recon,  
+                                        s, nbragg );
             REQUIRE( eNext == Approx(nextBraggEdge[i]).epsilon(1e-6) );
             REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
           }
