@@ -2,6 +2,7 @@
 #include "coh/coh_util/sigcoh.h"
 #include <vector>
 #include <range/v3/all.hpp>
+#include "general_util/sigfig.h"
 
 template <typename Float, typename Range>
 auto findLocation( const Range& Egrid, const Float& bragg, int j = 0){
@@ -49,7 +50,7 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& vec1,
 
 
 template <typename Float, typename Range>
-auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Range& Egrid, const Float tol){
+auto coh2( const Float& temp, int lat, const Float& emax, int numAtoms, const Range& Egrid, const Float tol){
   std::vector<Float> vec1 (5000,0.0), vec2 (5000,0.0);
   auto out = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
   int nbragg = std::get<0>(out);
@@ -112,16 +113,22 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
 }
 
 
-/*
 
+
+/*
+*/
 template <typename Float, typename Range>
-auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Range& Egrid){
+auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, 
+  const Range& Egrid, const Float& tol){
   std::vector<Float> vec1 (5000,0.0), vec2 (5000,0.0);
   auto out = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
+  //std::cout << vec1[0] << "   " << vec1[1] << "   " << vec1[2] << std::endl;
+  //std::cout << vec1[3] << "   " << vec1[4] << "   " << vec1[5] << std::endl;
   //std::cout << vec2[0] << "   " << vec2[1] << "   " << vec2[2] << std::endl;
   //std::cout << vec2[3] << "   " << vec2[4] << "   " << vec2[5] << std::endl;
   int nbragg = std::get<0>(out);
   Float scon = std::get<0>(out);
+  Range x(5,0.0);//, y(5,0.0), z(5,0.0)
 
   int ix  = 1;
   int j   = 0;
@@ -129,30 +136,51 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   int nlt = 5;
   if ( int(Egrid.size()) < nlt ){ nlt = int(Egrid.size()); }
 
+  Range finalE ( 10000, 0.0 );
 
   Float recon = 5.1803120897E-20;
   Float enext = vec1[0]*recon;
-  size_t i = 1;
+  enext = sigfig(enext,7,-1);
+  size_t i1 = 1;
 
   while (true){
-    std::cout << " --- 100 --- " << std::endl;
-    for ( i = 1; i <= Egrid.size(); ++i ){
+    //std::cout << " --- 100 --- " << std::endl;
+    for ( i1 = 1; i1 <= Egrid.size(); ++i1 ){
       ++iex;
-      if ( Egrid[i-1] > (1.0+1e-10)*enext ){ break; }
+      //std::cout << iex << "    " << Egrid[iex-1] << std::endl;
+      if ( Egrid[iex-1] > (1.0+1e-10)*enext ){ break; }
+      finalE[iex] = Egrid[iex];
+      x[1] = Egrid[iex];
       ++j;
     }
 
     std::cout << " --- 105 --- " << std::endl;
     ++ix;
+    x[ix] = Egrid[iex-1];
+    //std::cout << Egrid[iex-1] << std::endl;
     if (ix >= nlt){ break; }
   }
 
-  std::cout << iex << "    " << ix << std::endl;
+  //std::cout << iex << "    " << ix << std::endl;
   Range s(6,0.0);
+  //std::cout << enext << std::endl;
   enext = computeCrossSections( enext, vec1, vec2, emax, scon, recon, s, nbragg );
-  std::cout << (s|ranges::view::all) << std::endl;
+  //std::cout << enext << std::endl;
+  //std::cout << (finalE|ranges::view::all) << std::endl;
+  //std::cout << (s|ranges::view::all) << std::endl;
     
+  int i = 1;
+  std::cout << " --- 120 --- " << std::endl;
+  enext = computeCrossSections( enext, vec1, vec2, emax, scon, recon, s, nbragg );
+  for ( int ix = 0; ix < 5; ++ix ){
+    if (x[ix]
+  }
+
+
+
+  return;
+
+  std::cout << tol << std::endl;
 
   
 }
-*/

@@ -259,7 +259,7 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
 
    Float enext = sigfig(elim,7,-1);
    if (e > sigfig(enext,7,-1)){
-     enext = sigfig(enext,7,+1);
+     enext = sigfig(elim,7,+1);
    }
    return enext;
 }
