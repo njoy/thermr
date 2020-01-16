@@ -1,8 +1,118 @@
 #include "coh/coh_util/upstk.h"
 #include "coh/coh_util/sigcoh.h"
+#include <vector>
+#include <range/v3/all.hpp>
+
+template <typename Float, typename Range>
+auto findLocation( const Range& Egrid, const Float& bragg, int j = 0){
+  for (size_t i = j; i < Egrid.size()-1; ++i){
+    if (Egrid[i+1] > bragg){
+      return i;
+    }
+  }
+  return Egrid.size();
+}
+
+template <typename Float, typename Range>
+Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& vec1,
+  Range& vec2, const Float& emax, const Float& scon, const Float& recon, 
+  int nbragg, int& finalE_counter, const Float& tol ){
+  Range s1 (6,0.0), s2(6,0.0);
+
+  auto enext1 = computeCrossSections( x1, vec1, vec2, emax, scon, recon, s1, nbragg );
+  auto enext2 = computeCrossSections( x2, vec1, vec2, emax, scon, recon, s2, nbragg );
+
+  Float xm = (x1+x2)*0.5;
+  Range sm(6,0.0);
+  auto enextM = computeCrossSections( xm, vec1, vec2, emax, scon, recon, sm, nbragg );
+  std::cout << (sm|ranges::view::all) << std::endl;
+
+  
+  auto test1 = tol*sm[0];
+  if (test1 < 1e-6) { test1 = 1e-6; }
+  auto ym = (s1[0]+s2[0])*0.5;
+  std::cout << " are " << x1 << " and " << x2 << " close enough?" << std::endl;
+  std::cout << "     " << ym << " and " << sm[0] << " close enough?" << std::endl;
 
 
 
+  if (abs(sm[0]-ym) <= test1){
+    finalE[++finalE_counter] = x2;
+    return enext2;
+  }
+  else {
+    addPoint( x1, xm, finalE, vec1,  vec2, emax, scon, recon, nbragg, finalE_counter, tol );
+    return addPoint( xm, x2, finalE, vec1,  vec2, emax, scon, recon, nbragg, finalE_counter, tol );
+  }
+}
+
+
+
+template <typename Float, typename Range>
+auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Range& Egrid, const Float tol){
+  std::vector<Float> vec1 (5000,0.0), vec2 (5000,0.0);
+  auto out = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
+  int nbragg = std::get<0>(out);
+  Float scon = std::get<0>(out);
+
+  Float recon = 5.1803120897E-20;
+
+  Range braggs(nbragg,0.0);
+  //for (int k = 0; k < nbragg; ++k){
+  //  braggs[k] = vec1[k]*recon;
+  //}
+  //std::cout << (braggs|ranges::view::all) << std::endl;
+  auto enext = vec1[0]*recon;
+
+  Range finalE (10000,0.0);
+  finalE[0] = Egrid[0];
+  int finalE_counter = 0;
+  int i_old = 0;
+  for ( int ibragg = 0; ibragg < nbragg; ++ibragg ){
+    int i = findLocation(Egrid,enext);
+    //std::cout << Egrid[i] << "   " << braggs[ibragg] << "    " << Egrid[i+1] << std::endl;
+    //return;
+    if ( i > i_old ){
+      std::cout << " we have some pendf grid values to put in " << std::endl;
+      for ( int k = i_old+1; k < i+1; ++k ){
+
+        //std::cout << 
+        //    finalE[0] << "  " << finalE[1] << "   " << finalE[2] << "    " << 
+        //    finalE[3] << "  " << finalE[4] << "   " << finalE[5] << "    " << 
+        //    std::endl;
+
+        enext = addPoint( finalE[finalE_counter], Egrid[k], finalE, vec1, vec2, emax, 
+                  scon, recon, nbragg, finalE_counter, tol );
+        //std::cout << 
+        //    finalE[0] << "  " << finalE[1] << "   " << finalE[2] << "    " << 
+        //    finalE[3] << "  " << finalE[4] << "   " << finalE[5] << "    " << 
+        //    std::endl;
+      }
+      std::cout << " just finished! " << std::endl << std::endl;
+    }
+    //std::cout << " want to add " << enext << " in " << finalE[finalE_counter] << " and  " << finalE[finalE_counter+1] << std::endl;
+    std::cout << " now want to put our friend in " << std::endl;
+    enext = addPoint( finalE[finalE_counter], enext, finalE, vec1, vec2, emax, 
+              scon, recon, nbragg, finalE_counter, tol );
+      std::cout << " just finished! " << std::endl << std::endl;
+    if (ibragg == 3){
+      for (int k = 0; k < finalE_counter+5; ++k ){
+          std::cout << finalE[k] << std::endl;
+      }
+      return finalE;}
+
+    i_old = i;
+  }
+  
+  return finalE;
+
+  //Float enext = vec1[0]*recon;
+  //size_t i = 1;
+
+}
+
+
+/*
 
 template <typename Float, typename Range>
 auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Range& Egrid){
@@ -45,3 +155,4 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
 
   
 }
+*/
