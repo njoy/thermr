@@ -37,7 +37,7 @@ TEST_CASE( "coh" ){
         2.9375E-1, 3.1250E-1, 3.3125E-1, 3.5000E-1, 3.8750E-1, 4.2500E-1, 
         5.0000E-1, 6.2500E-1, 6.250062E-1 };
       std::cout.precision(9);
-      coh(temp,lat,emax,numAtoms,eGrid,tol);
+      auto finalE = coh(temp,lat,emax,numAtoms,eGrid,tol);
 
       std::vector<double> correct_finalE { 1.000000E-5, 1.062500E-5, 1.125000E-5, 
       1.187500E-5, 1.250000E-5, 1.375000E-5, 1.500000E-5, 1.625000E-5, 1.750000E-5, 
