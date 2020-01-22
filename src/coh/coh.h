@@ -42,6 +42,7 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& finalXS,
   if (test1 < 1e-6) { test1 = 1e-6; }
   auto ym = (s1[0]+s2[0])*0.5;
 
+  //std::cout << xm << "      " << abs(sm[0]-ym) << "    " << test1 << std::endl;
   if ( check == false ){
     finalE[++finalE_counter] = x2;
     finalXS[finalE_counter] = s2[0];
@@ -96,14 +97,19 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
       for ( int k = i_old+1; k < i+1; ++k ){
         enext = addPoint( finalE[finalE_counter], Egrid[k], finalE, finalXS,
                   vec1, vec2, emax, 
-                  scon, recon, nbragg, finalE_counter, tol, false );
+                  scon, recon, nbragg, finalE_counter, tol, true );
       }
     }
     enext = addPoint( finalE[finalE_counter], enext, finalE, finalXS, vec1, vec2, emax, 
               scon, recon, nbragg, finalE_counter, tol, true );
     i_old = i;
   }
-  if ( sigfig(finalE[finalE_counter],7,0) - sigfig(emax,7,0)  > 1e-6 ){
+
+  Float a = sigfig(finalE[finalE_counter-1],7,0);
+  //Float b = sigfig(finalE[finalE_counter],7,0);
+  Float c = sigfig(emax,7,0);
+
+  if (abs(c-a)/a > 1e-10 ){
       finalE[finalE_counter+1] = finalE[finalE_counter];
       finalXS[finalE_counter+1] = finalXS[finalE_counter];
       Range s(6,0.0);
@@ -120,11 +126,11 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   finalE.resize(finalE_counter+2);
   finalXS[finalE_counter+1] = 0.0;
   finalXS.resize(finalE_counter+2);
-  std::cout.precision(15);
-  for ( int j = 0; j < finalE_counter+2; ++j ){
+  //std::cout.precision(15);
+  //for ( int j = 0; j < finalE_counter+2; ++j ){
       //finalXS[j] = sigfig(finalXS[j],7,0);
-      std::cout << finalE[j] << "    " << finalXS[j] << std::endl;
-  }
+      //std::cout << finalE[j] << "    " << finalXS[j] << std::endl;
+ // }
 
   return std::make_tuple(finalE,finalXS);
 
