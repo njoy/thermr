@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "coh/coh.h"
+#include "generalTools/testing.h"
 
 
 TEST_CASE( "coh" ){
@@ -127,10 +128,11 @@ TEST_CASE( "coh" ){
       //std::cout << finalE.size() << std::endl;
       //std::cout << correct_finalE.size() << std::endl;
 
+      REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
 
 
       
-      REQUIRE( true );
+      //REQUIRE( true );
       
     } // WHEN
   } // GIVEN

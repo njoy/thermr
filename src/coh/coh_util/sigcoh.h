@@ -72,9 +72,10 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
         be4  = 7.53, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
         beo4 = 1.0;
 
-  Float cw = 0.658173e-15, hbar = 1.05457266e-27, amu = 1.6605402e-24, 
-        amassn = 1.008664904, ev = 1.60217733e-12;
-  
+  Float cw = 0.658173e-15, hbar = 1.0545718E-27, amu = 1.6605402e-24, 
+        amassn = 1.008664904, ev = 1.6021766208e-12;
+
+
   // Temperatures interpolated over when trying to get correct Debye-Waller
   // Coefficient.
   Range temps {296, 400, 500, 600, 700, 800, 1000, 1200, 1600, 2000};
@@ -110,6 +111,7 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   * sorted into shells, and stored for later use.
   */
   Float mass_n = amassn * amu;     // mass of neutron in grams
+  mass_n = 1.6749274715105767E-024;
   Float econ = ev * 8 * ( mass_n / hbar ) / hbar;
   Float tsqx = econ / 20;
   Float scon = scoh * ( 16.0 * M_PI*M_PI )/( 2.0 * a * a * c * sqrt(3) * econ );
@@ -138,6 +140,7 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   // Calculated according to Eq. 223.
   //ulim = econ * emax;
   Float ulim = emax * ev * 8.0 * mass_n / (hbar*hbar);
+  //std::cout <<" ULIM " <<   ulim << "  " << ev << "   " << mass_n << "   " << hbar  << std::endl;
 
   int k = 0;
   Float phi = ulim / ( 4 * M_PI * M_PI );  // phi = ( tau_max/2pi )^2
@@ -213,6 +216,7 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
     }
   }
 
+  //std::cout <<" ULIM " <<  ulim << std::endl;
   ++k;
   vec1[k-1] = ulim;
   vec2[k-1] = vec2[k-2];
@@ -237,6 +241,8 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
    for ( int i = 0; i < nbragg; ++i ){
       Float tau_sq=vec1[i];
       elim = tau_sq*recon;
+
+      //std::cout << "----------- ELIM " << elim << "   " << tau_sq << "    " << recon << std::endl;
       if (elim >= e) { break; }
       Float f = ( e > emax ) ? 0.0 : vec2[i];
       Float u = 1.0-2.0*elim/e;
@@ -255,6 +261,7 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
    for ( int il = 0; il < nl; ++il ){
       s[il] *= scon/e;
    }
+   //std::cout << "ELIM " << elim << std::endl;
    if (last == 1 or elim > emax ) { elim=emax; }
 
    Float enext = sigfig(elim,7,-1);

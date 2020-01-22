@@ -25,7 +25,6 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& vec1,
 
   Float xm = (x1+x2)*0.5;
   if ( abs(x1-x2) < 3.0e-5*xm){
-      //std::cout << " good news! " << x1 << " and " << x2 << " are so close we don't have to check" << std::endl;
       finalE[++finalE_counter] = x2;
       return enext2; 
   }
@@ -33,27 +32,18 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& vec1,
 
   Range sm(6,0.0);
   auto enextM = computeCrossSections( xm, vec1, vec2, emax, scon, recon, sm, nbragg );
-  //std::cout << (sm|ranges::view::all) << std::endl;
 
-  
   auto test1 = tol*sm[0];
   if (test1 < 1e-6) { test1 = 1e-6; }
   auto ym = (s1[0]+s2[0])*0.5;
-  //if ( check == true ){
-  //  std::cout << " are " << x1 << " and " << x2 << " close enough?" << std::endl;
-  //  std::cout << "     " << ym << " and " << sm[0] << " close enough?" << std::endl;
-  //}
 
   if ( check == false ){
     finalE[++finalE_counter] = x2;
     return enext2;
   }
 
-
-
   if (abs(sm[0]-ym) <= test1 ){
     finalE[++finalE_counter] = x2;
-    //std::cout << " they were all good ! now to look at " << enext2  << std::endl;
     return enext2;
   }
   else {
@@ -74,76 +64,31 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   Float recon = 5.1803120897E-20;
 
   Range braggs(int(1.5*nbragg),0.0);
-  //for (int k = 0; k < nbragg; ++k){
-  //  braggs[k] = vec1[k]*recon;
-  //}
-  //std::cout << (braggs|ranges::view::all) << std::endl;
   auto enext = vec1[0]*recon;
 
   Range finalE (600,0.0);
   finalE[0] = Egrid[0];
   int finalE_counter = 0;
   int i_old = 0;
-  //std::cout << nbragg << std::endl;
-  //return finalE;
-  
  
-  
-  
-  
   for ( int ibragg = 0; ibragg < 1.5*nbragg; ++ibragg ){
     if (finalE[finalE_counter] > emax){ break; }
     int i = findLocation(Egrid,enext);
-    std::cout << enext << std::endl;
-    //std::cout << Egrid[i] << "   " << braggs[ibragg] << "    " << Egrid[i+1] << std::endl;
-    //return;
-   // std::cout <<  " looks like " << enext << " lives between " << Egrid[i] << " and " << Egrid[i+1] << std::endl;
-   // std::cout << i << "   " << i_old << std::endl;
     if ( i > i_old ){
-      //std::cout << " we have some pendf grid values to put in " << std::endl;
       for ( int k = i_old+1; k < i+1; ++k ){
-
-        //std::cout << 
-        //    finalE[0] << "  " << finalE[1] << "   " << finalE[2] << "    " << 
-        //    finalE[3] << "  " << finalE[4] << "   " << finalE[5] << "    " << 
-        //    std::endl;
-
         enext = addPoint( finalE[finalE_counter], Egrid[k], finalE, vec1, vec2, emax, 
                   scon, recon, nbragg, finalE_counter, tol, false );
-        //std::cout << 
-        //    finalE[0] << "  " << finalE[1] << "   " << finalE[2] << "    " << 
-        //    finalE[3] << "  " << finalE[4] << "   " << finalE[5] << "    " << 
-        //    std::endl;
       }
-      //std::cout << ( finalE|ranges::view::all)  << std::endl;
     }
-    //std::cout << " want to add " << enext << " in " << finalE[finalE_counter] << " and  " << finalE[finalE_counter+1] << std::endl;
-    //std::cout << " now want to put our friend " << enext << " in " << std::endl;
     enext = addPoint( finalE[finalE_counter], enext, finalE, vec1, vec2, emax, 
               scon, recon, nbragg, finalE_counter, tol, true );
-    //std::cout << "finished adding " << enext << " in the vector " << std::endl;
-    //std::cout << std::endl;
-
     i_old = i;
   }
   
-
-  //for ( int k = 0; k < finalE_counter+3; ++k ){
-  //  std::cout << finalE[k] << std::endl;
- // }
-
   finalE[finalE_counter+1] = 2e7;
-  finalE.resize(finalE_counter+1);
-
-  //for ( int k = 0; k < finalE_counter+1; ++k ){
-  //  std::cout << finalE[k] << std::endl;
-  //}
-
+  finalE.resize(finalE_counter+2);
 
   return finalE;
-
-  //Float enext = vec1[0]*recon;
-  //size_t i = 1;
 
 }
 
