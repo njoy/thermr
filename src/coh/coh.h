@@ -15,8 +15,8 @@ auto findLocation( const Range& Egrid, const Float& bragg, int j = 0){
 }
 
 template <typename Float, typename Range>
-Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& vec1,
-  Range& vec2, const Float& emax, const Float& scon, const Float& recon, 
+Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& finalXS,
+  Range& vec1, Range& vec2, const Float& emax, const Float& scon, const Float& recon, 
   int nbragg, int& finalE_counter, const Float& tol, bool check ){
   Range s1 (6,0.0), s2(6,0.0);
 
@@ -26,11 +26,16 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& vec1,
   Float xm = (x1+x2)*0.5;
   if ( abs(x1-x2) < 3.0e-5*xm){
       finalE[++finalE_counter] = x2;
+      finalXS[finalE_counter] = s2[0];
+      //std::cout << x2 << "    " << s2[0] << std::endl;
+  //std::cout << std::endl;
       return enext2; 
   }
 
 
   Range sm(6,0.0);
+  //std::cout << std::endl;
+  //std::cout << std::endl;
   auto enextM = computeCrossSections( xm, vec1, vec2, emax, scon, recon, sm, nbragg );
 
   auto test1 = tol*sm[0];
@@ -39,16 +44,23 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& vec1,
 
   if ( check == false ){
     finalE[++finalE_counter] = x2;
+    finalXS[finalE_counter] = s2[0];
+    //std::cout << x2 << "    " << s2[0] << std::endl;
+  //std::cout << std::endl;
     return enext2;
   }
 
   if (abs(sm[0]-ym) <= test1 ){
     finalE[++finalE_counter] = x2;
+    finalXS[finalE_counter] = s2[0];
+    //std::cout << x2 << "    " << s2[0] << std::endl;
+  //std::cout << std::endl;
     return enext2;
   }
   else {
-    addPoint( x1, xm, finalE, vec1,  vec2, emax, scon, recon, nbragg, finalE_counter, tol, check );
-    return addPoint( xm, x2, finalE, vec1,  vec2, emax, scon, recon, nbragg, finalE_counter, tol , check);
+    addPoint( x1, xm, finalE, finalXS, vec1,  vec2, emax, scon, recon, nbragg, finalE_counter, tol, check );
+  //std::cout << std::endl;
+    return addPoint( xm, x2, finalE, finalXS, vec1,  vec2, emax, scon, recon, nbragg, finalE_counter, tol , check);
   }
 }
 
@@ -59,36 +71,62 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   std::vector<Float> vec1 (5000,0.0), vec2 (5000,0.0);
   auto out = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
   int nbragg = std::get<0>(out);
-  Float scon = std::get<0>(out);
+  Float scon = std::get<1>(out);
 
+  //std::cout << vec2[0] << "   " << vec2[1] << "   " << vec2[2] << std::endl;
   Float recon = 5.1803120897E-20;
 
-  Range braggs(int(1.5*nbragg),0.0);
+
+
+
+  Range braggs(int(5.5*nbragg),0.0);
   auto enext = vec1[0]*recon;
 
-  Range finalE (600,0.0);
+  Range finalE (1000,0.0);
+  Range finalXS (1000,0.0);
   finalE[0] = Egrid[0];
+  finalXS[0] = 0.0;
   int finalE_counter = 0;
   int i_old = 0;
  
-  for ( int ibragg = 0; ibragg < 1.5*nbragg; ++ibragg ){
+  for ( int ibragg = 0; ibragg < 5.5*nbragg; ++ibragg ){
     if (finalE[finalE_counter] > emax){ break; }
     int i = findLocation(Egrid,enext);
     if ( i > i_old ){
       for ( int k = i_old+1; k < i+1; ++k ){
-        enext = addPoint( finalE[finalE_counter], Egrid[k], finalE, vec1, vec2, emax, 
+        enext = addPoint( finalE[finalE_counter], Egrid[k], finalE, finalXS,
+                  vec1, vec2, emax, 
                   scon, recon, nbragg, finalE_counter, tol, false );
       }
     }
-    enext = addPoint( finalE[finalE_counter], enext, finalE, vec1, vec2, emax, 
+    enext = addPoint( finalE[finalE_counter], enext, finalE, finalXS, vec1, vec2, emax, 
               scon, recon, nbragg, finalE_counter, tol, true );
     i_old = i;
   }
-  
-  finalE[finalE_counter+1] = 2e7;
-  finalE.resize(finalE_counter+2);
+  if ( sigfig(finalE[finalE_counter],7,0) - sigfig(emax,7,0)  > 1e-6 ){
+      finalE[finalE_counter+1] = finalE[finalE_counter];
+      finalXS[finalE_counter+1] = finalXS[finalE_counter];
+      Range s(6,0.0);
+      computeCrossSections( emax, vec1, vec2, emax, scon, recon, s, nbragg );
+      finalE[finalE_counter] = emax;
+      finalXS[finalE_counter] = s[0];
+      ++finalE_counter;
+  }
 
-  return finalE;
+
+
+  
+  finalE[finalE_counter+1] = Egrid[Egrid.size()-1];
+  finalE.resize(finalE_counter+2);
+  finalXS[finalE_counter+1] = 0.0;
+  finalXS.resize(finalE_counter+2);
+  std::cout.precision(15);
+  for ( int j = 0; j < finalE_counter+2; ++j ){
+      //finalXS[j] = sigfig(finalXS[j],7,0);
+      std::cout << finalE[j] << "    " << finalXS[j] << std::endl;
+  }
+
+  return std::make_tuple(finalE,finalXS);
 
 }
 

@@ -261,13 +261,15 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
    for ( int il = 0; il < nl; ++il ){
       s[il] *= scon/e;
    }
-   //std::cout << "ELIM " << elim << std::endl;
    if (last == 1 or elim > emax ) { elim=emax; }
 
+   //std::cout << elim << "    " << sigfig(elim,7,-1) << std::endl;
    Float enext = sigfig(elim,7,-1);
    if (e > sigfig(enext,7,-1)){
      enext = sigfig(elim,7,+1);
    }
+   //std::cout << "           ENEXT " << enext << std::endl;
+   //std::cout << std::endl;
    return enext;
 }
 
