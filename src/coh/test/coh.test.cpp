@@ -210,6 +210,7 @@ TEST_CASE( "coh" ){
       
     } // WHEN
 
+    /*
     WHEN( "Hot temp (500 K), strict tolerance (1e-3), medium max energy (0.9eV)" ){
       double temp = 500.0, emax = 0.9;
       int lat = 1, numAtoms = 1;
@@ -789,6 +790,7 @@ TEST_CASE( "coh" ){
       REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
       REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
     } // WHEN
+    */
   } // GIVEN
 
 

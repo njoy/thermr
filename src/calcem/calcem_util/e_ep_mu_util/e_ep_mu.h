@@ -225,14 +225,14 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
     esi[ie] = enow; xsi[ie] = 0.0; ubar[ie] = 0.0;
     p2 [ie] = 0.0;  p3[ie] = 0.0;  ep       = 0.0; x[0] = ep;
 
-    auto s  = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
+    auto s  = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                   sigma_b2,teff,abs(nnl)-1,true);
 
     // Vector of xs for E->E' for nnl equiprobable angles (if nnl < 0) else the
     // legendre components (?)
 
     for ( int il = 0; il < nl; ++il ){
-      y[il*imax+0] = s[il];
-      //y[i*imax+j] = y(i,j) where this goes up to y(nlmax,imax)
+      y[il*imax+0] = s[il]; //y[i*imax+j] = y(i,j). max(i) = nlmax, max(j) = imax
     }
     jbeta = (lasym > 0) ? 1 : -betas.size();
     j     = 0;

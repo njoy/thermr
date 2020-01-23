@@ -25,6 +25,8 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& finalXS,
   auto enext1 = computeCrossSections( x1, vec1, vec2, emax, scon, recon, s1, nbragg );
   auto enext2 = computeCrossSections( x2, vec1, vec2, emax, scon, recon, s2, nbragg );
 
+  //if (egridPoint){ addedE[count2++] = x2; }
+
   Float xm = (x1+x2)*0.5;
 
   if ( abs(x1-x2) < 3.0e-5*xm){   // The energies are sufficiently close to each
@@ -48,13 +50,13 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& finalXS,
 
   else {
     // Add in any intermediate points that we need between left bound and middle
-    addPoint( x1, xm, finalE, finalXS, vec1,  vec2, emax, scon, recon, nbragg, counter, tol );
+    addPoint( x1, xm, finalE, finalXS, vec1,  vec2, emax, scon, recon, 
+              nbragg, counter, tol );
     // Add in any intermediate points that we need between middle and right bound
-    return addPoint( xm, x2, finalE, finalXS, vec1,  vec2, emax, scon, recon, nbragg, counter, tol );
+    return addPoint( xm, x2, finalE, finalXS, vec1,  vec2, emax, scon, recon, 
+           nbragg, counter, tol );
   }
 }
-
-
 
 template <typename Float, typename Range>
 auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Range& Egrid, const Float tol){
@@ -72,7 +74,7 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   finalE[0]  = Egrid[0];
   finalXS[0] = 0.0;
 
-  int counter = 0, i_old = 0;
+  int counter = 0, i_old = 0, count2 = 0;
  
   while (finalE[counter] <= emax) {
     if (counter > 0.8*finalE.size()){ 
@@ -82,7 +84,7 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
     int i = findLocation(Egrid,enext);
     if ( i > i_old ){
       for ( int k = i_old+1; k < i+1; ++k ){
-        enext = addPoint( finalE[counter], Egrid[k], finalE, finalXS,
+        enext = addPoint( finalE[counter], Egrid[k], finalE, finalXS, 
                   vec1, vec2, emax, scon, recon, nbragg, counter, tol );
       }
     }
@@ -109,7 +111,22 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   finalXS[counter+1] = 0.0;
   finalXS.resize(counter+2);
 
-  return std::make_tuple(finalE,finalXS);
+
+  Range addedE (finalE.size(),0.0);
+  int addedE_counter = 0;
+
+  for (size_t i = 0; i < finalE.size(); ++i){
+    for ( size_t j = 0; j < Egrid.size(); ++j ){
+        if ( abs(finalE[i]-Egrid[j])/finalE[i] < 1e-10 ){
+            addedE[addedE_counter++] = finalE[i];
+            break;
+        }
+    }
+  }
+
+  addedE.resize(addedE_counter);
+
+  return std::make_tuple(finalE,finalXS,addedE);
 
 }
 
