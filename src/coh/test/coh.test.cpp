@@ -4,6 +4,26 @@
 #include "generalTools/testing.h"
 
 
+template <typename Range>
+void checkAddedEnergies( const Range& finalE, const Range& eGrid, const Range& addedE ){
+  bool in_eGrid, in_addedE;
+  for ( const auto& E : finalE ){
+    in_eGrid  = false;
+    in_addedE = false;
+    for ( const auto& eGridVal : eGrid ){
+      if (E == Approx(eGridVal ).epsilon(1e-6)){ in_eGrid  = true; break; }
+    }
+    for ( const auto& addedEVal : addedE ){
+      if (E == Approx(addedEVal).epsilon(1e-6)){ in_addedE = true; break; }
+    }
+      REQUIRE( (in_eGrid == true  or in_addedE == true)  );
+      REQUIRE( (in_eGrid == false or in_addedE == false) );
+  }
+}
+
+
+
+
 TEST_CASE( "coh" ){
   std::vector<double> eGrid;
   eGrid = { 1E-5, 1.0625E-5, 1.125E-5, 1.1875E-5, 1.25E-5, 1.375E-5, 1.5E-5, 
@@ -49,10 +69,6 @@ TEST_CASE( "coh" ){
       int lat = 1, numAtoms = 1;
       double tol = 5e-2;
      
-      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
-      std::vector<double> finalE  = std::get<0>(out);
-      std::vector<double> finalXS = std::get<1>(out);
-
       std::vector<double> correct_finalE { 1.000000E-5, 1.062500E-5, 1.125000E-5, 
       1.187500E-5, 1.250000E-5, 1.375000E-5, 1.500000E-5, 1.625000E-5, 1.750000E-5, 
       1.875000E-5, 2.000000E-5, 2.187500E-5, 2.375000E-5, 2.562500E-5, 2.750000E-5, 
@@ -205,21 +221,25 @@ TEST_CASE( "coh" ){
       0.9809528, 0.9796903, 0.9797975, 0.9757782, 0.9757884, 0.9737450, 0.9737449, 
       0.0, 0.0 };
 
-      REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
-      REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
-      
+      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
+      std::vector<double> finalE  = std::get<0>(out),
+                          finalXS = std::get<1>(out),
+                          addedE  = std::get<2>(out);
+
+      THEN ( "final energies and xs value must match AND " 
+             "each finalE energy value must be in *either* eGrid or addedE" ){
+        REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
+        REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+        checkAddedEnergies( finalE, eGrid, addedE );
+      }
+
     } // WHEN
 
-    /*
     WHEN( "Hot temp (500 K), strict tolerance (1e-3), medium max energy (0.9eV)" ){
       double temp = 500.0, emax = 0.9;
       int lat = 1, numAtoms = 1;
       double tol = 1e-3;
      
-      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
-      std::vector<double> finalE  = std::get<0>(out);
-      std::vector<double> finalXS = std::get<1>(out);
-
       std::vector<double> correct_finalE;
       correct_finalE = { 1.E-5, 1.0625E-5, 1.125E-5, 1.1875E-5, 1.25E-5, 
       1.375E-5, 1.5E-5, 1.625E-5, 1.75E-5, 1.875E-5, 2.E-5, 2.1875E-5, 2.375E-5, 
@@ -378,9 +398,17 @@ TEST_CASE( "coh" ){
       0.4813959, 0.4813989, 0.4634470, 0.4581567, 0.4581568, 0.4574241, 0.4574247, 
       0.4505744, 0.4505743, 0, 0 };
 
+      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
+      std::vector<double> finalE  = std::get<0>(out),
+                          finalXS = std::get<1>(out),
+                          addedE  = std::get<2>(out);
 
-      REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
-      REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+      THEN ( "final energies and xs value must match AND " 
+             "each finalE energy value must be in *either* eGrid or addedE" ){
+        REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
+        REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+        checkAddedEnergies( finalE, eGrid, addedE );
+      } // THEN
       
     } // WHEN
   } // GIVEN
@@ -390,11 +418,6 @@ TEST_CASE( "coh" ){
       double temp = 296.0, emax = 1.025;
       int lat = 2, numAtoms = 1;
       double tol = 5e-2;
-      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
-      std::vector<double> finalE  = std::get<0>(out);
-      std::vector<double> finalXS = std::get<1>(out);
-
-
 
       std::vector<double> correct_finalE;
       correct_finalE = { 1.E-5, 1.0625E-5, 1.125E-5, 1.1875E-5, 1.25E-5, 
@@ -512,8 +535,19 @@ TEST_CASE( "coh" ){
       0.6464046, 0.6464045, 0.6448517, 0.6448519, 0.6437271, 0.6437271, 0.6429489, 
       0.6429513, 0.6234098, 0.6234120, 0.5936817, 0.5936817, 0.5930462, 0.5930470, 
       0.5745376, 0.5745380, 0.5719689, 0.5580190, 0.5580184, 0, 0 };
-      REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
-      REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+
+      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
+      std::vector<double> finalE  = std::get<0>(out),
+                          finalXS = std::get<1>(out),
+                          addedE  = std::get<2>(out);
+
+      THEN ( "final energies and xs value must match AND " 
+             "each finalE energy value must be in *either* eGrid or addedE" ){
+        REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
+        REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+        checkAddedEnergies( finalE, eGrid, addedE );
+      } // THEN
+ 
       
     } // WHEN
 
@@ -521,9 +555,6 @@ TEST_CASE( "coh" ){
       double temp = 400.0, emax = 1.0;
       int lat = 2, numAtoms = 1;
       double tol = 1e0;
-      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
-      std::vector<double> finalE  = std::get<0>(out);
-      std::vector<double> finalXS = std::get<1>(out);
 
       std::vector<double> correct_finalE;
       correct_finalE = { 1.000E-5, 1.0625E-5, 1.125E-5, 1.1875E-5, 1.250E-5, 
@@ -644,10 +675,17 @@ TEST_CASE( "coh" ){
       0.5041903, 0.4801457, 0.4801456, 0.4796316, 0.4796315, 0.4646620, 0.4646619, 
       0.4625845, 0.4625841, 0, 0 };
 
+      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
+      std::vector<double> finalE  = std::get<0>(out),
+                          finalXS = std::get<1>(out),
+                          addedE  = std::get<2>(out);
 
-
-      REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
-      REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+      THEN ( "final energies and xs value must match AND " 
+             "each finalE energy value must be in *either* eGrid or addedE" ){
+        REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
+        REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+        checkAddedEnergies( finalE, eGrid, addedE );
+      } // THEN
       
     } // WHEN
   } // GIVEN
@@ -661,11 +699,6 @@ TEST_CASE( "coh" ){
       double temp = 500.0, emax = 0.045;
       int lat = 3, numAtoms = 1;
       double tol = 9e-2;
-      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
-      std::vector<double> finalE  = std::get<0>(out);
-      std::vector<double> finalXS = std::get<1>(out);
-
-
 
       std::vector<double> correct_finalE;
       correct_finalE = { 1.E-5, 1.0625E-5, 1.125E-5, 1.1875E-5, 1.25E-5, 
@@ -717,8 +750,18 @@ TEST_CASE( "coh" ){
       8.734491, 9.131654, 9.091439, 9.157053, 8.587181, 8.419907, 8.838906, 
       8.752576, 8.834123, 8.568092, 8.574202, 8.558277, 8.558273, 8.463539, 
       8.242548, 8.242547, 0, 0};
-      REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
-      REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+
+      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
+      std::vector<double> finalE  = std::get<0>(out),
+                          finalXS = std::get<1>(out),
+                          addedE  = std::get<2>(out);
+
+      THEN ( "final energies and xs value must match AND " 
+             "each finalE energy value must be in *either* eGrid or addedE" ){
+        REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
+        REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+        checkAddedEnergies( finalE, eGrid, addedE );
+      } // THEN
       
     } // WHEN
   } // GIVEN
@@ -728,10 +771,6 @@ TEST_CASE( "coh" ){
       double temp = 500.0, emax = 0.045;
       int lat = 3, numAtoms = 1;
       double tol = 0.001;
-      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
-      std::vector<double> finalE  = std::get<0>(out);
-      std::vector<double> finalXS = std::get<1>(out);
-
 
 
       std::vector<double> correct_finalE;
@@ -787,10 +826,20 @@ TEST_CASE( "coh" ){
       8.823575, 8.790317, 8.790312, 8.734491, 9.131654, 9.091439, 9.157053, 
       8.862966, 8.587181, 8.419907, 8.838906, 8.752576, 8.834123, 8.568092, 
       8.574202, 8.558277, 8.558273, 8.463539, 8.242548, 8.242547, 0, 0 };
-      REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
-      REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+
+      auto out = coh(temp,lat,emax,numAtoms,eGrid,tol);
+      std::vector<double> finalE  = std::get<0>(out),
+                          finalXS = std::get<1>(out),
+                          addedE  = std::get<2>(out);
+
+      THEN ( "final energies and xs value must match AND " 
+             "each finalE energy value must be in *either* eGrid or addedE" ){
+        REQUIRE( ranges::equal(finalE,correct_finalE,equal) );
+        REQUIRE( ranges::equal(finalXS,correct_finalXS,equal) );
+        checkAddedEnergies( finalE, eGrid, addedE );
+      } // THEN
+
     } // WHEN
-    */
   } // GIVEN
 
 

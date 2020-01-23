@@ -113,15 +113,16 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
 
 
   Range addedE (finalE.size(),0.0);
-  int addedE_counter = 0;
-
+  bool newValue;
   for (size_t i = 0; i < finalE.size(); ++i){
+    newValue = true;
     for ( size_t j = 0; j < Egrid.size(); ++j ){
-        if ( abs(finalE[i]-Egrid[j])/finalE[i] < 1e-10 ){
-            addedE[addedE_counter++] = finalE[i];
-            break;
-        }
+      if ( abs(finalE[i]-Egrid[j])/finalE[i] < 2e-6 ){
+        newValue = false;
+        break;
+      }
     }
+    if (newValue) { addedE[addedE_counter++] = finalE[i]; }
   }
 
   addedE.resize(addedE_counter);
