@@ -127,11 +127,12 @@ inline auto addMidpointsRight(int& i, Range& muVec, Range& xsVec, const Float& e
 } 
 
 
+
 template <typename Range, typename Float>
 inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc, 
   const Range& alphas, const Range& betas, const Range& sab, Float az,
   int lasym, Float sigma_b, Float sigma_b2, Float teff ){
-  // This computes integral -1 -> +1 of sigma(E->E',mu) dmu
+  // This computes integral -1 -> +1 of sigma(E->E',mu) d mu
   // through trapezoidal integration
 
   using std::abs; using std::min; using std::pow;
@@ -159,34 +160,41 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   return pdf;
 }
 
+
+
+
+
+
 template <typename Range, typename Float>
 inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc, 
   const Range& alphas, const Range& betas, const Range& sab, Float az,
   int lasym, Float sigma_b, Float sigma_b2, Float teff, const int nbin, 
   bool equiprobableBins = true ){
-
   using std::abs; using std::min; using std::pow;
-
-  Range muVec(20), xsVec(20), s(nbin,0.0);
 
   tol *= 0.5;
 
+  // Integrate the incoherent inelastic scattering xs over all mu values, so 
+  // that we can later divide by the requested # of angle bins so that we know
+  // how much to fill up each bin
+  Range muVec(20), xsVec(20); 
   Float pdf = getPDF(ep, e, tev, tol, lat, iinc, alphas, betas, sab, az, lasym, 
                      sigma_b, sigma_b2, teff);
 
+
+  Range s(nbin,0.0);
   if ( pdf <= 1e-32 ){ return s; }
 
-  //std::cout << " --- 130 --- " << std::endl;
+
   initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
-                        sigma_b,sigma_b2,teff,iinc);
-  Float xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
-  Float muLeft = muVec[2],
+                        sigma_b,sigma_b2,teff,iinc); // 130
+
+  Float xsMax  = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001),
+        muLeft = muVec[2],
         xsLeft = xsVec[2],
         gral   = 0.0,
         sum    = 0.0,
-        // This ``fract'' is how much the integrated xs should be (roughly) 
-        // in each angle bin. 
-        fract  = pdf/(1.0*nbin);
+        fract  = pdf/(1.0*nbin); // about how much integrated xs we want per bin 
 
   int i = 3, j = 0;
 
@@ -197,13 +205,11 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
       if (muVec[i-1] == muLeft) {  
         // Is this our first time in the outer do loop? i.e. are we trying to
         // compare -1 with -1? If so, let's just move i down one and try again.
-        //std::cout << " --- 250 ---  "<< std::endl;
-        --i;
+        --i; //std::cout << " --- 250 ---  "<< std::endl;
         if ( i < 1 ){ return s; }
         if ( i > 1 ){ break; }
       }
 
-      //std::cout << "now I'm confident with " << muLeft << "  and   " << muVec[i-1] << "      " << i <<  "   " << j << std::endl;
       Float invDeltaMu = 1.0/(muVec[i-1]-muLeft);
 
       // This is the integrated little block of xs (from muLeft -> muVec[i-1]).
