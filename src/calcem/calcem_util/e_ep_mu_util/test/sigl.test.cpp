@@ -91,8 +91,8 @@ TEST_CASE( "Get pdf value" ){
     } // WHEN
   } // GIVEN
 } // TEST CASE
-
 /*
+
 */
 
 
@@ -112,7 +112,6 @@ TEST_CASE( "sigl" ){
   GIVEN ( "equiprobable angle bins are requested" ){
 
     bool equiprobableBins = true;
-
 
     WHEN ( "2 angular bins requested" ){
       nbin = 2;
@@ -141,6 +140,68 @@ TEST_CASE( "sigl" ){
       } // THEN
     } // WHEN
 
+    /*
+    */
+
+
+
+    WHEN ( "4 angular bins requested" ){
+      nbin = 4;
+
+      AND_WHEN( "we have room temperature water inputs" ){
+        sigma_b  = 163.727922;  sigma_b2 = 0.0;      tev   = 2.5507297688e-2;
+        teff     = 0.1204419;   az       = 0.99917;  
+        lasym    = 0;           lat      = 0;        iinc  = 2;
+
+        sab = { -0.1825961, -0.3020134, -3.9365477, -3.9880917, -4.3354560, 
+        -4.3951540, -5.8893492, -0.7622529, -0.8165834, -3.1416145, -3.3056618, 
+        -3.9055465, -3.9623336, -5.2369666, -1.1918288, -1.2315547, -2.7961056, 
+        -2.9563309, -3.7498922, -3.8083758, -4.9337391, -1.5834286, -1.6131071, 
+        -2.7123394, -2.8429160, -3.6969959, -3.7519934, -4.7743385, -1.9612120, 
+        -1.9872066, -2.7845460, -2.8853146, -3.7128812, -3.7714214, -4.7115839 };
+
+        
+        THEN( "mu bins are correctly generated for each E, E' combination" ){
+          std::cout.precision(15);
+          e = 1e-2;
+          epVec = { 1e-5, 1e-4, 1e-3, 1e-2 };
+          correctMu = { 
+                        { -0.7525806, -0.25574937, 0.24416911, 0.74731460 },
+                        { -0.7576714, -0.26752370, 0.23168669, 0.74130696 },
+                        { -0.7673533, -0.29204855, 0.20221922, 0.72482378 },
+                        { -0.5204081,  0.22722905, 0.71478052, 0.95924769 }
+          };
+
+          for ( size_t i = 0; i < correctMu.size(); ++i ){
+            s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                     sigma_b2,teff,nbin,equiprobableBins);
+            REQUIRE(ranges::equal(correctMu[i], s, equal));
+          }
+
+
+
+          e = 1e-2;
+          tolin = 1e-2;
+          epVec = { 1e-5, 1e-4, 1e-3, 1e-2 };
+          correctMu = {
+              { -0.7525806, -0.25574937, 0.24416911, 0.74731460 },
+              { -0.7576714, -0.26752370, 0.23168669, 0.74130696 },
+              { -0.7673533, -0.29204855, 0.20221922, 0.72482378 },
+              { -0.5226632,  0.22242174, 0.70996733, 0.95789197 } 
+          };
+
+          for ( size_t i = 0; i < correctMu.size(); ++i ){
+            s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                     sigma_b2,teff,nbin,equiprobableBins);
+            REQUIRE(ranges::equal(correctMu[i], s, equal));
+          }
+
+
+        } // THEN
+
+      } // AND WHEN
+
+    } // WHEN
 
     WHEN( "8 bins are requested" ){ 
       
@@ -241,6 +302,8 @@ TEST_CASE( "sigl" ){
         }
       } // THEN 
     } // WHEN 
+    /*
+*/
   } // GIVEN 
 }
 

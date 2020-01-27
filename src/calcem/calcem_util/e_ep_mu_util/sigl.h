@@ -151,6 +151,7 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
       xsLeft = xsVec[i-1];
       --i;
       muRight = muVec[i-1];
+
     } while ( i == 1 );
   } while ( i > 1 );
   return pdf;
@@ -229,7 +230,8 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
         // tally and giving it more and more bin bits until it looks like its 
         // about to overflow.
         j++;
-        Float mu = getNextMuValue(xs_per_bin, sum, xsVec, xsLeft, muLeft, muRight, i, invDeltaMu );
+        Float mu = getNextMuValue(xs_per_bin, sum, xsVec, xsLeft, muLeft, 
+                                  muRight, i, invDeltaMu );
         populateXSvector(xsVec, mu, invDeltaMu, muLeft, xsLeft, xs_per_bin, i, 
                          gral, nbin, s, j, equiprobableBins);
         sum = 0.0;

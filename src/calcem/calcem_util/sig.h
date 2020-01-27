@@ -80,19 +80,16 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
   const Float az, const Float tevz, const int lasym, const int lat, 
   const Float sigma_b, const Float sigma_b2, const Float teff, 
   const int iinc ){
-
  /*-------------------------------------------------------------------
   * Compute the differential scattering cross section from e to
   * ep through the angle with the cosine u from endf tabulated
   * data or an analytic law.
   *-------------------------------------------------------------------
   */
-  using std::abs; using std::distance; using std::pow;
-  using std::max;
+  using std::abs; using std::distance; using std::pow; using std::max;
 
-  Float sabflg=-225.e0, amin=1.e-6, test1=0.2e0, test2=30.e0;
-
-  Float sigc = sqrt(ep/e) / (2.0*tev);
+  Float sabflg=-225.e0, amin=1.e-6, test1=0.2e0, test2=30.e0,
+        sigc = sqrt(ep/e)/(2.0*tev);
 
   if (not (iinc == 1 or iinc == 2) ){ throw std::exception(); }
 

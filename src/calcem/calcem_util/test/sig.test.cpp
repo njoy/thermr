@@ -22,7 +22,6 @@ TEST_CASE( "get alpha, beta indices" ){
   REQUIRE( getIndices(alphas,alpha) == 2 );
   REQUIRE( getIndices(betas, beta ) == 3 );
 
-
   alpha = 2.6, beta =-1.35;
   REQUIRE( getIndices(alphas,alpha) == 2 );
   REQUIRE( getIndices(betas, beta ) == 1 );
@@ -31,10 +30,6 @@ TEST_CASE( "get alpha, beta indices" ){
   REQUIRE( getIndices(alphas,alpha) == 4 );
   REQUIRE( getIndices(betas, beta ) == 1 );
 
-
-  
-  
-
 } // TEST CASE
 
 
@@ -42,12 +37,9 @@ TEST_CASE( "get alpha, beta indices" ){
 
 
 TEST_CASE( "sig - free gas (iinc = 1)" ){
-  int iinc = 1;
-
-  int lasym = 0, lat = 1;
+  int iinc = 1, lasym = 0, lat = 1;
   double e = 1.0e-5, ep = 0.0, u = -1.0, tev = 2.5e-2, az = 11.9,
-    tevz = 2.53e-2, sb = 5.53, sb2 = 0.0,
-    teff = 6.14e-2, sigVal;
+    tevz = 2.53e-2, sb = 5.53, sb2 = 0.0, teff = 6.14e-2, sigVal;
 
   std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
                        beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
@@ -326,8 +318,105 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
         }
       }
     } // WHEN
-
   } // GIVEN
 } // TEST CASE
+
+
+
+
+
+
+
+
+
+
+
+
+TEST_CASE( "sig - additional because i'm spooked" ){
+  int lasym = 0, lat = 0, iinc = 2;
+
+  double e = 1.0e-2, ep = 1.0e-2, u = 1.0, tev = 2.5507297687999999E-002, az = 0.99917,
+    tevz = 2.53e-2, sb = 163.72792237360667, sb2 = 0.0,
+    teff = 0.12044192657731301;
+
+  double sigVal;
+
+  std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
+                       beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
+  std::vector<double> sab (alpha.size()*beta.size());
+
+  sab = { 
+
+ -0.18259619450343811,
+ -0.30201347821403990,
+  -3.9365477946016552,
+  -3.9880917447839432,
+  -4.3354560748618214,
+  -4.3951540230337844,
+  -5.8893492113551460,
+ -0.76225291555860053,
+ -0.81658341547833779,
+  -3.1416145973110434,
+  -3.3056618636120363,
+  -3.9055465231884647,
+  -3.9623336249041428,
+  -5.2369666084323878,
+  -1.1918288416393834,
+  -1.2315547119120109,
+  -2.7961056502182311,
+  -2.9563309997796829,
+  -3.7498922512606674,
+  -3.8083758567455739,
+  -4.9337391161748112,
+  -1.5834286060899199,
+  -1.6131071358084847,
+  -2.7123394367355611,
+  -2.8429160837626020,
+  -3.6969959035560183,
+  -3.7519934969692779,
+  -4.7743385860598142,
+  -1.9612120279318532,
+  -1.9872066311269845,
+  -2.7845460064772798,
+  -2.8853146068676256,
+  -3.7128812054039422,
+  -3.7714214156555439,
+  -4.7115839227552696 };
+
+
+
+  GIVEN ("alpha, beta values not scaled by 0.0253 (lat = 0)"){
+
+    WHEN( "either alpha or beta is outside of given range" ){
+      AND_WHEN( "various scattering cosines" ){
+        THEN( "SCT Approximation is used" ){
+            //std::cout.precision(15);
+            //std::cout << sigVal << std::endl;
+            u = 1.0;
+            sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz,
+                          lasym, lat, sb, sb2, teff, iinc );
+            REQUIRE( 2804297.7748918594 == Approx( sigVal ).epsilon(1e-6) );
+            u = 0.95;
+            sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz,
+                          lasym, lat, sb, sb2, teff, iinc );
+            REQUIRE( 14157.155384780059 == Approx( sigVal ).epsilon(1e-6) );
+            u = -0.95;
+            sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz,
+                          lasym, lat, sb, sb2, teff, iinc );
+            REQUIRE( 2093.6429488489475 == Approx( sigVal ).epsilon(1e-6) );
+
+
+
+        } // THEN
+      } // AND WHEN
+    } // WHEN
+  } // GIVEN 
+
+} // TEST CASE
+
+
+
+
+
 
 
