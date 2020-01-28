@@ -12,9 +12,10 @@ Float highTempApprox( const Float& T, const Float& enow, const Float& egrid_firs
 }
 
 template <typename Range, typename Float>
-bool needMidpoint(const Range& x, const Range& y, const Float& xm, const int& imax, 
+bool needMidpoint(const Range& x, const Range& y, const Float& xm, //const int& imax, 
   const int& i, const int& nl, const Range& s, const Float& tol ){
 
+  int imax = x.size();
   Float quickTest = 0.5*(y[0*imax+i-2] + y[0*imax+i-1])*(x[i-2] - x[i-1]), ym;
 
   if ( not ( i == imax or quickTest < 5e-7 or xm <= x[i-1] or xm >= x[i-2] )){ 
@@ -30,10 +31,10 @@ bool needMidpoint(const Range& x, const Range& y, const Float& xm, const int& im
       if ( abs(s[k]-ym) > test2 ){ return true; } // need midpoint
     }
 
-    std::cout << " --- 350 --- " << std::endl;
+    // 350
     if (abs(uu-uum) > 2*tol*abs(uu)+0.00001){ return true; } // need midpoint
   }
-  return false;
+  return false; // do not need to go to 410
 }
 
 
@@ -160,6 +161,53 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
 
 
 
+
+
+
+
+template <typename Range, typename Float>
+auto do_330( const Float& enow, Range& x, Range& y, int& i, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b, const Float& teff, const int nnl ){
+  int imax = x.size();
+  while (true){ 
+    std::cout << " --- 330 --- " << std::endl;
+
+    Float xm = 0.5*(x[i-2]+x[i-1]); xm = sigfig(xm,8,0);
+    s = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
+
+    if ( needMidpoint(x, y, xm, imax, i, nl, s, tol) == true ){ 
+      insertPoint(i, x, y, s, xm, nl, imax);
+      continue; 
+    }
+
+    output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last,
+      u3last, ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
+
+    if ( i < 2 ){ break; }
+
+  } // 330 LOOP
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 template <typename Range, typename Float>
 auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl, 
   int nl, Float tol, Float& sigma_b, Float& sigma_b2, Float az, int lasym, 
@@ -256,10 +304,12 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
       // adaptive subdivision of panel
       i = 2;
      
+
       while (true){ 
         std::cout << " --- 330 --- " << "   " << i << "   " << y[18] << std::endl;
 
         Float xm = 0.5*(x[i-2]+x[i-1]); xm = sigfig(xm,8,0);
+        s = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
 
         if ( needMidpoint(x, y, xm, imax, i, nl, s, tol) == true ){ 
           insertPoint(i, x, y, s, xm, nl, imax);
@@ -269,10 +319,12 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
         output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last,
           u3last, ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
 
-        if ( output_380 == 330 ){ continue; }
-        break;
+        if ( i < 2 ){ break; }
+        //if ( i >= 2 ){ continue; }   //if ( output_380 == 330 ){ continue; }
+        //break;
 
       } // 330 LOOP
+
       if ( output_380 == 311 ){ continue; } 
       break;
 

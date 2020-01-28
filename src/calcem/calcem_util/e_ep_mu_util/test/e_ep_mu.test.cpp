@@ -4,6 +4,42 @@
 #include "generalTools/testing.h"
 #include <range/v3/all.hpp>
 
+
+TEST_CASE( "do we need a midpoint" ){ 
+  std::vector<double> x(20,0.0), y(20*65,0.0); 
+  
+  std::vector<double> beginningOfY { 195158.09939262934, -0.87238772679496734, -0.61817875518802279, -0.36545660682035069, -0.11418564421716945, 0.13568062577950979, 0.38420180765640111, 0.63141488906433418, 0.87738226704862166 };
+
+  x[0] = 2.54E-3;
+  
+  for (size_t i = 0; i < beginningOfY.size(); ++i){ 
+    y[i*x.size()+0] = beginningOfY[i]; 
+  }
+
+
+
+  double xm = 1.27e-3;
+  std::vector<double> s { 235586.48147822541, -0.86806816809249565, -0.60677324533223020, -0.34926974510882292, -9.5577908119815064E-002, 0.15436521665672856, 0.40054354740949549, 0.64302993119542795, 0.88181200416435501, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+
+  int i = 2;
+  int nl = 9;
+  double tol = 1.0;
+  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == false );
+  tol = 1e-2;
+  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == true  );
+  tol = 5e-1;
+  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == true  );
+  tol = 0.56;
+  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == true  );
+  tol = 0.59;
+  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == false );
+
+
+} // TEST CASE
+
+
+
+
 /*
 
 TEST_CASE( "313" ) {
