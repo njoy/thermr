@@ -73,13 +73,14 @@ auto findFirstEprime( const int& lat, int& jbeta, const Float& E, //Float& Ep,
 
 
 template <typename Range, typename Float>
-auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, int nl, int imax) {
+auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, int nl ) {
   std::cout << " --- 410 ---" << std::endl;
   i += 1;
   x[i-1] = x[i-2];
   x[i-2] = xm;
+  int imax = x.size();
   for ( int il = 0; il < nl; ++il ){
-    y[il*imax+i-2] = y[il*imax+i-2];
+    y[il*imax+i-1] = y[il*imax+i-2];
     y[il*imax+i-2] = s[il];
   }
 }
@@ -166,21 +167,59 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
 
 
 template <typename Range, typename Float>
-auto do_330( const Float& enow, Range& x, Range& y, int& i, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b, const Float& teff, const int nnl ){
+auto do_330( const Float& enow, Range& x, Range& y, int& i, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl ){
   int imax = x.size();
   while (true){ 
     std::cout << " --- 330 --- " << std::endl;
 
     Float xm = 0.5*(x[i-2]+x[i-1]); xm = sigfig(xm,8,0);
-    s = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
+    Range s = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
 
-    if ( needMidpoint(x, y, xm, imax, i, nl, s, tol) == true ){ 
-      insertPoint(i, x, y, s, xm, nl, imax);
+    //std::cout << (s|ranges::view::all) << std::endl;
+    if ( needMidpoint(x, y, xm, i, nl, s, tol) == true ){ 
+      std::cout << "need point" << std::endl;
+
+      /*
+      */
+      std::cout << y[0*imax+0] << std::endl;
+      std::cout << y[0*imax+1] << std::endl;
+      std::cout << y[0*imax+2] << std::endl;
+      std::cout << std::endl;
+      std::cout << y[1*imax+0] << std::endl;
+      std::cout << y[1*imax+1] << std::endl;
+      std::cout << y[1*imax+2] << std::endl;
+      //std::cout << x[0] << "   " << x[1] << "   " << x[2]  << std::endl;
+
+      std::cout << std::endl;
+
+      // make it so that sigl can output the sum (PDF) so taht you can put thatin the 0*imax index of y
+
+      std::cout << s[0] << "  " << s[1] << "  " << s[2] << std::endl;
+
+      insertPoint(i, x, y, s, xm, nl );
+
+      //std::cout << x[0] << "   " << x[1] << "   " << x[2]  << std::endl;
+      std::cout << y[0*imax+0] << std::endl;
+      std::cout << y[0*imax+1] << std::endl;
+      std::cout << y[0*imax+2] << std::endl;
+      std::cout << std::endl;
+      std::cout << y[1*imax+0] << std::endl;
+      std::cout << y[1*imax+1] << std::endl;
+      std::cout << y[1*imax+2] << std::endl;
+      /*
+      */
+
+
+      return;
+
+
+
       continue; 
     }
+    return;
 
-    output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last,
-      u3last, ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
+    //output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last,
+    //  u3last, ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
 
     if ( i < 2 ){ break; }
 
