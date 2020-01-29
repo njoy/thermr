@@ -68,9 +68,15 @@ TEST_CASE( "do 330" ){
   int jbeta = 1;
   int j = 0;
 
-  do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta);
+  auto out = do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta);
 
-
+  double ulast  = std::get<0>(out),
+         u2last = std::get<1>(out),
+         u3last = std::get<2>(out);
+  REQUIRE( 2609.6738282559536  == Approx(ulast ).epsilon(1e-6) );
+  REQUIRE( -6650.1536099993054 == Approx(u2last).epsilon(1e-6) );
+  REQUIRE( 358.74711507405004l == Approx(u3last).epsilon(1e-6) );
+  
   std::vector<double> correctX {2.5607298000002560E-003, 1.9205474000001919E-003, 1.2803649000001280E-003, 3.2009123000003198E-004, 1.6004562000001597E-004, 8.0022810000007999E-005, 4.0011405000004000E-005, 2.0005703000001998E-005, 1.0002852000000999E-005, 5.0014260000005001E-006, 2.5007130000002501E-006, 1.2503565000001250E-006, 6.2517825000006252E-007, 3.1258913000003122E-007, 1.5629457000001563E-007, 7.8147285000007815E-008, 3.9073643000003909E-008, 1.9536822000001953E-008, 9.7684110000009766E-009, 0.0000000000000000};
   REQUIRE( ranges::equal(x,correctX,equal) );
   //std::cout << y[18] << "  " << y[19] << "  " << y[20] << std::endl;

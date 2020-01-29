@@ -183,95 +183,79 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
 
 
 
+template <typename Range, typename Float> 
+auto getMoments(Float& ulast, Float& u2last, Float& u3last, const Range& y, const int& i, const int& imax, const int& nl ){
+  ulast  = 0; 
+  u2last = 0; 
+  u3last = 0;
+
+  int nll = 3;
+  Range p(4,0.0);
+  for ( int il = 1; il < nl; ++il ){
+    legndr(y[il*imax+i-1],p,nll);
+    ulast  += p[1];
+    u2last += p[2];
+    u3last += p[3];
+  }
+  ulast  *= (y[0*imax+i-1]/(nl-1));
+  u2last *= (y[0*imax+i-1]/(nl-1));
+  u3last *= (y[0*imax+i-1]/(nl-1));
+  //std::cout << ulast << "   " << u2last << "  " << u3last << std::endl;
+  
+}
+
+
+
+
+
 
 template <typename Range, typename Float>
 auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta ){
   int imax = x.size();
-  //Range pdfVals (imax,0.0);
-  int iflag = 1;
   while (true){ 
     std::cout << " --- 330 --- " << i << "     " << j << "    " << jbeta << std::endl;
-    //std::cout << (x|ranges::view::all) << std::endl;
 
     if ( i < imax ){
       Float xm = 0.5*(x[i-2]+x[i-1]); xm = sigfig(xm,8,0);
-      //if (iflag == 4){ 
-      //    std::cout << xm << std::endl;
-      //    return;
-     // }
+
       Range s(abs(nnl)-1,0.0);
       Float pdf = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
   
-      //std::cout << xm << std::endl;
-      //std::cout << (s|ranges::view::all) << std::endl;
-      //std::cout << std::endl;
       if ( needMidpoint(x, y, xm, i, nl, s, tol, pdf) == true ){ 
-        //std::cout << "need point" << std::endl;
-        //  std::cout << (s|ranges::view::all) << std::endl;
-        //return;
         insertPoint(i, x, y, s, xm, nl, pdf );
-        //std::cout << y[1*imax+0] << std::endl;
-        //std::cout << y[1*imax+1] << std::endl;
-        //std::cout << y[1*imax+2] << std::endl;
-        //std::cout << y[1*imax+3] << std::endl;
-  
         continue; 
       }
     }
-    //std::cout << (y|ranges::view::all) << std::endl;
-    /*
-    std::cout << y[4*imax+0] << std::endl;
-    std::cout << y[4*imax+1] << std::endl;
-    std::cout << y[4*imax+2] << std::endl;
-    std::cout << y[4*imax+3] << std::endl;
-    std::cout << y[4*imax+4] << std::endl;
-    std::cout << y[4*imax+5] << std::endl;
-    std::cout << y[4*imax+6] << std::endl;
-    std::cout << y[4*imax+7] << std::endl;
-    std::cout << y[4*imax+8] << std::endl;
-    */
 
     ++j;
 
-    //if ( j > 10 ){ return; }
     
+    y[0*imax+i-1] = (y[0*imax+i-1] < 1e-9) ? 
+                    sigfig(y[0*imax+i-1],8,0) 
+                  : sigfig(y[0*imax+i-1],8,0) ;
 
-    if ( y[0*imax+i-1] >= 1e-9 ){
-        //std::cout << "NINE" << std::endl;
-      y[0*imax+i-1] = sigfig(y[0*imax+i-1],9,0);
+    for ( int il = 1; il < nl; ++il ){
+      y[il*imax+i-1] = sigfig(y[il*imax+i-1],9,0);
+      if (y[il*imax+i-1] > 1.0){ y[il*imax+i-1] = 1.0; }
+      if (y[il*imax+i-1] <-1.0){ y[il*imax+i-1] =-1.0; }
     }
-    else {
-      y[0*imax+i-1] = sigfig(y[0*imax+i-1],8,0);
-    }
-    std::cout << "                                " << y[0*imax+i-1] << std::endl;
 
-
-
+    Float ulast, u2last, u3last;
+    getMoments(ulast, u2last, u3last, y, i, x.size(), nl);
 
     --i;
-    //std::cout << i << std::endl;
     if ( i >= 2 ){ 
-        //std::cout << " here " << i << std::endl;
-        //iflag = 4;
         continue; 
     } // go to 330
     jbeta += 1;
-    //std::cout << "     ----------  " << jbeta << "    " << betas.size() << std::endl;
-    if (jbeta <= int(betas.size()) ){ std::cout << "go to 311" << std::endl; return; }
+    if (jbeta <= int(betas.size()) ){ 
+        std::cout << "go to 311" << std::endl; 
+        return std::make_tuple(ulast,u2last,u3last); 
+    }
     for ( auto& yVal : y ){ yVal = 0.0; }
-
-
-
-
-
     std::cout << " go to 430 " << std::endl; 
-    return;
+    return std::make_tuple(ulast,u2last,u3last); 
     
-    //output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last,
-    //  u3last, ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
-
-
-
   } // 330 LOOP
 }
 
