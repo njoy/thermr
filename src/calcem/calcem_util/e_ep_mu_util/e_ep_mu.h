@@ -228,15 +228,22 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
     ++j;
 
     
-    y[0*imax+i-1] = (y[0*imax+i-1] < 1e-9) ? 
-                    sigfig(y[0*imax+i-1],8,0) 
-                  : sigfig(y[0*imax+i-1],8,0) ;
+    //y[0*imax+i-1] = (y[0*imax+i-1] < 1e-9) ? 
+    //                sigfig(y[0*imax+i-1],8,0) 
+    //              : sigfig(y[0*imax+i-1],8,0) ;
+
+    std::cout << x[i-1] << std::endl;
+    std::cout << sigfig(y[0*imax+i-1],8,0) << std::endl;
+
 
     for ( int il = 1; il < nl; ++il ){
+      std::cout << sigfig(y[il*imax+i-1],9,0) << std::endl;
       y[il*imax+i-1] = sigfig(y[il*imax+i-1],9,0);
       if (y[il*imax+i-1] > 1.0){ y[il*imax+i-1] = 1.0; }
       if (y[il*imax+i-1] <-1.0){ y[il*imax+i-1] =-1.0; }
     }
+
+    std::cout << std::endl;
 
     Float ulast, u2last, u3last;
     getMoments(ulast, u2last, u3last, y, i, x.size(), nl);
@@ -246,11 +253,10 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
 
     ++jbeta;
     if (jbeta <= int(betas.size()) ){ 
-        std::cout << "go to 311" << std::endl; 
+        //std::cout << "go to 311" << std::endl; 
         return std::make_tuple(ulast,u2last,u3last); 
     }
-    for ( auto& yVal : y ){ yVal = 0.0; }
-    std::cout << " go to 430 " << std::endl; 
+    //std::cout << " go to 430 " << std::endl; 
     return std::make_tuple(ulast,u2last,u3last); 
     
   } // 330 LOOP
@@ -265,16 +271,72 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
 
 
 template <typename Range, typename Float>
-auto do_330_extra( const Float& enow, Range& x, Range& y, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta ){
-
-  Float ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); // 313
-  return;
-
-  int i = 2;
-
-  do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta);
+auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta ){
 
 
+  Range x(20,0.0), y(20*65,0.0);
+  int imax = x.size();
+
+  while (true) {
+    x[1] = x[0];
+  
+    for ( int il = 0; il < nl; ++il ){
+      y[il*imax+1] = y[il*imax+0];
+    }
+
+    Float ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); // 313
+    ep = sigfig(ep,8,0);
+    x[0] = ep;
+
+    Range s(abs(nnl)-1,0.0);
+    Float pdf = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
+  
+    y[0*imax+0] = pdf;
+    for ( int il = 1; il < nl; ++il ){ y[il*imax+0] = s[il-1]; }
+  
+    //std::cout << jbeta << "     " << ep << std::endl;
+    //std::cout << y[0*imax+0] << "   " << y[0*imax+1] << "   " << y[0*imax+2] << std::endl;
+    //std::cout << y[1*imax+0] << "   " << y[1*imax+1] << "   " << y[1*imax+2] << std::endl;
+    //std::cout << y[2*imax+0] << "   " << y[2*imax+1] << "   " << y[2*imax+2] << std::endl;
+    //std::cout << std::endl;
+
+
+    int i = 2;
+  
+    do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta);
+
+    //std::cout << "go to 311" << std::endl; 
+    //std::cout << std::endl; 
+    /*
+    std::cout << jbeta << "     " << ep << std::endl;
+    std::cout << y[0*imax+0] << "   " << y[0*imax+1] << "   " << y[0*imax+2] << std::endl;
+    std::cout << y[1*imax+0] << "   " << y[1*imax+1] << "   " << y[1*imax+2] << std::endl;
+    std::cout << y[2*imax+0] << "   " << y[2*imax+1] << "   " << y[2*imax+2] << std::endl;
+    std::cout << y[3*imax+0] << "   " << y[3*imax+1] << "   " << y[3*imax+2] << std::endl;
+    std::cout << y[4*imax+0] << "   " << y[4*imax+1] << "   " << y[4*imax+2] << std::endl;
+    std::cout << y[5*imax+0] << "   " << y[5*imax+1] << "   " << y[5*imax+2] << std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
+    */
+    //return;
+
+    if (jbeta <= int(betas.size())){ 
+      continue;
+    }
+    else {
+      //std::cout << " go to 430 " << std::endl; 
+      for ( auto& yVal : y ){ yVal = 0.0; }
+      std::cout << ep << std::endl;
+      std::cout << sigfig(y[0*imax+i-1],8,0) << std::endl;
+      for ( int il = 1; il < nl; ++il ){
+        std::cout << sigfig(y[il*imax+i-1],9,0) << std::endl;
+      }
+
+      return;
+    }
+
+
+  }
 
 
 }

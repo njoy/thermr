@@ -261,7 +261,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
   double enow = 1e-5;
   std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
                        betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 },
-                       sab { -0.18259619, -0.30201347, -3.93654779, -3.98809174, 
+                       sab {-0.18259619, -0.30201347, -3.93654779, -3.98809174, 
   -4.33545607, -4.39515402, -5.88934921, -0.76225291, -0.81658341, -3.14161459, 
   -3.30566186, -3.90554652, -3.96233362, -5.23696660, -1.19182884, -1.23155471, 
   -2.79610565, -2.95633099, -3.74989225, -3.80837585, -4.93373911, -1.58342860, 
@@ -273,7 +273,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
   int nnl = -5, nl = 5, jbeta = 1,j = 0;
 
 
-  do_330_extra(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta);
+  do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta);
 
 
 
