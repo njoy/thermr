@@ -61,12 +61,9 @@ auto findFirstEprime( const int& lat, int& jbeta, const Float& E, //Float& Ep,
   //
   // Basically, we're trying to figure out the Ep the index of the lowest beta
   // value that can be invoked, and the corresponding E' value.
-
   using std::abs;
   int sign; Float Ep;
-
-  do {
-    //std::cout << " --- 313 --- " << std::endl;
+  do { //std::cout << " --- 313 --- " << std::endl;
     if ( jbeta == 0 ){ jbeta = 1; }
     sign = abs(jbeta) / jbeta;
     Ep = ( lat == 1 ) ? E + sign*betas[abs(jbeta)-1]*0.0253 
@@ -85,7 +82,7 @@ auto findFirstEprime( const int& lat, int& jbeta, const Float& E, //Float& Ep,
 
 template <typename Range, typename Float>
 auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, int nl, const Float& pdf ) {
-  std::cout << " --- 410 ---" << std::endl;
+  //std::cout << " --- 410 ---" << std::endl;
   i += 1;
   x[i-1] = x[i-2];
   x[i-2] = xm;
@@ -102,6 +99,7 @@ auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, in
 
 
 
+/*
 
 template <typename Range, typename Float> 
 auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr, 
@@ -178,6 +176,7 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
   return 430;
 }
 
+*/
 
 
 
@@ -213,11 +212,10 @@ template <typename Range, typename Float>
 auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta ){
   int imax = x.size();
   while (true){ 
-    std::cout << " --- 330 --- " << i << "     " << j << "    " << jbeta << std::endl;
+    //std::cout << " --- 330 --- " << i << "     " << j << "    " << jbeta << std::endl;
 
     if ( i < imax ){
       Float xm = 0.5*(x[i-2]+x[i-1]); xm = sigfig(xm,8,0);
-
       Range s(abs(nnl)-1,0.0);
       Float pdf = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
   
@@ -244,10 +242,9 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
     getMoments(ulast, u2last, u3last, y, i, x.size(), nl);
 
     --i;
-    if ( i >= 2 ){ 
-        continue; 
-    } // go to 330
-    jbeta += 1;
+    if ( i >= 2 ){ continue; } // go to 330
+
+    ++jbeta;
     if (jbeta <= int(betas.size()) ){ 
         std::cout << "go to 311" << std::endl; 
         return std::make_tuple(ulast,u2last,u3last); 
@@ -267,8 +264,20 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
 
 
 
+template <typename Range, typename Float>
+auto do_330_extra( const Float& enow, Range& x, Range& y, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta ){
+
+  Float ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); // 313
+  return;
+
+  int i = 2;
+
+  do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta);
 
 
+
+
+}
 
 
 
