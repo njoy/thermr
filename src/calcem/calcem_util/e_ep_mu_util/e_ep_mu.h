@@ -13,22 +13,33 @@ Float highTempApprox( const Float& T, const Float& enow, const Float& egrid_firs
 
 template <typename Range, typename Float>
 bool needMidpoint(const Range& x, const Range& y, const Float& xm, //const int& imax, 
-  const int& i, const int& nl, const Range& s, const Float& tol ){
+  const int& i, const int& nl, const Range& s, const Float& tol, const Float& pdf ){
 
   int imax = x.size();
   Float quickTest = 0.5*(y[0*imax+i-2] + y[0*imax+i-1])*(x[i-2] - x[i-1]), ym;
 
   if ( not ( i == imax or quickTest < 5e-7 or xm <= x[i-1] or xm >= x[i-2] )){ 
     Float uu  = 0, uum = 0;
+
     for ( int k = 0; k < nl; ++k ){
       ym = ( x[i-2] == x[i-1] ) ? 
         y[k*imax+i-1] :
         y[k*imax+i-1] + (xm-x[i-1])*(y[k*imax+i-2]-y[k*imax+i-1])/(x[i-2]-x[i-1]);
+      //std::cout << "ym   " << ym << std::endl;
 
-      if ( k > 0 ){ uu  += s[k]; uum += ym;  }
+      if ( k > 0 ){ uu  += s[k-1]; uum += ym;  }
 
-      Float test2 = ( k > 0 ) ? tol : tol*abs(s[k]);
-      if ( abs(s[k]-ym) > test2 ){ return true; } // need midpoint
+      Float test2 = ( k > 0 ) ? tol : tol*abs(pdf);
+      //Float test2 = ( k > 0 ) ? tol : tol*abs(s[k]);
+
+      if ( k == 0 ){
+        //std::cout << "     " << pdf << "   " << ym  << std::endl;
+        if ( abs(pdf-ym) > test2 ){ return true; } // need midpoint
+      }
+      else {
+        //std::cout << "     " << s[k-1]<< "   " << ym  << std::endl;
+        if ( abs(s[k-1]-ym) > test2 ){ return true; } // need midpoint
+      }
     }
 
     // 350
@@ -73,17 +84,24 @@ auto findFirstEprime( const int& lat, int& jbeta, const Float& E, //Float& Ep,
 
 
 template <typename Range, typename Float>
-auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, int nl ) {
+auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, int nl, const Float& pdf ) {
   std::cout << " --- 410 ---" << std::endl;
   i += 1;
   x[i-1] = x[i-2];
   x[i-2] = xm;
   int imax = x.size();
-  for ( int il = 0; il < nl; ++il ){
+
+  y[0*imax+i-1] = y[0*imax+i-2];
+  y[0*imax+i-2] = pdf;
+
+  for ( int il = 1; il < nl; ++il ){
     y[il*imax+i-1] = y[il*imax+i-2];
-    y[il*imax+i-2] = s[il];
+    y[il*imax+i-2] = s[il-1];
   }
 }
+
+
+
 
 template <typename Range, typename Float> 
 auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr, 
@@ -167,61 +185,92 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
 
 
 template <typename Range, typename Float>
-auto do_330( const Float& enow, Range& x, Range& y, int& i, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl ){
+auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta ){
   int imax = x.size();
+  //Range pdfVals (imax,0.0);
+  int iflag = 1;
   while (true){ 
-    std::cout << " --- 330 --- " << std::endl;
+    std::cout << " --- 330 --- " << i << "     " << j << "    " << jbeta << std::endl;
+    //std::cout << (x|ranges::view::all) << std::endl;
 
-    Float xm = 0.5*(x[i-2]+x[i-1]); xm = sigfig(xm,8,0);
-    Range s = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
-
-    //std::cout << (s|ranges::view::all) << std::endl;
-    if ( needMidpoint(x, y, xm, i, nl, s, tol) == true ){ 
-      std::cout << "need point" << std::endl;
-
-      /*
-      */
-      std::cout << y[0*imax+0] << std::endl;
-      std::cout << y[0*imax+1] << std::endl;
-      std::cout << y[0*imax+2] << std::endl;
-      std::cout << std::endl;
-      std::cout << y[1*imax+0] << std::endl;
-      std::cout << y[1*imax+1] << std::endl;
-      std::cout << y[1*imax+2] << std::endl;
-      //std::cout << x[0] << "   " << x[1] << "   " << x[2]  << std::endl;
-
-      std::cout << std::endl;
-
-      // make it so that sigl can output the sum (PDF) so taht you can put thatin the 0*imax index of y
-
-      std::cout << s[0] << "  " << s[1] << "  " << s[2] << std::endl;
-
-      insertPoint(i, x, y, s, xm, nl );
-
-      //std::cout << x[0] << "   " << x[1] << "   " << x[2]  << std::endl;
-      std::cout << y[0*imax+0] << std::endl;
-      std::cout << y[0*imax+1] << std::endl;
-      std::cout << y[0*imax+2] << std::endl;
-      std::cout << std::endl;
-      std::cout << y[1*imax+0] << std::endl;
-      std::cout << y[1*imax+1] << std::endl;
-      std::cout << y[1*imax+2] << std::endl;
-      /*
-      */
-
-
-      return;
-
-
-
-      continue; 
+    if ( i < imax ){
+      Float xm = 0.5*(x[i-2]+x[i-1]); xm = sigfig(xm,8,0);
+      //if (iflag == 4){ 
+      //    std::cout << xm << std::endl;
+      //    return;
+     // }
+      Range s(abs(nnl)-1,0.0);
+      Float pdf = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
+  
+      //std::cout << xm << std::endl;
+      //std::cout << (s|ranges::view::all) << std::endl;
+      //std::cout << std::endl;
+      if ( needMidpoint(x, y, xm, i, nl, s, tol, pdf) == true ){ 
+        //std::cout << "need point" << std::endl;
+        //  std::cout << (s|ranges::view::all) << std::endl;
+        //return;
+        insertPoint(i, x, y, s, xm, nl, pdf );
+        //std::cout << y[1*imax+0] << std::endl;
+        //std::cout << y[1*imax+1] << std::endl;
+        //std::cout << y[1*imax+2] << std::endl;
+        //std::cout << y[1*imax+3] << std::endl;
+  
+        continue; 
+      }
     }
-    return;
+    //std::cout << (y|ranges::view::all) << std::endl;
+    /*
+    std::cout << y[4*imax+0] << std::endl;
+    std::cout << y[4*imax+1] << std::endl;
+    std::cout << y[4*imax+2] << std::endl;
+    std::cout << y[4*imax+3] << std::endl;
+    std::cout << y[4*imax+4] << std::endl;
+    std::cout << y[4*imax+5] << std::endl;
+    std::cout << y[4*imax+6] << std::endl;
+    std::cout << y[4*imax+7] << std::endl;
+    std::cout << y[4*imax+8] << std::endl;
+    */
 
+    ++j;
+
+    //if ( j > 10 ){ return; }
+    
+
+    if ( y[0*imax+i-1] >= 1e-9 ){
+        //std::cout << "NINE" << std::endl;
+      y[0*imax+i-1] = sigfig(y[0*imax+i-1],9,0);
+    }
+    else {
+      y[0*imax+i-1] = sigfig(y[0*imax+i-1],8,0);
+    }
+    std::cout << "                                " << y[0*imax+i-1] << std::endl;
+
+
+
+
+    --i;
+    //std::cout << i << std::endl;
+    if ( i >= 2 ){ 
+        //std::cout << " here " << i << std::endl;
+        //iflag = 4;
+        continue; 
+    } // go to 330
+    jbeta += 1;
+    //std::cout << "     ----------  " << jbeta << "    " << betas.size() << std::endl;
+    if (jbeta <= int(betas.size()) ){ std::cout << "go to 311" << std::endl; return; }
+    for ( auto& yVal : y ){ yVal = 0.0; }
+
+
+
+
+
+    std::cout << " go to 430 " << std::endl; 
+    return;
+    
     //output_380 = do_360( xsi, x, y, xlast, ylast, i, j,  nl, ulast, u2last,
     //  u3last, ubar, p2, p3, imax, jmax, ie, jnz, jbeta, betas.size(), scr );
 
-    if ( i < 2 ){ break; }
+
 
   } // 330 LOOP
 }
@@ -312,8 +361,9 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
     esi[ie] = enow; xsi[ie] = 0.0; ubar[ie] = 0.0;
     p2 [ie] = 0.0;  p3[ie] = 0.0;  ep       = 0.0; x[0] = ep;
 
-    auto s  = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-                   sigma_b2,teff,abs(nnl)-1,true);
+    Range s(abs(nnl)-1,0.0);
+    Float pdf = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                   sigma_b2,teff,s,true);
 
     // Vector of xs for E->E' for nnl equiprobable angles (if nnl < 0) else the
     // legendre components (?)
@@ -337,7 +387,8 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
 
       std::cout << " --- 316 ---" << std::endl; 
       x[0] = ep;
-      s = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
+      Range s(abs(nnl)-1,0.0);
+      auto pdf =  sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
       for ( int il = 0; il < nl; ++il ){ y[il*imax+0] = s[il]; }
 
       // adaptive subdivision of panel
@@ -348,7 +399,7 @@ auto e_ep_mu( Float T, Float& teff, Float& teff2, int jmax, int nne, int nnl,
         std::cout << " --- 330 --- " << "   " << i << "   " << y[18] << std::endl;
 
         Float xm = 0.5*(x[i-2]+x[i-1]); xm = sigfig(xm,8,0);
-        s = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,abs(nnl)-1,true);
+        pdf = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
 
         if ( needMidpoint(x, y, xm, imax, i, nl, s, tol) == true ){ 
           insertPoint(i, x, y, s, xm, nl, imax);

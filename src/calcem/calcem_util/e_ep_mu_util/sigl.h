@@ -165,10 +165,12 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
 template <typename Range, typename Float>
 inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc, 
   const Range& alphas, const Range& betas, const Range& sab, Float az,
-  int lasym, Float sigma_b, Float sigma_b2, Float teff, const int nbin, 
+  int lasym, Float sigma_b, Float sigma_b2, Float teff, Range& s, 
   bool equiprobableBins = true ){
   using std::abs; using std::min; using std::pow;
 
+  int nbin = s.size();
+  for ( auto& sVal : s ){ sVal = 0.0; }
   tol *= 0.5;
 
   // Integrate the incoherent inelastic scattering xs over all mu values, so 
@@ -177,8 +179,8 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   Float pdf = getPDF(ep, e, tev, tol, lat, iinc, alphas, betas, sab, az, lasym, 
                      sigma_b, sigma_b2, teff);
 
-  Range s(nbin,0.0);
-  if ( pdf <= 1e-32 ){ return s; }
+  //Range s(nbin,0.0);
+  if ( pdf <= 1e-32 ){ return pdf; }
 
   Range muVec(20), xsVec(20); 
   initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
@@ -204,7 +206,7 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
         // compare -1 with -1? If so, let's just move i down one and try again.
         --i; //std::cout << " --- 250 ---  "<< std::endl;
         muRight = muVec[i-1];
-        if ( i < 1 ){ return s; }
+        if ( i < 1 ){ return pdf; }
         if ( i > 1 ){ break; }
       }
 
@@ -221,7 +223,7 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
         Float mu = muRight;
         populateXSvector(xsVec, mu, invDeltaMu, muLeft, xsLeft, xs_per_bin, i, 
                          gral, nbin, s, j, equiprobableBins);
-        return s;
+        return pdf;
       }
       else if ( sum + add >= xs_per_bin * 0.99999999 and j < nbin-1 ){
         // Here, we're trying to get sum+add as close to possible as xs_per_bin. 
@@ -242,7 +244,7 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
           xsLeft = xsVec[i-1];
           --i;
           muRight = muVec[i-1];
-          if ( i < 1 ){ return s; }
+          if ( i < 1 ){ return pdf; }
           if ( i > 1 ){ break; }
         }
       }
@@ -262,7 +264,7 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
 
   } while ( i > 1 );
 
-  return s;
+  return pdf;
 }
 
 

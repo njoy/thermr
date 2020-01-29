@@ -108,6 +108,7 @@ TEST_CASE( "sigl" ){
 
   std::vector<double> epVec, s;
   std::vector<std::vector<double>> correctMu;
+  double pdfVal;
 
   GIVEN ( "equiprobable angle bins are requested" ){
 
@@ -115,6 +116,7 @@ TEST_CASE( "sigl" ){
 
     WHEN ( "2 angular bins requested" ){
       nbin = 2;
+      std::vector<double> s(nbin,0.0);
 
       THEN( "mu bins are correctly generated for each E, E' combination" ){
         e = 1e-2;
@@ -123,8 +125,8 @@ TEST_CASE( "sigl" ){
                       { 0.2550645, 0.8945141 }, {-0.5002791, 0.4996727 },
                       {-0.5000937, 0.4999014 }, {-0.5000301, 0.4999693 } };
         for ( size_t i = 0; i < correctMu.size(); ++i ){
-          s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-                   sigma_b2,teff,nbin,equiprobableBins);
+          pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                   sigma_b2,teff,s,equiprobableBins);
           REQUIRE(ranges::equal(correctMu[i], s, equal));
         }
 
@@ -133,20 +135,19 @@ TEST_CASE( "sigl" ){
         correctMu = { {-0.458477, 0.527666}, {-0.289542, 0.581023}, 
                       { 0.300582, 0.783071}, { 0.914921, 0.999029}, { 0, 0 } };
         for ( size_t i = 0; i < correctMu.size(); ++i ){
-          s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-                   sigma_b2,teff,nbin,equiprobableBins);
+          pdfVal =  sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                   sigma_b2,teff,s,equiprobableBins);
           REQUIRE(ranges::equal(correctMu[i], s, equal));
         }
       } // THEN
     } // WHEN
 
-    /*
-    */
 
 
 
     WHEN ( "4 angular bins requested" ){
       nbin = 4;
+      std::vector<double> s(nbin,0.0);
 
       AND_WHEN( "we have room temperature water inputs" ){
         sigma_b  = 163.727922;  sigma_b2 = 0.0;      tev   = 2.5507297688e-2;
@@ -173,8 +174,8 @@ TEST_CASE( "sigl" ){
           };
 
           for ( size_t i = 0; i < correctMu.size(); ++i ){
-            s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-                     sigma_b2,teff,nbin,equiprobableBins);
+            pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                     sigma_b2,teff,s,equiprobableBins);
             REQUIRE(ranges::equal(correctMu[i], s, equal));
           }
 
@@ -191,8 +192,8 @@ TEST_CASE( "sigl" ){
           };
 
           for ( size_t i = 0; i < correctMu.size(); ++i ){
-            s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-                     sigma_b2,teff,nbin,equiprobableBins);
+            pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                     sigma_b2,teff,s,equiprobableBins);
             REQUIRE(ranges::equal(correctMu[i], s, equal));
           }
 
@@ -206,6 +207,7 @@ TEST_CASE( "sigl" ){
     WHEN( "8 bins are requested" ){ 
       
       nbin = 8;
+      std::vector<double> s(nbin,0.0);
 
       THEN( "mu bins are correctly generated for each E, E' combination" ){
         epVec = { 1e-1, 1e-2, 1e-3, 1e-4, 1e-5 };
@@ -220,8 +222,8 @@ TEST_CASE( "sigl" ){
         for ( auto& x : correctMu ){ for (auto& y : x){ y *= 0.1; } }
     
         for ( size_t i = 0; i < correctMu.size(); ++i ){
-          s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
-                   sigma_b,sigma_b2,teff,nbin,equiprobableBins);
+          pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
+                   sigma_b,sigma_b2,teff,s,equiprobableBins);
           REQUIRE(ranges::equal(correctMu[i], s, equal));
         }
 
@@ -234,8 +236,8 @@ TEST_CASE( "sigl" ){
           {-8.73847,-6.21967,-3.70717,-1.20097,1.29896,3.79267,6.28014,8.76137} };
         for ( auto& x : correctMu ){ for (auto& y : x){ y *= 0.1; } }
         for ( size_t i = 0; i < correctMu.size(); ++i ){
-          s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
-                   sigma_b,sigma_b2,teff,nbin,equiprobableBins);
+          pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
+                   sigma_b,sigma_b2,teff,s,equiprobableBins);
           REQUIRE(ranges::equal(correctMu[i], s, equal));
         }
 
@@ -247,8 +249,9 @@ TEST_CASE( "sigl" ){
     bool equiprobableBins = false;
 
     WHEN( "8 legendre order requested" ){
-
       nbin = 8;
+      std::vector<double> s(nbin,0.0);
+
       e = 1e-2;
       correctMu = {
       { 0.208139,  -0.126102,  0.031542, 9.98544E-3,-5.09514E-2, 3.52565E-3,
@@ -264,14 +267,15 @@ TEST_CASE( "sigl" ){
 
       epVec = { 1e-1,1e-2,1e-3,1e-4,1e-5 };
       for ( size_t i = 0; i < correctMu.size(); ++i ){
-        s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
-                 sigma_b,sigma_b2,teff,nbin,equiprobableBins);
+        pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
+                 sigma_b,sigma_b2,teff,s,equiprobableBins);
         REQUIRE(ranges::equal(correctMu[i], s, equal));
       }
     } // WHEN 
 
     WHEN( "19 legendre values requested" ){
       nbin = 19;
+      std::vector<double> s(nbin,0.0);
 
       THEN( "mu bins are correctly generated for each E, E' combination" ){
         e = 1e-1;
@@ -296,14 +300,12 @@ TEST_CASE( "sigl" ){
            -0.01853602, -0.01128188,  -4.997656E-3, -0.01109509 } };
 
         for ( size_t i = 0; i < correctMu.size(); ++i ){
-          s = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
-                   sigma_b,sigma_b2,teff,nbin,equiprobableBins);
+          pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
+                   sigma_b,sigma_b2,teff,s,equiprobableBins);
           REQUIRE(ranges::equal(correctMu[i], s, equal));
         }
       } // THEN 
     } // WHEN 
-    /*
-*/
   } // GIVEN 
-}
+} // TEST CASE
 
