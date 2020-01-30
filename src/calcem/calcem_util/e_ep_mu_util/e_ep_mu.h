@@ -25,19 +25,15 @@ bool needMidpoint(const Range& x, const Range& y, const Float& xm, //const int& 
       ym = ( x[i-2] == x[i-1] ) ? 
         y[k*imax+i-1] :
         y[k*imax+i-1] + (xm-x[i-1])*(y[k*imax+i-2]-y[k*imax+i-1])/(x[i-2]-x[i-1]);
-      //std::cout << "ym   " << ym << std::endl;
 
       if ( k > 0 ){ uu  += s[k-1]; uum += ym;  }
 
       Float test2 = ( k > 0 ) ? tol : tol*abs(pdf);
-      //Float test2 = ( k > 0 ) ? tol : tol*abs(s[k]);
 
       if ( k == 0 ){
-        //std::cout << "     " << pdf << "   " << ym  << std::endl;
         if ( abs(pdf-ym) > test2 ){ return true; } // need midpoint
       }
       else {
-        //std::cout << "     " << s[k-1]<< "   " << ym  << std::endl;
         if ( abs(s[k-1]-ym) > test2 ){ return true; } // need midpoint
       }
     }
@@ -98,13 +94,12 @@ auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, in
 }
 
 
-
 /*
 
-template <typename Range, typename Float> 
-auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr, 
-  const Range& x, const Range& y, Float& ulast, Float& u2last, Float& u3last,
-  Float& xlast, Float& ylast) {
+template <typename range, typename float> 
+auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, range& scr, 
+  const range& x, const range& y, float& ulast, float& u2last, float& u3last,
+  float& xlast, float& ylast) {
 
   std::cout << " --- 380 --- " << std::endl;
   int jscr = 7 + (j-1)*(nl+1);
@@ -126,7 +121,7 @@ auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr
   u2last = 0.0;
   u3last = 0.0;
 
-  Range p (4,0.0);
+  range p (4,0.0);
   for (int il = 2; il <= nl; ++il){
     legndr(y[(il-1)*imax+(i-1)],p,3);
     ulast  += p[1];
@@ -141,11 +136,11 @@ auto do_380( int& i, const int& imax, const int& j, int& jnz, int nl, Range& scr
 
 
 
-template <typename Range, typename Float>
-auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i, 
-  int& j, int nl, Float& ulast, Float& u2last, Float& u3last, Range& ubar,
-  Range& p2, Range& p3, int imax, int jmax, int ie, int& jnz, int& jbeta, 
-  int nbeta, Range& scr){
+template <typename range, typename float>
+auto do_360( range& xsi, range& x, range& y, float& xlast, float& ylast, int& i, 
+  int& j, int nl, float& ulast, float& u2last, float& u3last, range& ubar,
+  range& p2, range& p3, int imax, int jmax, int ie, int& jnz, int& jbeta, 
+  int nbeta, range& scr){
 
   std::cout << " --- 360 --- " << std::endl;
   ++j;
@@ -154,8 +149,8 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
 
   if ( j > 1 ){ 
       xsi[ie] += (x[i-1]-xlast)*(y[i-1]+ylast)*0.5;
-      Float uu = 0, u2 = 0, u3 = 0;
-      Range p (4,0.0);
+      float uu = 0, u2 = 0, u3 = 0;
+      range p (4,0.0);
       for ( int il = 1; il < nl; ++il ){
         legndr( y[il*imax+i-1], p, 3 );
         uu += p[1]; u2 += p[2]; u3 += p[3];
@@ -182,8 +177,8 @@ auto do_360( Range& xsi, Range& x, Range& y, Float& xlast, Float& ylast, int& i,
 
 
 
-template <typename Range, typename Float> 
-auto getMoments(Float& ulast, Float& u2last, Float& u3last, const Range& y, const int& i, const int& imax, const int& nl ){
+template <typename range, typename float> 
+auto getmoments(float& ulast, float& u2last, float& u3last, const range& y, const int& i, const int& imax, const int& nl ){
   ulast  = 0; 
   u2last = 0; 
   u3last = 0;
@@ -230,7 +225,7 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
 
 
 
-    int jscr = (j-1)*(nl+1);
+    int jscr = (j-1)*(nl+1)+1;
     scr[jscr-1]=x[i-1];
     scr[jscr] = (y[0*imax+i-1] < 1e-9) ? 
                  sigfig(y[0*imax+i-1],8,0) 
@@ -348,9 +343,43 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
       //  std::cout << sigfig(y[il*imax+i-1],9,0) << std::endl;
       //}
 
-      int jscr = (j)*(nl+1);
+      int jscr = (j)*(nl+1)+1;
       scr[jscr-1] = ep;
-      scr.resize((j+1)*(nl+1));
+      scr.resize((j+1)*(nl+1)+1);
+
+      double sum = 0.0;
+      for ( size_t k = 1; k < scr.size(); ++k ){
+        if ( (k-1)%6 == 0 ){
+            //std::cout << scr[k] << "   " << scr[k-6] << std::endl;
+          sum += (scr[k]+scr[k-6])*0.5*(scr[k-1]-scr[k-7]);
+        }
+      }
+      std::cout << "sum" << std::endl;
+      std::cout << sum << std::endl;
+      
+      for ( size_t k = 1; k < scr.size(); ++k ){
+        if ( (k-1)%6 == 0 ){
+          scr[k] = scr[k]/sum;
+        }
+      }
+      //std::cout << scr[0] << std::endl;
+      //std::cout << scr[1] << std::endl;
+      //std::cout << scr[2] << std::endl;
+      //std::cout << scr[3] << std::endl;
+      //std::cout << scr[4] << std::endl;
+      //std::cout << scr[5] << std::endl;
+      //std::cout << scr[6] << std::endl;
+      //std::cout << scr[7] << std::endl;
+      //std::cout << scr[8] << std::endl;
+      //std::cout << scr[9] << std::endl;
+      //std::cout << scr[10] << std::endl;
+      //std::cout << scr[11] << std::endl;
+      ////std::cout << scr[12] << std::endl;
+
+
+
+
+
 
       return;
     }

@@ -93,25 +93,6 @@ TEST_CASE( "do 330" ){
 
     THEN( "Returned x values, y vector, and moment values are correct" ){
       auto out = do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr);
-      /*
-      std::cout << scr[0] << std::endl;
-      std::cout << scr[1] << std::endl;
-      std::cout << scr[2] << std::endl;
-      std::cout << scr[3] << std::endl;
-      std::cout << scr[4] << std::endl;
-      std::cout << scr[5] << std::endl;
-      std::cout << scr[6] << std::endl;
-      std::cout << scr[7] << std::endl;
-      std::cout << scr[8] << std::endl;
-      std::cout << scr[9] << std::endl;
-      std::cout << scr[10] << std::endl;
-      std::cout << scr[11] << std::endl;
-      std::cout << scr[12] << std::endl;
-      std::cout << scr[13] << std::endl;
-      std::cout << scr[14] << std::endl;
-      std::cout << scr[15] << std::endl;
-      std::cout << scr[16] << std::endl;
-      */
 
       ulast  = std::get<0>(out); REQUIRE( 2609.673 == Approx(ulast ).epsilon(1e-6));
       u2last = std::get<1>(out); REQUIRE(-6650.153 == Approx(u2last).epsilon(1e-6));
@@ -154,7 +135,7 @@ TEST_CASE( "do 330" ){
         REQUIRE( 0.0 == Approx(y[i]).epsilon(1e-6) );
       }
 
-      std::vector<double> correctSCR { 0.0, 0.0, 0.0, 0.0, 0.0, 9.768411E-9, 
+      std::vector<double> correctSCR { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.768411E-9, 
       8.8403807E3,-7.435070E-1,-2.357055E-1, 2.643070E-1, 7.564790E-1, 1.953682E-8, 
       1.2502953E4,-7.408188E-1,-2.297769E-1, 2.702225E-1, 7.591794E-1, 3.907364E-8, 
       1.7684034E4,-7.369996E-1,-2.213982E-1, 2.786010E-1, 7.629976E-1, 7.814728E-8, 
@@ -234,7 +215,7 @@ TEST_CASE( "do 330" ){
         REQUIRE( 0.0 == Approx(y[i]).epsilon(1e-6) );
       }
   
-      std::vector<double> correctSCR {0.0,  0.0,  0.0,  0.0,  0.0,  9.7684110E-9,  
+      std::vector<double> correctSCR {0.0, 0.0,  0.0,  0.0,  0.0,  0.0,  9.7684110E-9,  
       7.935317E1, -7.495163E-1, -2.489359E-1,  2.510640E-1,  0.7504834,  1.953682E-8,  
       1.122224E2, -7.493159E-1, -2.484952E-1,  2.515047E-1,  0.7506835,  3.907364E-8,  
       1.587070E2, -7.490325E-1, -2.478718E-1,  2.521281E-1,  0.7509666,  7.814728E-8,  
@@ -290,10 +271,9 @@ TEST_CASE( "do 330" ){
     } // THEN 
   } // GIVEN
 
-  /*
-
-*/
 } // TEST CASE
+/*
+*/
 
 
 TEST_CASE( "313" ) {
@@ -376,7 +356,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
 
   do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr);
 
-  std::vector<double> correctSCR {0.0, 0.0, 0.0, 0.0, 0.0, 9.768411E-9, 
+  std::vector<double> correctSCR { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.768411E-9, 
       4.428672E0, -7.435070E-1, -2.357055E-1, 0.26430706, 0.75647904, 1.953682E-8, 
       6.263472E0, -7.408188E-1, -2.297769E-1, 0.27022259, 0.75917947, 3.907364E-8, 
       8.858983E0, -7.369996E-1, -2.213982E-1, 0.27860108, 0.76299763, 7.814729E-8, 
@@ -433,15 +413,8 @@ TEST_CASE( "do 330 (and some things around it)" ){
       0.0, 0.0, 0.0, 0.0, 0.0 } ;
 
         for ( size_t i = 0; i < correctSCR.size(); ++i ){
-          if ( (i) % 6 == 0 ){ continue; } // This is because I still don't really
-          // know what that one entry is that appears second in each scr piece
           REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
-          //  std::cout << scr[i] << std::endl;
         }
-
-
-
-
 
 } // TEST CASE
 
