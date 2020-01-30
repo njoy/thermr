@@ -209,7 +209,7 @@ auto getMoments(Float& ulast, Float& u2last, Float& u3last, const Range& y, cons
 
 
 template <typename Range, typename Float>
-auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta ){
+auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta, Range& scr){//, int& counter ){
   int imax = x.size();
   while (true){ 
     //std::cout << " --- 330 --- " << i << "     " << j << "    " << jbeta << std::endl;
@@ -227,11 +227,24 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
 
     ++j;
 
-    
-    //y[0*imax+i-1] = (y[0*imax+i-1] < 1e-9) ? 
-    //                sigfig(y[0*imax+i-1],8,0) 
-    //              : sigfig(y[0*imax+i-1],8,0) ;
 
+
+
+    int jscr = (j-1)*(nl+1);
+    scr[jscr-1]=x[i-1];
+    scr[jscr] = (y[0*imax+i-1] < 1e-9) ? 
+                 sigfig(y[0*imax+i-1],8,0) 
+               : sigfig(y[0*imax+i-1],8,0) ;
+
+    for ( int il = 1; il < nl; ++il ){
+      scr[il+jscr] = sigfig(y[il*imax+i-1],9,0);
+      if (scr[il+jscr] > 1.0){ y[il*imax+i-1] = 1.0; }
+      if (scr[il+jscr] <-1.0){ y[il*imax+i-1] =-1.0; }
+    }
+
+
+    
+    /*
     std::cout << x[i-1] << std::endl;
     std::cout << sigfig(y[0*imax+i-1],8,0) << std::endl;
 
@@ -243,7 +256,10 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
       if (y[il*imax+i-1] <-1.0){ y[il*imax+i-1] =-1.0; }
     }
 
+
+
     std::cout << std::endl;
+    */
 
     Float ulast, u2last, u3last;
     getMoments(ulast, u2last, u3last, y, i, x.size(), nl);
@@ -271,7 +287,7 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
 
 
 template <typename Range, typename Float>
-auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta ){
+auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta, Range& scr ){
 
 
   Range x(20,0.0), y(20*65,0.0);
@@ -303,7 +319,7 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
 
     int i = 2;
   
-    do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta);
+    do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr);
 
     //std::cout << "go to 311" << std::endl; 
     //std::cout << std::endl; 
@@ -326,11 +342,15 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
     else {
       //std::cout << " go to 430 " << std::endl; 
       for ( auto& yVal : y ){ yVal = 0.0; }
-      std::cout << ep << std::endl;
-      std::cout << sigfig(y[0*imax+i-1],8,0) << std::endl;
-      for ( int il = 1; il < nl; ++il ){
-        std::cout << sigfig(y[il*imax+i-1],9,0) << std::endl;
-      }
+      //std::cout << ep << std::endl;
+      //std::cout << sigfig(y[0*imax+i-1],8,0) << std::endl;
+      //for ( int il = 1; il < nl; ++il ){
+      //  std::cout << sigfig(y[il*imax+i-1],9,0) << std::endl;
+      //}
+
+      int jscr = (j)*(nl+1);
+      scr[jscr-1] = ep;
+      scr.resize((j+1)*(nl+1));
 
       return;
     }
