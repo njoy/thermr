@@ -5,6 +5,7 @@
 #include "generalTools/testing.h"
 
 
+/*
 auto populate_SAB( int a_size, int b_size ){
   std::vector<double> sab(a_size*b_size);
   for ( int i = 0; i < a_size; ++i ){
@@ -58,42 +59,40 @@ TEST_CASE( "adaptively refine between two points in muVec grid" ){
 
    
 
-TEST_CASE( "Get pdf value" ){
-  GIVEN( "material constants and energies (E->E')" ){
-    double e, tev = 0.025, tolin = 5e-2*0.5, az = 0.99917, sigma_b = 4.0, 
-           sigma_b2 = 0.0, teff = 0.12;
-    int lat = 1, iinc = 2, lasym = 0;
-    bool equiprobableBins = true;
-    std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
-                         betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
+//TEST_CASE( "Get pdf value" ){
+//  GIVEN( "material constants and energies (E->E')" ){
+//    double e, tev = 0.025, tolin = 5e-2*0.5, az = 0.99917, sigma_b = 4.0, 
+//           sigma_b2 = 0.0, teff = 0.12;
+//    int lat = 1, iinc = 2, lasym = 0;
+//    bool equiprobableBins = true;
+//    std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
+//                         betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
+//  
+//    auto sab = populate_SAB( alphas.size(), betas.size() );
   
-    auto sab = populate_SAB( alphas.size(), betas.size() );
+//    WHEN( "provide various E and E' values" ){
+//      std::vector<double> eVec {1e-2,1e-1,1e0};
+//      std::vector<std::vector<double>> 
+//        epVecs  { { 1e-1, 1e-2, 1e-3, 1e-4, 1e-5 },
+//                  { 1e-2, 1e-3, 1e-4, 1e-5       },
+//                  { 1e-2, 0.1, 0.8, 1.0, 2.0     } },
+//        pdfVecs { { 71.84429, 220.1616, 61.17360, 19.66197, 6.227846 },
+//                  { 262.937411, 1.02706201, 0.32551817, 0.10296110   },
+//                  { 0.316342, 0.8001197, 1.0023345, 3.0989839, 0.0   } };
   
-    WHEN( "provide various E and E' values" ){
-      std::vector<double> eVec {1e-2,1e-1,1e0};
-      std::vector<std::vector<double>> 
-        epVecs  { { 1e-1, 1e-2, 1e-3, 1e-4, 1e-5 },
-                  { 1e-2, 1e-3, 1e-4, 1e-5       },
-                  { 1e-2, 0.1, 0.8, 1.0, 2.0     } },
-        pdfVecs { { 71.84429, 220.1616, 61.17360, 19.66197, 6.227846 },
-                  { 262.937411, 1.02706201, 0.32551817, 0.10296110   },
-                  { 0.316342, 0.8001197, 1.0023345, 3.0989839, 0.0   } };
-  
-      THEN( "integrate the incoherent inelastic scattering xs over all mu" ){
-        for ( size_t i = 0; i < eVec.size(); ++i ){
-          for ( size_t j = 0; j < epVecs[i].size(); ++j ){
-            REQUIRE( getPDF(epVecs[i][j],eVec[i],tev,tolin,lat,iinc,alphas,
-                            betas,sab,az,lasym,sigma_b,sigma_b2,teff) == 
-                     Approx(pdfVecs[i][j]).epsilon(1e-6) );
-          }
-        }
-      } // THEN
-    } // WHEN
-  } // GIVEN
-} // TEST CASE
-/*
+//      THEN( "integrate the incoherent inelastic scattering xs over all mu" ){
+//        for ( size_t i = 0; i < eVec.size(); ++i ){
+//          for ( size_t j = 0; j < epVecs[i].size(); ++j ){
+//            REQUIRE( getPDF(epVecs[i][j],eVec[i],tev,tolin,lat,iinc,alphas,
+//                            betas,sab,az,lasym,sigma_b,sigma_b2,teff) == 
+//                     Approx(pdfVecs[i][j]).epsilon(1e-6) );
+//          }
+//        }
+//      } // THEN
+//    } // WHEN
+//  } // GIVEN
+//} // TEST CASE
 
-*/
 
 
 
@@ -309,3 +308,4 @@ TEST_CASE( "sigl" ){
   } // GIVEN 
 } // TEST CASE
 
+*/

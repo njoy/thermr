@@ -18,7 +18,9 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
   muVec[2] = -1.0; 
   muVec[1] = (ep==0.0) ? 
       0.0 
-    : std::min(0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5), 0.99);
+    : 0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5);
+    //: std::min(0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5), 0.99);
+  if (muVec[1] > 0.999){ muVec[1] = 0.99; }
   muVec[0] =  1.0; 
 
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,
@@ -196,6 +198,9 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
 
   int i = 3, j = 0;
 
+  //std::cout.precision(15);
+  //std::cout << "MU beginning " << muVec[0] << "    " << muVec[1] << "   " << muVec[2] << std::endl;
+  //std::cout << "XS beginning " << xsVec[0] << "    " << xsVec[1] << "   " << xsVec[2] << std::endl;
   do { 
     addMidpointsRight(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
                       sigma_b,sigma_b2,teff,iinc,tol,xsMax);
