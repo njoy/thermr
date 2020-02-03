@@ -52,12 +52,11 @@ TEST_CASE( "do we need a midpoint" ){
 
 
 } // TEST CASE
-
-
 */
 
-/*
+
 TEST_CASE( "do 330" ){ 
+
 
   int imax = 20;
   std::vector<double> x(imax,0.0), y(imax*65,0.0), initialY { 194040.3395, 
@@ -81,8 +80,10 @@ TEST_CASE( "do 330" ){
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
   int nnl = -5, nl = 5, jbeta = 1,j = 0;
 
-  std::vector<double> scr(2*imax*65,0.0);
-  int counter = 0;
+  std::vector<double> scr(2*imax*65,0.0), xsi(100,0.0);
+  double xlast = 0.0, ylast = 0.0;
+  int ie = 0;
+  
 
 
   double ulast, u2last, u3last;
@@ -93,7 +94,7 @@ TEST_CASE( "do 330" ){
     enow = 1e-5;
 
     THEN( "Returned x values, y vector, and moment values are correct" ){
-      auto out = do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr);
+      auto out = do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
 
       ulast  = std::get<0>(out); REQUIRE( 2609.673 == Approx(ulast ).epsilon(1e-6));
       u2last = std::get<1>(out); REQUIRE(-6650.153 == Approx(u2last).epsilon(1e-6));
@@ -171,7 +172,7 @@ TEST_CASE( "do 330" ){
 
     THEN( "Returned x values, y vector, and moment values are correct" ){
 
-      auto out = do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr);
+      auto out = do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
 
       ulast  = std::get<0>(out); REQUIRE( 2993.879 == Approx(ulast ).epsilon(1e-6));
       u2last = std::get<1>(out); REQUIRE(-240.7431 == Approx(u2last).epsilon(1e-6));
@@ -261,7 +262,6 @@ TEST_CASE( "do 330" ){
       2.292853E4, -6.639123E-1, -6.436183E-2,  0.4272364, 0.8233353,  0.0,  0.0};
         for ( size_t i = 0; i < correctSCR.size(); ++i ){
           REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
-          //  std::cout << scr[i] << std::endl;
         }
 
 
@@ -273,8 +273,6 @@ TEST_CASE( "do 330" ){
   } // GIVEN
 
 } // TEST CASE
-*/
-/*
 
 
 TEST_CASE( "313" ) {
@@ -318,7 +316,6 @@ TEST_CASE( "313" ) {
 
 } // TEST CASE
 
-*/
 
 
 
@@ -342,7 +339,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
   -4.71158392 };
 
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
-  int nnl = -5, nl = 5, jbeta = 1,j = 0;
+  int nnl = -5, nbin = 4, jbeta = 1,j = 0;
 
   std::vector<double> scr(65*imax*8,0.0);
   std::vector<double> xsi(100,0.0);
@@ -350,12 +347,179 @@ TEST_CASE( "do 330 (and some things around it)" ){
   double xlast = 0.0, ylast = 0.0;
 
 
-  /*
-  */
+
+
+GIVEN( "2 bins requested" ){
+    WHEN( "small energy, high tolerance" ){
+    double enow = 1e-6;
+    double tol = 5e-1;
+    nbin = 2;
+    nnl = -3;
+    for ( auto& val : scr ){ val = 0.0; }
+
+    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+
+    std::vector<double> correctSCR { 0.0, 0.0, 0.0, 0.0, 1.245962E-6, 1.349500E2, 
+-1.876409E-1, 0.80663435, 2.491924E-6, 1.347343E2, -2.752335E-1, 0.72264533, 
+4.983848E-6, 1.336925E2, -3.407188E-1, 0.65809276, 9.967695E-6, 1.317394E2, 
+-3.917430E-1, 0.60806033, 1.993539E-5, 1.309234E2, -4.247796E-1, 0.57516619, 
+3.987078E-5, 1.302870E2, -4.474311E-1, 0.55254981, 7.974156E-5, 1.294080E2, 
+-4.633257E-1, 0.53666644, 1.594831E-4, 1.278354E2, -4.746473E-1, 0.52534821, 
+3.189662E-4, 1.248242E2, -4.828510E-1, 0.51714441, 6.379325E-4, 1.190482E2, 
+-4.889590E-1, 0.51103333, 1.275865E-3, 1.083016E2, -4.937214E-1, 0.50626439, 
+2.551730E-3, 8.963757E1, -4.977176E-1, 5.022543E-1, 3.827095E-3, 7.419671E1, 
+-4.998946E-1, 0.50006329, 5.102460E-3, 6.141592E1, -5.014298E-1, 0.49851398, 
+1.211697E-2, 1.907564E1, -5.017302E-1, 0.49825742, 1.913147E-2, 8.602442E0, 
+-5.027530E-1, 0.49722554, 3.316049E-2, 2.080990E0, -5.040439E-1, 0.49592504, 
+3.571122E-2, 2.032783E0, -5.033939E-1, 0.49658361, 6.376924E-2, 1.440228E0, 
+-5.010712E-1, 0.49892435, 6.631997E-2, 1.339506E0, -5.010211E-1, 0.49897454, 
+9.437800E-2, 0.0, 0.0, 0.0 };
+
+    std::cout.precision(15);
+    for ( size_t i = 0; i < correctSCR.size(); ++i ){
+      //if ( (i-1)%(nbin+1) == 0 ){ 
+      //    continue; }
+        //std::cout << i << "   " << scr[i] << "   " << correctSCR[i] << std::endl;
+      REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
+    }
+
+    } // WHEN
+
+    WHEN( "higher energy, high tolerance" ){
+    double enow = 0.5;
+    double tol = 5e-1;
+    nbin = 2;
+    jbeta = -7;
+    for ( auto& val : scr ){ val = 0.0; }
+
+    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+
+    std::vector<double> correctSCR {0.0, 0.0, 0.0, 0.0, 0.2028115, 2.088333, 
+-0.01783934, 0.7206971, 0.4056230, 1.684778, 0.27368437, 0.82765682, 
+0.43368103, 1.922670, 0.37435759, 0.87702307, 0.43623176, 1.894687, 
+0.37353349, 0.87668823, 0.46428978, 2.185131, 0.4746145, 0.90013995, 
+0.46684051, 2.254948, 0.49003372, 0.90299355, 0.49489854, 6.813146, 
+0.77938092, 0.97416537, 0.49744927, 8.425869, 0.81416163, 0.98293213, 
+0.49872464, 8.878005, 0.82319159, 0.98608178, 0.49936232, 9.109986, 
+0.82757493, 0.98761996, 0.49968116, 9.227942, 0.82974107, 0.9883891, 
+0.49984058, 9.277499, 0.8306710, 0.98872816, 0.49992029, 9.288740, 
+0.83093453, 0.98883606, 0.49996015, 9.288837, 0.83098458, 0.98886516, 
+0.50, 34.13863, 0.72139009, 0.93870834, 0.50003986, 9.274387, 
+0.83099514, 0.98886584, 0.50007972, 9.259794, 0.83095636, 0.98883757, 
+0.50015943, 9.219706, 0.83071546, 0.98873138, 0.50031885, 9.113413, 
+0.82982995, 0.98839565, 0.50063769, 8.885335, 0.82775433, 0.98763383, 
+0.50127537, 8.445616, 0.82355867, 0.98611309, 0.50255073, 7.624984, 
+0.81493075, 0.98301135, 0.50510146, 5.583066, 0.78129677, 0.97442274, 
+0.51913048, 1.526250, 0.6328023, 0.93944225, 0.53315949, 0.6126634, 
+0.52172474, 0.90937846, 0.53571022, 0.5388225, 0.50319672, 0.90693096, 
+0.56376824, 0.1573923, 0.4364279, 0.89057004, 0.56631897, 0.1447658, 
+0.43995396, 0.89130895, 0.5943770, 0.0, 0.0, 0.0};
+
+    std::cout.precision(15);
+    for ( size_t i = 0; i < correctSCR.size(); ++i ){
+      //if ( (i-1)%(nbin+1) == 0 ){ 
+      //    continue; }
+        //std::cout << i << "   " << scr[i] << "   " << correctSCR[i] << std::endl;
+      REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
+    }
+
+    } // WHEN
+
+    WHEN( "higher energy, high tolerance" ){
+    double enow = 2.0;
+    double tol = 5e-1;
+    nbin = 2;
+    jbeta = -7;
+    for ( auto& val : scr ){ val = 0.0; }
+
+    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+
+    std::vector<double> correctSCR {0.0, 0.0, 0.0, 0.0, 0.9528115, 0.6600700, 
+0.41591224, 0.76143763, 1.905623, 0.5200086, 0.8095309, 0.95812864, 
+1.933681, 0.5852891, 0.83389085, 0.96993457, 1.93623180, 0.5762765, 
+0.83332956, 0.96982464, 1.96428980, 0.6584649, 0.85828274, 0.97538989, 
+1.96684050, 0.6791924, 0.86234369, 0.97609299, 1.99489850, 2.087298, 
+0.93960146, 0.99328778, 1.99744930, 2.510947, 0.94809796, 0.99553994, 
+1.99872470, 2.634583, 0.95041258, 0.99638421, 1.99936240, 2.701458, 
+0.95159362, 0.99680105, 1.99968120, 2.730235, 0.9521026, 0.99698241, 
+1.99984060, 2.736710, 0.95224354, 0.9970395, 1.99992030, 2.736691, 
+0.95226661, 0.99705437, 1.99996020, 2.735888, 0.95226684, 0.99705857, 
+2.0, 18.67175, 0.73967177, 0.94374636, 2.00003990, 2.731618, 
+0.95226766, 0.99705858, 2.00007980, 2.728161, 0.95226838, 0.99705443, 
+2.00015950, 2.719684, 0.95224706, 0.99703963, 2.00031890, 2.696297, 
+0.95211016, 0.99698286, 2.00063770, 2.634811, 0.95160851, 0.99680187, 
+2.00127540, 2.506125, 0.95044377, 0.99638635, 2.00255070, 2.272072, 
+0.9481634, 0.99554539, 2.00510150, 1.708756, 0.93974712, 0.99330214, 
+2.01913050, 0.4577529, 0.89879654, 0.9845347, 2.03315950, 0.1849826, 
+0.86470053, 0.97649551, 2.03571020, 0.1622566, 0.86089216, 0.9758334, 
+2.06376820, 0.04736575, 0.83905382, 0.97076276, 2.066319, 0.04354448, 
+0.83984759, 0.97090057, 2.094377, 0.0, 0.0, 0.0 };
+
+
+    std::cout.precision(15);
+    for ( size_t i = 0; i < correctSCR.size(); ++i ){
+      //if ( (i-1)%(nbin+1) == 0 ){ 
+      //    continue; }
+        //std::cout << i << "   " << scr[i] << "   " << correctSCR[i] << std::endl;
+      REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
+    }
+
+    } // WHEN
+
+
+
+
+  } // GIVEN 
+
+
+
+
+
+
+
+
+GIVEN( "Small energy and small tolerance" ){
+    double enow = 1e-6;
+    double tol = 5e-1;
+    for ( auto& val : scr ){ val = 0.0; }
+
+    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+
+    std::vector<double> correctSCR {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+1.245962E-6, 134.9500, -0.5531997, 0.17791796, 0.67289807, 0.94037063, 
+2.491924E-6, 134.7343, -0.6091367, 5.866965E-2, 0.55729521, 0.88799546, 
+4.983848E-6, 133.6925, -0.6506585, -3.077921E-2, 0.46987851, 0.84630702, 
+9.967695E-6, 131.7394, -0.6824023, -0.1010836, 0.39909523, 0.81702542, 
+1.993539E-5, 130.9234, -0.7030051, -0.1465541, 0.35347282, 0.79685956, 
+3.987078E-5, 130.2870, -0.7171496, -0.1777126, 0.32228831, 0.7828113, 
+7.974156E-5, 129.4080, -0.7270800, -0.1995713, 0.30042653, 0.77290635, 
+1.594831E-4, 127.8354, -0.7341547, -0.2151399, 0.28485763, 0.76583879, 
+3.189662E-4, 124.8242, -0.7392812, -0.2264208, 0.27357568, 0.76071314, 
+6.379325E-4, 119.0482, -0.7431013, -0.2348166, 0.26519185, 0.75687469, 
+1.275865E-3, 108.3016, -0.7460733, -0.2413695, 0.2586222, 0.75390657, 
+2.551730E-3, 89.63757, -0.7485668, -0.2468684, 0.25310755, 0.75140105, 
+3.827095E-3, 74.19671, -0.7499239, -0.2498653, 0.25009783, 0.75002876, 
+5.102460E-3, 61.41592, -0.7508800, -0.2519797, 0.24797102, 0.74905694, 
+1.211697E-2, 19.07564, -0.7510783, -0.2523821, 0.24760698, 0.74890785, 
+1.913147E-2, 8.602442, -0.7517153, -0.2537907, 0.24619046, 0.74826062, 
+3.316049E-2, 2.080990, -0.7525198, -0.2555681, 0.24440473, 0.74744536, 
+3.571122E-2, 2.032783, -0.7521157, -0.2546722, 0.24530807, 0.74785916, 
+6.376924E-2, 1.440228, -0.7506683, -0.2514740, 0.24852203, 0.74932668, 
+6.631997E-2, 1.339506, -0.7506371, -0.2514052, 0.24859099, 0.74935809, 
+9.437800E-2, 0.0, 0.0, 0.0, 0.0, 0.0 };
+
+    for ( size_t i = 0; i < correctSCR.size(); ++i ){
+      REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
+    }
+
+  } // GIVEN 
+
+
 GIVEN( "Initial energy E = 1e-5 eV" ){
     double enow = 1e-5;
+    for ( auto& val : scr ){ val = 0.0; }
 
-    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
+    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
     std::vector<double> correctSCR { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.768411E-9, 
     4.428672E0, -7.435070E-1, -2.357055E-1, 0.26430706, 0.75647904, 1.953682E-8, 
@@ -423,11 +587,12 @@ GIVEN( "Initial energy E = 1e-5 eV" ){
   GIVEN( "Initial energy E = 1e-3 eV" ){
     double enow = 1e-3;
     enow =    1.000000E-3;
+    for ( auto& val : scr ){ val = 0.0; }
 
     int ie = 0;
     double xlast = 0.0, ylast = 0.0;
     std::vector<double> xsi(100,0.0);
-    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
+    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
     std::vector<double> correctSCR {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.354496E-8, 
     4.138537E-1, -7.494305E-1, -2.487471E-1, 0.25125295, 0.75056922, 2.708992E-8, 
@@ -484,7 +649,8 @@ GIVEN( "Initial energy E = 1e-5 eV" ){
     7.372262E-1, -7.664191E-1, -2.895516E-1, 0.20597533, 0.72789955, 8.836250E-2, 
     5.099616E-1, -7.678017E-1, -2.929037E-1, 0.20205293, 7.255643E-1, 9.537700E-2, 
     0.0, 0.0, 0.0, 0.0, 0.0};
-    for ( size_t i = 0; i < scr.size(); ++i ){
+    for ( size_t i = 0; i < correctSCR.size(); ++i ){
+      //std::cout << i << "   " << scr[i]  << "     " << correctSCR[i] << std::endl;
       REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
     }
 
@@ -498,14 +664,15 @@ GIVEN( "Initial energy E = 1e-5 eV" ){
     double enow = 1e-1;
     tol = 1e-1;
     jbeta = -7;
+    for ( auto& val : scr ){ val = 0.0; }
 
     int ie = 0;
     double xlast = 0.0, ylast = 0.0;
     std::vector<double> xsi(100,0.0);
-    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
+    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
-    std::vector<double> correctSCR {0.000000E+0, 0.000000E+0, 0.000000E+0, 
-    0.000000E+0, 0.000000E+0, 0.000000E+0, 6.864013E-7, 2.036626E-2, -7.494533E-1, 
+    std::vector<double> correctSCR {0.0, 0.0, 0.0, 
+    0.0, 0.0, 0.0, 6.864013E-7, 2.036626E-2, -7.494533E-1, 
     -2.487979E-1, 0.25120138, 7.505455E-1, 1.372803E-6, 2.880219E-2, -7.492265E-1, 
     -2.482998E-1, 2.516988E-1, 7.507711E-1, 2.745605E-6, 4.073231E-2, -7.489055E-1, 
     -2.475950E-1, 0.25240205, 0.75108981, 5.491210E-6, 5.760379E-2, -7.484509E-1, 
@@ -571,9 +738,9 @@ GIVEN( "Initial energy E = 1e-5 eV" ){
     0.25555157, 5.593595E-1, 0.79735345, 0.16376824, 4.725918E-1, -4.470644E-1, 
     0.23835322, 0.56919207, 0.81301938, 0.16631897, 4.287083E-1, -4.478542E-1, 
     0.23663686, 0.57098666, 8.144786E-1, 0.18034799, 2.339703E-1, -4.799073E-1, 
-    0.17908187, 0.54356522, 0.80391892, 1.943770E-1, 0.000000E+0, 0.000000E+0, 
-    0.000000E+0, 0.000000E+0, 0.000000E+0 };
-    for ( size_t i = 0; i < scr.size(); ++i ){
+    0.17908187, 0.54356522, 0.80391892, 1.943770E-1, 0.0, 0.0, 
+    0.0, 0.0, 0.0 };
+    for ( size_t i = 0; i < correctSCR.size(); ++i ){
       //if ( (i-1)%6 == 0 ){ 
       //    continue; }
       //std::cout << i << "   " << scr[i] << std::endl;
@@ -589,13 +756,14 @@ GIVEN( "Initial energy E = 1e-5 eV" ){
     double enow = 0.2;
     tol = 1e-1;
     jbeta = -7;
+    for ( auto& val : scr ){ val = 0.0; }
 
     int ie = 0;
     double xlast = 0.0, ylast = 0.0;
     std::vector<double> xsi(100,0.0);
-    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
+    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
-    std::vector<double> correctSCR {0.000000E0, 0.000000E0, 0.000000E0, 0.000000E0, 0.000000E0, 0.000000E0, 
+    std::vector<double> correctSCR {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
 8.058397E-7, 1.316792E-2, -7.495806E-1, -2.490782E-1, 2.509209E-1, 0.75041802, 
 1.611679E-6, 1.862221E-2, -7.494065E-1, -2.486961E-1, 0.25130209, 0.75059079, 
 3.223359E-6, 2.633566E-2, -7.491600E-1, -2.481554E-1, 0.25184091, 0.75083473, 
@@ -710,11 +878,12 @@ GIVEN( "Initial energy E = 1e-5 eV" ){
 0.26376824, 3.273604E-1, -2.329576E-1, 0.44712649, 0.72133092, 0.87915622, 
 0.26631897, 2.601356E-1, -2.925191E-1, 0.36855421, 0.67473587, 0.88325444, 
 0.28034799, 1.497179E-1, -3.029577E-1, 0.35059878, 0.65823754, 0.87197892, 
-2.943770E-1, 0.000000E0, 0.000000E0, 0.000000E0, 0.000000E0, 0.000000E0 };
-    for ( size_t i = 0; i < scr.size(); ++i ){
+2.943770E-1, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    //for ( size_t i = 0; i < scr.size(); ++i ){
+    for ( size_t i = 0; i < correctSCR.size(); ++i ){
       //if ( (i-1)%6 == 0 ){ 
       //    continue; }
-      std::cout << i << "   " << scr[i] << std::endl;
+      //std::cout << i << "   " << scr[i]  << "     " << correctSCR[i] << std::endl;
       REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
     }
 
@@ -723,14 +892,6 @@ GIVEN( "Initial energy E = 1e-5 eV" ){
 
   } // GIVEN
 } // TEST CASE
-
-/*
-
-*/
-
-
-
-
 
 
 

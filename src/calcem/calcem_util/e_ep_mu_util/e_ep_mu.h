@@ -195,7 +195,11 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
 
 
 template <typename Range, typename Float>
-auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta, Range& scr, Range& xsi, int ie, Float& xlast, Float& ylast ){
+auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nbin, int& jbeta, Range& scr, Range& xsi, int ie, Float& xlast, Float& ylast ){
+    std::cout.precision(15);
+
+  int nl = nbin + 1;
+  int nnl = -nl;
 
 
   Range x(20,0.0), y(20*65,0.0);
@@ -249,14 +253,15 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
       scr.resize((j+1)*(nl+1)+1);
 
       double sum = 0.0;
-      for ( size_t k = 2; k < scr.size(); ++k ){
-        if ( (k-1)%6 == 0 ){
-          sum += (scr[k]+scr[k-6])*0.5*(scr[k-1]-scr[k-7]);
+      int lengthRow = nl+1;
+      for ( size_t k = 0; k < scr.size(); ++k ){
+        if ( (k-1)%lengthRow == 0 and (k-1) > 0 ){
+          sum += (scr[k]+scr[k-lengthRow])*0.5*(scr[k-1]-scr[k-(lengthRow+1)]);
         }
       }
-      std::cout << " sum " << sum << std::endl;
+      //std::cout << " sum " << sum << std::endl;
       for ( size_t k = 1; k < scr.size(); ++k ){
-        if ( (k-1)%6 == 0 ){
+        if ( (k-1)%lengthRow == 0 ){
           scr[k] = scr[k]/sum;
         }
       }
