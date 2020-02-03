@@ -242,6 +242,7 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
     do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
 
 
+    std::cout << "   -     " << jbeta << std::endl;
     if (jbeta <= int(betas.size())){ 
       continue; // go to 311
     }

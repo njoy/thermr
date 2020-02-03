@@ -55,6 +55,10 @@ TEST_CASE( "do we need a midpoint" ){
 */
 
 
+
+
+/*
+
 TEST_CASE( "do 330" ){ 
 
 
@@ -273,7 +277,9 @@ TEST_CASE( "do 330" ){
   } // GIVEN
 
 } // TEST CASE
+*/
 
+/*
 
 TEST_CASE( "313" ) {
   int lat = 1, jbeta = -7;
@@ -317,6 +323,7 @@ TEST_CASE( "313" ) {
 } // TEST CASE
 
 
+*/
 
 
 
@@ -352,6 +359,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
 GIVEN( "2 bins requested" ){
     double enow,tol;
     nbin = 2;
+    /*
     WHEN( "small energy, high tolerance" ){
     enow = 1e-6;
     tol = 5e-1;
@@ -384,38 +392,46 @@ GIVEN( "2 bins requested" ){
     }
 
     } // WHEN
+    */
 
 
     WHEN( "high energy, high tolerance" ){
     enow = 5.0;
-    AND_WHEN( "various tolerances considered" ){
+      AND_WHEN( "various tolerances considered" ){
         {
-      tol = 2.0;
-      jbeta = -7;
-      for ( auto& val : scr ){ val = 0.0; }
-      do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
-      std::vector<double> correctSCR {0.0, 0.0, 0.0, 0.0, 4.905623, 0.3738189, 
-      0.92562835, 0.98346033, 4.933681, 0.4331810, 0.93583759, 0.98796534,
-      4.93623180, 0.4255284, 0.93552199, 0.98793803, 4.96428980, 0.2888843, 
-      0.92532154, 0.98293761, 4.96684050, 0.2321081, 0.9176651, 0.98219298,
-      4.99489850, 1.459286, 0.97557141, 0.99733363, 4.99744930, 1.787917, 
-      0.97932248, 0.99826944, 5.00255070, 1.617792, 0.97933333, 0.99827031,
-      5.00510150, 1.194692, 0.97559563, 0.9973362, 5.03315950, 0.06322774,
-      0.91825819, 0.98231736, 5.03571020, 0.07113415, 0.92582987, 0.98305085,
-      5.06376820, 0.03497788, 0.93642842, 0.98808143, 5.066319, 0.03222442,
-      0.93677869, 0.98811284, 5.094377, 0.0, 0.0, 0.0};
-      for ( size_t i = 0; i < correctSCR.size(); ++i ){
-        REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
-      }
+          tol = 2.0;
+          jbeta = -7;
+          for ( auto& val : scr ){ val = 0.0; }
+          do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+          std::vector<double> correctSCR {0.0, 0.0, 0.0, 0.0, 4.905623, 0.3738189, 
+          0.92562835, 0.98346033, 4.933681, 0.4331810, 0.93583759, 0.98796534,
+          4.93623180, 0.4255284, 0.93552199, 0.98793803, 4.96428980, 0.2888843, 
+          0.92532154, 0.98293761, 4.96684050, 0.2321081, 0.9176651, 0.98219298,
+          4.99489850, 1.459286, 0.97557141, 0.99733363, 4.99744930, 1.787917, 
+          0.97932248, 0.99826944, 5.00255070, 1.617792, 0.97933333, 0.99827031,
+          5.00510150, 1.194692, 0.97559563, 0.9973362, 5.03315950, 0.06322774,
+          0.91825819, 0.98231736, 5.03571020, 0.07113415, 0.92582987, 0.98305085,
+          5.06376820, 0.03497788, 0.93642842, 0.98808143, 5.066319, 0.03222442,
+          0.93677869, 0.98811284, 5.094377, 0.0, 0.0, 0.0};
+          for ( size_t i = 0; i < correctSCR.size(); ++i ){
+            REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
+          }
 
-      }
+        }
 
         {
+            std::cout.precision(15);
+      j = 0;
       tol = 1e-1;
       jbeta = -7;
+      xlast = 0; ylast = 0;
+      enow = 5.0;
       for ( auto& val : scr ){ val = 0.0; }
+      for ( auto& val : xsi ){ val = 0.0; }
+      //std::cout << enow << "     " << j << "    " << tev << "  " << tol << "    " << lat << std::endl;
+      //std::cout << enow << "     " << j << "    " << tev << "  " << tol << "    " << lat << std::endl;
       do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
-      std::vector<double> correctSCR = {0.0, 0.0, 0.0, 0.0, 1.871347E-5, 2.944622E-3, 
+      std::vector<double> correctSCR {0.0, 0.0, 0.0, 0.0, 1.871347E-5, 2.944622E-3, 
 -0.4993199, 0.50065421, 3.742694E-5, 4.164083E-3, -0.4990306, 0.50091766, 
 7.485388E-5, 5.888259E-3, -0.4986129, 0.50128474, 1.497078E-4, 8.325408E-3, 
 -0.4980102, 0.50178128, 2.994155E-4, 0.01176888, -0.4971202, 0.50246661, 
@@ -474,9 +490,9 @@ GIVEN( "2 bins requested" ){
 5.08736250, 5.518491E-3, 0.93261952, 0.98594691, 5.094377, 0.0, 
 0.0, 0.0};
       for ( size_t i = 0; i < correctSCR.size(); ++i ){
-      if ( (i-1)%6 == 0 ){ 
-          continue; }
-      std::cout << i << "   " << scr[i]  << "     " << correctSCR[i] << std::endl;
+      //if ( (i-1)%6 == 0 ){ 
+      //    continue; }
+      //std::cout << i << "   " << scr[i]  << "     " << correctSCR[i] << std::endl;
 
         REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
       }
