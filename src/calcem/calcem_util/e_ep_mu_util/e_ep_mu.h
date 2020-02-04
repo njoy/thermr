@@ -153,6 +153,11 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
 
 
     int jscr = (j-1)*(nl+1)+1;
+
+
+    if ( (unsigned) jscr+nl > scr.size() ){ scr.resize((jscr+nl)*2); }
+
+
     scr[jscr-1]=x[i-1];
     scr[jscr] = (y[0*imax+i-1] < 1e-9) ? 
                  sigfig(y[0*imax+i-1],8,0) 
@@ -242,7 +247,7 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
     do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
 
 
-    std::cout << "   -     " << jbeta << std::endl;
+    //std::cout << "   -     " << jbeta << std::endl;
     if (jbeta <= int(betas.size())){ 
       continue; // go to 311
     }
