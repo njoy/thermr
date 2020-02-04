@@ -128,8 +128,9 @@ auto getMoments(Float& ulast, Float& u2last, Float& u3last, const Range& y, cons
 
 
 template <typename Range, typename Float>
-auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta, Range& scr, Range& xsi, int& ie, Float& xlast, Float& ylast ){//, int& counter ){
+auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta, Range& scr, Range& xsi, int& ie, Float& xlast, Float& ylast ){//, int& counter ){
   int imax = x.size();
+  int i = 2;
   while (true){  // 330
 
     if ( i < imax ){
@@ -144,19 +145,17 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
       }
     }
 
-
-
     //std::cout << " --- 360 --- " << std::endl;
     ++j;
     if (j > 1) { xsi[ie] += (x[i-1]-xlast)*(y[0*imax+i-1]+ylast)*0.5; }
+    //if (j > 1) { std::cout << " ---  " << (x[i-1]-xlast)*(y[0*imax+i-1]+ylast)*0.5 << std::endl; }
+    //if (j > 1) { std::cout << " ---  " << xsi[ie] << std::endl; }
     if ( j == 3 and xsi[ie] < 5e-7 ){ j = 2; }
 
 
     int jscr = (j-1)*(nl+1)+1;
 
-
     if ( (unsigned) jscr+nl > scr.size() ){ scr.resize((jscr+nl)*2); }
-
 
     scr[jscr-1]=x[i-1];
     scr[jscr] = (y[0*imax+i-1] < 1e-9) ? 
@@ -167,15 +166,10 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
     ylast = y[0*imax+i-1];
 
 
-    //std::cout << std::endl;
-    //std::cout << jscr-1 << "     " << scr[jscr-1] << std::endl;
-    //std::cout << jscr   << "     " << scr[jscr] << std::endl;
-
     for ( int il = 1; il < nl; ++il ){
       scr[il+jscr] = sigfig(y[il*imax+i-1],9,0);
       if (scr[il+jscr] > 1.0){ y[il*imax+i-1] = 1.0; }
       if (scr[il+jscr] <-1.0){ y[il*imax+i-1] =-1.0; }
-      //std::cout << jscr+il << "     " <<  scr[jscr+il] << std::endl;
     }
 
     Float ulast, u2last, u3last;
@@ -186,6 +180,11 @@ auto do_330( const Float& enow, Range& x, Range& y, int& i, int& j, const Float&
     if ( i >= 2 ){ continue; } // go to 330
 
     ++jbeta;
+    //if (jbeta > int(betas.size())){ // we will be going to 430 soon
+    //  for ( auto& yVal : y ){ yVal = 0.0; }
+    //  xsi[ie] += (x[i-1]-xlast)*(y[0*imax+i-1]+ylast)*0.5;
+    //}
+
     return std::make_tuple(ulast,u2last,u3last);  // go to 311 or 430
     
   } // 330 LOOP
@@ -209,75 +208,58 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
 
   Range x(20,0.0), y(20*65,0.0);
   int imax = x.size();
+  Float ep;
 
-  while (true) {
-      //std::cout << " --- 311 --- " << std::endl;
+  do {
 
     x[1] = x[0];
   
-    for ( int il = 0; il < nl; ++il ){
-      y[il*imax+1] = y[il*imax+0];
-    }
+    for ( int il = 0; il < nl; ++il ){ y[il*imax+1] = y[il*imax+0]; }
 
-    //std::cout << lat << "    " << jbeta << "    " << enow << "    " << x[0] << std::endl;
-    Float ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); // 313
-    //std::cout << ep << std::endl;
+    ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); // 313
     ep = sigfig(ep,8,0);
     x[0] = ep;
 
     Range s(abs(nnl)-1,0.0);
     Float pdf = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
-    //std::cout << "YT   " <<ep << "    " <<  pdf << "    " << s[0] << "     " << s[1] << "     " << s[2] << "    " << s[3] << std::endl;
-    //return;
   
     y[0*imax+0] = pdf;
     for ( int il = 1; il < nl; ++il ){ y[il*imax+0] = s[il-1]; }
-    //std::cout << ep <<  "   " << y[0*imax+1] << "   " << y[1*imax+1] << "    " << y[2*imax+1] << std::endl;
-  
-    //std::cout << jbeta << "     " << ep << std::endl;
-    //std::cout << y[0*imax+0] << "   " << y[0*imax+1] << "   " << y[0*imax+2] << "    " << y[0*imax+3] << std::endl;
-    //std::cout << y[1*imax+0] << "   " << y[1*imax+1] << "   " << y[1*imax+2] << "    " << y[1*imax+3] << std::endl;
-    //std::cout << y[2*imax+0] << "   " << y[2*imax+1] << "   " << y[2*imax+2] << "    " << y[2*imax+3] << std::endl;
-    //std::cout << y[3*imax+0] << "   " << y[3*imax+1] << "   " << y[3*imax+2] << "    " << y[3*imax+3] << std::endl;
-    //std::cout << std::endl;
+
+    do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
 
 
-    int i = 2;
-  
-    do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
+  } while( jbeta <= int(betas.size()));
 
 
-    //std::cout << "   -     " << jbeta << std::endl;
-    if (jbeta <= int(betas.size())){ 
-      continue; // go to 311
+  for ( auto& yVal : y ){ yVal = 0.0; }
+
+  int jscr = (j)*(nl+1)+1;
+  scr[jscr-1] = ep;
+  scr.resize((j+1)*(nl+1)+1);
+
+  double sum = 0.0;
+  int lengthRow = nl+1;
+
+  for ( size_t k = 0; k < scr.size(); ++k ){
+    if ( (k-1)%lengthRow == 0 and (k-1) > 0 ){
+      sum += (scr[k]+scr[k-lengthRow])*0.5*(scr[k-1]-scr[k-(lengthRow+1)]);
     }
-    else { // go to 430
-      for ( auto& yVal : y ){ yVal = 0.0; }
-
-      int jscr = (j)*(nl+1)+1;
-      scr[jscr-1] = ep;
-      scr.resize((j+1)*(nl+1)+1);
-
-      double sum = 0.0;
-      int lengthRow = nl+1;
-      for ( size_t k = 0; k < scr.size(); ++k ){
-        if ( (k-1)%lengthRow == 0 and (k-1) > 0 ){
-          sum += (scr[k]+scr[k-lengthRow])*0.5*(scr[k-1]-scr[k-(lengthRow+1)]);
-        }
-      }
-      //std::cout << " sum " << sum << std::endl;
-      for ( size_t k = 1; k < scr.size(); ++k ){
-        if ( (k-1)%lengthRow == 0 ){
-          scr[k] = scr[k]/sum;
-        }
-      }
-
-      return;
-    }
-
-
+  }
+  for ( size_t k = 1; k < scr.size(); ++k ){
+    if ( (k-1)%lengthRow == 0 ){ scr[k] = scr[k]/sum; }
   }
 
+
+  // 430
+  ++j;
+
+  xsi[ie] += (x[0]-xlast)*(y[0*imax+0-1]+ylast)*0.5;
+
+
+
+
+  return xsi[ie];
 
 }
 

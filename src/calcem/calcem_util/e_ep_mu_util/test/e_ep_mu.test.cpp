@@ -58,7 +58,6 @@ TEST_CASE( "do we need a midpoint" ){
 
 
 /*
-*/
 
 TEST_CASE( "do 330" ){ 
 
@@ -69,7 +68,7 @@ TEST_CASE( "do 330" ){
   x[0] = 2.5607298E-3;
   for (size_t i = 0; i < initialY.size(); ++i){ y[i*x.size()+0] = initialY[i]; }
 
-  int i = 2, lat = 0, iinc = 2, lasym = 0;
+  int lat = 0, iinc = 2, lasym = 0;
   double tev = 2.5507297688e-2, tol = 5.0E-2;
   double enow;
   std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
@@ -99,7 +98,7 @@ TEST_CASE( "do 330" ){
     enow = 1e-5;
 
     THEN( "Returned x values, y vector, and moment values are correct" ){
-      auto out = do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
+      auto out = do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
 
       ulast  = std::get<0>(out); REQUIRE( 2609.673 == Approx(ulast ).epsilon(1e-6));
       u2last = std::get<1>(out); REQUIRE(-6650.153 == Approx(u2last).epsilon(1e-6));
@@ -127,7 +126,7 @@ TEST_CASE( "do 330" ){
       0.8530495, 0.8969429, 0.9528127, 0.8971790, 0.8537006, 0.8236852, 0.8025615, 
       0.7869531, 0.7760527, 0.7683948, 0.7629976, 0.7591794, 0.7564790, 0.0 };
 
-      REQUIRE( 1  == i );
+      //REQUIRE( 1  == i );
       REQUIRE( 20 == j );
       REQUIRE( 2  == jbeta );
 
@@ -177,7 +176,7 @@ TEST_CASE( "do 330" ){
 
     THEN( "Returned x values, y vector, and moment values are correct" ){
 
-      auto out = do_330(enow,x,y,i,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
+      auto out = do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
 
       ulast  = std::get<0>(out); REQUIRE( 2993.879 == Approx(ulast ).epsilon(1e-6));
       u2last = std::get<1>(out); REQUIRE(-240.7431 == Approx(u2last).epsilon(1e-6));
@@ -206,7 +205,7 @@ TEST_CASE( "do 330" ){
       0.7812307, 0.7719456, 0.7654775, 0.7609340, 0.7577044, 0.7554555, 0.7538610, 
       0.7527317, 0.7519323, 0.7513667, 0.7509666, 0.7506835, 0.7504834, 0.0 };
 
-      REQUIRE( 1  == i );
+      //REQUIRE( 1  == i );
       REQUIRE( 43 == j );
       REQUIRE( 2  == jbeta );
 
@@ -322,7 +321,6 @@ TEST_CASE( "313" ) {
 } // TEST CASE
 
 
-/*
 */
 
 
@@ -367,30 +365,33 @@ TEST_CASE( "do 330 (and some things around it)" ){
       AND_WHEN( "various tolerances considered" ){ 
         tol = 5e-1;
         for ( auto& val : scr ){ val = 0.0; }
-        do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+        auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
         correctSCR = { 0, 0, 0, 0, 1.245962E-6, 134.9500, -0.187640, 0.806634, 
-        2.491924E-6, 134.7343, -0.2752335, 0.72264533,  4.98384E-6, 133.6925, 
-        -0.3407188, 0.65809276, 9.967695E-6, 131.7394, -0.391743, 0.608060, 
-        1.993539E-5, 130.9234, -0.4247796, 0.57516619,  3.98707E-5, 130.2870, 
-        -0.4474311, 0.55254981, 7.974156E-5, 129.4080, -0.463325, 0.536666, 
-        1.594831E-4, 127.8354, -0.4746473, 0.52534821,  3.18966E-4, 124.8242, 
-        -0.4828510, 0.51714441, 6.379325E-4, 119.0482, -0.488959, 0.511033, 
-        1.275865E-3, 108.3016, -0.4937214, 0.50626439,  2.55173E-3, 89.63757, 
-        -0.4977176, .5022543, 3.827095E-3, 74.19671, -0.499894, 0.500063, 
-        5.102460E-3, 61.41592, -0.5014298, 0.49851398,  1.21169E-2, 19.07564, 
-        -0.5017302, 0.49825742, 1.913147E-2, 8.602442, -0.502753, 0.497225, 
-        3.316049E-2, 2.080990, -0.5040439, 0.49592504,  3.57112E-2, 2.032783, 
-        -0.5033939, 0.49658361, 6.376924E-2, 1.440228, -0.501071, 0.498924, 
-        6.631997E-2, 1.339506, -0.5010211, 0.49897454,  9.43780E-2, 0, 0, 0 };
+        2.491924E-6, 134.7343,-0.275233,  0.72264533, 4.98384E-6, 133.6925, 
+       -0.3407188,   0.658092, 9.967695E-6, 131.7394,-0.391743,   0.608060, 
+        1.993539E-5, 130.9234,-0.424779,  0.57516619, 3.98707E-5, 130.2870, 
+       -0.4474311,   0.552549, 7.974156E-5, 129.4080,-0.463325,   0.536666, 
+        1.594831E-4, 127.8354,-0.474647,  0.52534821, 3.18966E-4, 124.8242, 
+       -0.4828510,   0.517144, 6.379325E-4, 119.0482,-0.488959,   0.511033, 
+        1.275865E-3, 108.3016,-0.493721,  0.50626439, 2.55173E-3, 89.63757, 
+       -0.4977176,   0.502254, 3.827095E-3, 74.19671,-0.499894,   0.500063, 
+        5.102460E-3, 61.41592,-0.501429,  0.49851398, 1.21169E-2, 19.07564, 
+       -0.5017302,   0.498257, 1.913147E-2, 8.602442,-0.502753,   0.497225, 
+        3.316049E-2, 2.080990,-0.504043,  0.49592504, 3.57112E-2, 2.032783, 
+       -0.5033939,   0.496583, 6.376924E-2, 1.440228,-0.501071,   0.498924, 
+        6.631997E-2, 1.339506,-0.501021,  0.49897454, 9.43780E-2, 0, 0, 0 };
         for ( size_t i = 0; i < correctSCR.size(); ++i ){
           REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
         }
+        double xs = out;
+        double correctXS = 6843.9814424122860;
+        REQUIRE( correctXS == Approx(xs).epsilon(1e-6) );
 
         tol = 1.0; 
         jbeta = -7; j = 0;
         for ( auto& val : scr ){ val = 0.0; }
         for ( auto& val : xsi ){ val = 0.0; }
-        do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+        out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
         correctSCR = {0, 0, 0, 0, 2.551730E-3, 94.58360, -0.4977176, 0.5022543, 
         3.827095E-3, 78.29074, -0.4998946, 0.50006329, 5.102460E-3, 64.80473, 
         -0.5014298, 0.49851398, 0.01913147, 9.077108, -0.5027530, 0.49722554, 
@@ -400,6 +401,8 @@ TEST_CASE( "do 330 (and some things around it)" ){
         for ( size_t i = 0; i < correctSCR.size(); ++i ){
           REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
         }
+        xs = out;
+        REQUIRE( 6486.0916507679876 == Approx(xs).epsilon(1e-6) );
 
       } // AND WHEN
     } // WHEN
@@ -411,7 +414,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
         jbeta = -7;
         for ( auto& val : scr ){ val = 0.0; }
         for ( auto& val : xsi ){ val = 0.0; }
-        do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+        auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
         correctSCR = {0.0, 0.0, 0.0, 0.0, 4.90562, 0.373818, 0.925628, 0.983460, 
         4.933680, 0.433181, 0.935837, 0.987965, 4.936231, 0.425528, 0.935521, 
         0.987938, 4.964289, 0.288884, 0.925321, 0.982937, 4.966840, 0.232108, 
@@ -423,6 +426,8 @@ TEST_CASE( "do 330 (and some things around it)" ){
         for ( size_t i = 0; i < correctSCR.size(); ++i ){
           REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
         }
+        auto xs = out;
+        REQUIRE( 16.767154051889012 == Approx(xs).epsilon(1e-6) );
 
 
         j = 0;
@@ -431,7 +436,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
         xlast = 0; ylast = 0;
         for ( auto& val : scr ){ val = 0.0; }
         for ( auto& val : xsi ){ val = 0.0; }
-        do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+        out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
         correctSCR = { 0.0, 0.0, 0.0, 0.0, 1.87134E-5, 2.94462E-3, -0.499319, 
         0.5006542, 3.74269E-5, 4.16408E-3, -0.499030, 0.500917, 7.48538E-5, 
         5.88825E-3, -0.498612, 0.501284, 1.49707E-4, 8.32540E-3, -0.498010, 
@@ -482,9 +487,11 @@ TEST_CASE( "do 330 (and some things around it)" ){
         0.988095, 5.063768, 0.016338, 0.942060, 0.989837, 5.066319, 0.014814, 
         0.941800, 0.989760, 5.080348, 8.194329E-3, 0.938315, 0.988339, 5.087362, 
         5.518491E-3, 0.9326195, 0.98594691, 5.094377, 0.0, 0.0, 0.0};
+        xs = out;
         for ( size_t i = 0; i < correctSCR.size(); ++i ){
           REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
         }
+        REQUIRE( 39.083911355548722 == Approx(xs).epsilon(1e-6) );
       } // AND WHEN
     } // WHEN
 
@@ -497,7 +504,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       jbeta = -7;
       for ( auto& val : scr ){ val = 0.0; }
 
-      do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
       correctSCR = {0.0, 0.0, 0.0, 0.0, 0.2028115, 2.088333, -0.0178393, 
       0.720697, 0.405623, 1.684778, 0.273684, 0.827656, 0.433681, 1.922670, 
@@ -516,10 +523,13 @@ TEST_CASE( "do 330 (and some things around it)" ){
       0.632802, 0.939442, 0.533159, 0.612663, 0.521724, 0.909378, 0.535710, 
       0.538822, 0.503196, 0.906930, 0.563768, 0.157392, 0.436427, 0.890570, 
       0.566318, 0.144765, 0.439953, 0.891308, 0.594377, 0.0, 0.0, 0.0};
+      auto xs = out;
 
       for ( size_t i = 0; i < correctSCR.size(); ++i ){
         REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
       }
+      REQUIRE( 36.294144921869645 == Approx(xs).epsilon(1e-6) );
+
 
     } // WHEN
 
@@ -528,7 +538,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       tol = 5e-1;
       jbeta = -7;
       for ( auto& val : scr ){ val = 0.0; }
-      do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
       correctSCR = {0.0, 0.0, 0.0, 0.0, 0.952811, 0.660070, 0.415912, 0.761437, 
       1.905623, 0.520008, 0.809530, 0.958128, 1.933681, 0.585289, 0.833890, 
       0.969934, 1.936231, 0.576276, 0.833329, 0.969824, 1.964289, 0.658464, 
@@ -549,6 +559,8 @@ TEST_CASE( "do 330 (and some things around it)" ){
       for ( size_t i = 0; i < correctSCR.size(); ++i ){
         REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
       }
+      auto xs = out;
+      REQUIRE( 30.446130869378809 == Approx(xs).epsilon(1e-6) );
     } // WHEN
   } // GIVEN 
 
@@ -563,7 +575,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
 
         double tol = 5e-1;
         for ( auto& val : scr ){ val = 0.0; }
-        do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+        auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
         correctSCR = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.24596E-6, 134.9500, -0.553199,  
         0.177917, 0.672898, 0.940370, 2.49192E-6, 134.7343, -0.609136,  5.866965E-2, 
@@ -586,6 +598,8 @@ TEST_CASE( "do 330 (and some things around it)" ){
         for ( size_t i = 0; i < correctSCR.size(); ++i ){
           REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
         }
+        auto xs = out;
+        REQUIRE( 6843.9814424122860 == Approx(xs).epsilon(1e-6) );
       } // AND WHEN
     } // WHEN
 
@@ -594,7 +608,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       tol = 5e-2;
       for ( auto& val : scr ){ val = 0.0; }
 
-      do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
       correctSCR = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.768411E-9, 
       4.428672, -7.435070E-1, -2.357055E-1, 0.26430706, 0.75647904, 1.953682E-8, 
@@ -652,20 +666,22 @@ TEST_CASE( "do 330 (and some things around it)" ){
       5.720349E-1, -7.520276E-1, -2.544978E-1, 0.24546106, 7.479197E-1, 9.438700E-2, 
       0.0, 0.0, 0.0, 0.0, 0.0 } ;
 
+      auto xs = out;
       for ( size_t i = 0; i < correctSCR.size(); ++i ){
         REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
       }
+      REQUIRE( 1996.1698038212844 == Approx(xs).epsilon(1e-6) );
     } // WHEN
 
     WHEN( "Initial energy E = 1e-3 eV" ){
       double enow = 1e-3;
-      enow =    1.000000E-3;
       for ( auto& val : scr ){ val = 0.0; }
+      tol = 5e-2;
 
       int ie = 0;
       double xlast = 0.0, ylast = 0.0;
       std::vector<double> xsi(100,0.0);
-      do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
       correctSCR = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.354496E-8, 
       4.138537E-1, -7.494305E-1, -2.487471E-1, 0.25125295, 0.75056922, 2.708992E-8, 
@@ -722,9 +738,11 @@ TEST_CASE( "do 330 (and some things around it)" ){
       7.372262E-1, -7.664191E-1, -2.895516E-1, 0.20597533, 0.72789955, 8.836250E-2, 
       5.099616E-1, -7.678017E-1, -2.929037E-1, 0.20205293, 7.255643E-1, 9.537700E-2, 
       0.0, 0.0, 0.0, 0.0, 0.0};
+      auto xs = out;
       for ( size_t i = 0; i < correctSCR.size(); ++i ){
         REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
       }
+      REQUIRE( 225.78478730432727 == Approx(xs).epsilon(1e-6) );
     } // WHEN
 
 
@@ -739,7 +757,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       int ie = 0;
       double xlast = 0.0, ylast = 0.0;
       std::vector<double> xsi(100,0.0);
-      do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
       correctSCR = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.864013E-7, 2.036626E-2, 
       -7.494533E-1, -0.2487979, 0.251201, 0.750545, 1.37280E-6, 2.88021E-2, 
@@ -797,9 +815,11 @@ TEST_CASE( "do 330 (and some things around it)" ){
       0.163768,0.472591,-0.447064, 0.238353, 0.569192, 0.813019, 0.166318,0.428708, 
      -0.447854,0.236636,0.570986, 0.814478, 0.180347, 0.233970,-0.479907, 0.179081, 
       0.543565,0.803918,0.194377, 0, 0, 0, 0, 0 };
+      auto xs = out;
       for ( size_t i = 0; i < correctSCR.size(); ++i ){
         REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
       }
+      REQUIRE( 54.115991940853363 == Approx(xs).epsilon(1e-6) );
     } // WHEN
 
   WHEN( "High tolerance and high energy " ){
@@ -811,7 +831,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
     int ie = 0;
     double xlast = 0.0, ylast = 0.0;
     std::vector<double> xsi(100,0.0);
-    do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
+    auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
     correctSCR = {0, 0, 0, 0, 0, 0, 8.05839E-7, 0.0131679, -0.7495806, -0.249078, 
     0.250920, 0.750418, 1.61167E-6, 0.0186222, -0.7494065, -0.2486961, 0.251302, 
@@ -912,9 +932,11 @@ TEST_CASE( "do 330 (and some things around it)" ){
     0.447126, 0.721330, 0.879156, 0.266318, 0.2601356, -0.2925191, 0.368554, 
     0.674735, 0.883254, 0.280347, 0.149717, -0.3029577, 0.350598, 0.658237, 
     0.871978, 0.294377, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    auto xs = out;
     for ( size_t i = 0; i < correctSCR.size(); ++i ){
       REQUIRE( scr[i] == Approx(correctSCR[i]).epsilon(1e-6) );
     }
+    REQUIRE( 45.344506096878519 == Approx(xs).epsilon(1e-6) );
 
     } // WHEN
   } // GIVEN
