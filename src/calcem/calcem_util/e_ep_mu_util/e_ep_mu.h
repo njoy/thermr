@@ -128,7 +128,7 @@ auto getMoments(Float& ulast, Float& u2last, Float& u3last, const Range& y, cons
 
 
 template <typename Range, typename Float>
-auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta, Range& scr, Range& xsi, int& ie, Float& xlast, Float& ylast ){//, int& counter ){
+auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta, Range& scr, Range& xsi, int& ie, Range& lastVals ){//, int& counter ){
   int imax = x.size();
   int i = 2;
   while (true){  // 330
@@ -147,7 +147,17 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, co
 
     //std::cout << " --- 360 --- " << std::endl;
     ++j;
-    if (j > 1) { xsi[ie] += (x[i-1]-xlast)*(y[0*imax+i-1]+ylast)*0.5; }
+    if (j > 1) { xsi[ie] += (x[i-1]-lastVals[0])*(y[0*imax+i-1]+lastVals[1])*0.5; }
+    if (j > 1) {
+      Float uu, u2, u3;
+      getMoments(uu, u2, u3, y, i, x.size(), nl);
+      xsi[1] += 0.5*(x[i-1]-lastVals[0])*(uu+lastVals[2]);
+      xsi[2] += 0.5*(x[i-1]-lastVals[0])*(u2+lastVals[3]);
+      xsi[3] += 0.5*(x[i-1]-lastVals[0])*(u3+lastVals[4]); 
+      //std::cout << (xsi|ranges::view::all) << std::endl;
+    }
+ 
+      
     //if (j > 1) { std::cout << " ---  " << (x[i-1]-xlast)*(y[0*imax+i-1]+ylast)*0.5 << std::endl; }
     //if (j > 1) { std::cout << " ---  " << xsi[ie] << std::endl; }
     if ( j == 3 and xsi[ie] < 5e-7 ){ j = 2; }
@@ -162,8 +172,8 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, co
                  sigfig(y[0*imax+i-1],8,0) 
                : sigfig(y[0*imax+i-1],8,0) ;
 
-    xlast = x[i-1];
-    ylast = y[0*imax+i-1];
+    lastVals[0] = x[i-1];
+    lastVals[1] = y[0*imax+i-1];
 
 
     for ( int il = 1; il < nl; ++il ){
@@ -172,8 +182,30 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, co
       if (scr[il+jscr] <-1.0){ y[il*imax+i-1] =-1.0; }
     }
 
-    Float ulast, u2last, u3last;
-    getMoments(ulast, u2last, u3last, y, i, x.size(), nl);
+   
+
+
+
+    lastVals[0] = x[i-1];
+    lastVals[1] = y[0*imax+i-1];
+    lastVals[2] = 0.0;
+    lastVals[3] = 0.0; 
+    lastVals[4] = 0.0;
+    //std::cout << lastVals[1] << std::endl;
+
+    Range p(4,0.0);
+    for (int il = 1; il < nl; ++il){
+      legndr(y[il*imax+i-1],p,3);
+      //std::cout << y[il*imax+i-1] << "    " << (p|ranges::view::all) << std::endl;
+      lastVals[2] += p[1]; // ulast
+      lastVals[3] += p[2]; // u2last
+      lastVals[4] += p[3]; // u3last
+    }
+    lastVals[2] *= y[0*imax+i-1]/(nl-1);
+    lastVals[3] *= y[0*imax+i-1]/(nl-1);
+    lastVals[4] *= y[0*imax+i-1]/(nl-1);
+
+
 
 
     --i;
@@ -185,7 +217,14 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, co
     //  xsi[ie] += (x[i-1]-xlast)*(y[0*imax+i-1]+ylast)*0.5;
     //}
 
-    return std::make_tuple(ulast,u2last,u3last);  // go to 311 or 430
+
+
+
+
+
+
+    return;
+    //return std::make_tuple(ulast,u2last,u3last);  // go to 311 or 430
     
   } // 330 LOOP
 }
@@ -199,16 +238,17 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, co
 
 
 template <typename Range, typename Float>
-auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nbin, int& jbeta, Range& scr, Range& xsi, int ie, Float& xlast, Float& ylast ){
+auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nbin, int& jbeta, Range& scr, Range& lastVals ){
     std::cout.precision(15);
 
   int nl = nbin + 1;
   int nnl = -nl;
 
-
   Range x(20,0.0), y(20*65,0.0);
   int imax = x.size();
   Float ep;
+  Range xsi(4,0.0);
+  int ie = 0;
 
   do {
 
@@ -226,7 +266,7 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
     y[0*imax+0] = pdf;
     for ( int il = 1; il < nl; ++il ){ y[il*imax+0] = s[il-1]; }
 
-    do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,xlast,ylast);
+    do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,lastVals);
 
 
   } while( jbeta <= int(betas.size()));
@@ -254,13 +294,22 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
   // 430
   ++j;
 
-  xsi[ie] += (x[0]-xlast)*(y[0*imax+0-1]+ylast)*0.5;
+  //std::cout << xsi[0] << "   " << y[0*imax+0-1] << "   " << lastVals[0]  << std::endl;
+  xsi[0] += (x[0]-lastVals[0])*(y[0*imax+1-1]+lastVals[1])*0.5;
+  //std::cout << xsi[0] << std::endl;
+  //std::cout << std::endl;
+  Float uu = 0.0, u2 = 0.0, u3 = 0.0;
+  xsi[1] += 0.5*(x[0]-lastVals[0])*(uu+lastVals[2]);
+  xsi[2] += 0.5*(x[0]-lastVals[0])*(u2+lastVals[3]);
+  xsi[3] += 0.5*(x[0]-lastVals[0])*(u3+lastVals[4]);
 
+  xsi[1] /= xsi[0];
+  xsi[2] /= xsi[0];
+  xsi[3] /= xsi[0];
+  xsi[0] = sigfig(xsi[0],9,0);
+  //std::cout << (xsi|ranges::view::all) << std::endl;
 
-
-
-  return xsi[ie];
-
+  return xsi;
 }
 
 
