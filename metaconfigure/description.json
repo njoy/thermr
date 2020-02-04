@@ -367,12 +367,6 @@
     ]
   },
   "header files": [
-    "src/simpler/elastic/coherent/coherent.h",
-    "src/simpler/elastic/coherent/coherentTools/upstk.h",
-    "src/simpler/elastic/coherent/coherentTools/sigcoh.h",
-    "src/simpler/elastic/coherent/coherentTools/sigcohTools/form.h",
-    "src/simpler/elastic/coherent/coherentTools/sigcohTools/terp.h",
-    "src/simpler/elastic/coherent/coherentTools/sigcohTools/legndr.h",
     "src/coh/coh.h",
     "src/coh/coh_util/upstk.h",
     "src/coh/coh_util/sigcoh.h",
@@ -456,18 +450,6 @@
     ],
     "iel": [
       "src/iel/test/incoherentElastic.test.cpp"
-    ],
-    "simpler.elastic.coherent": [
-      "src/simpler/elastic/coherent/test/coherent.test.cpp"
-    ],
-    "simpler.elastic.coherent.coherentTools": [
-      "src/simpler/elastic/coherent/coherentTools/test/upstk.test.cpp",
-      "src/simpler/elastic/coherent/coherentTools/test/sigcoh.test.cpp"
-    ],
-    "simpler.elastic.coherent.coherentTools.sigcohTools": [
-      "src/simpler/elastic/coherent/coherentTools/sigcohTools/test/legndr.test.cpp",
-      "src/simpler/elastic/coherent/coherentTools/sigcohTools/test/terp.test.cpp",
-      "src/simpler/elastic/coherent/coherentTools/sigcohTools/test/form.test.cpp"
     ],
     "temp_eff": [
       "src/temp_eff/test/temp_eff.test.cpp"

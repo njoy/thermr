@@ -608,6 +608,8 @@ TEST_CASE( "do 330 (and some things around it)" ){
       tol = 5e-2;
       for ( auto& val : scr ){ val = 0.0; }
 
+      xlast = 0.0;
+      ylast = 0.0;
       auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,ie,xlast,ylast);
 
       correctSCR = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.768411E-9, 

@@ -75,6 +75,7 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   finalXS[0] = 0.0;
 
   int counter = 0, i_old = 0, count2 = 0;
+  int addedE_counter = 0;
  
   while (finalE[counter] <= emax) {
     if (counter > 0.8*finalE.size()){ 
