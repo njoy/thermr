@@ -947,7 +947,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
 
 TEST_CASE( "main E E' mu function" ){
   int imax = 20, lat = 0, iinc = 2, lasym = 0;
-  double tev = 2.5507297688e-2, tol = 5.0E-2;
+  double tev = 2.5507297688e-2, tol = 5.0;
   std::vector<double> 
   alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
   betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 },
@@ -959,7 +959,7 @@ TEST_CASE( "main E E' mu function" ){
   -1.98720663, -2.78454600, -2.88531460, -3.71288120, -3.77142141, -4.71158392 };
 
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
-  int nbin = 4, jbeta = 1,j = 0;
+  int nbin = 2;
 
   std::vector<double> scr(65*imax*8,0.0);
   std::vector<double> xsi(4,0.0), correctVals(4);

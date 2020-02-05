@@ -193,15 +193,18 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
   int nl = nbin + 1;
   int imax = x.size();
   Float ep;
+    Range s(nl-1,0.0);
 
   do {
     x[1] = x[0];
     for ( int il = 0; il < nl; ++il ){ y[il*imax+1] = y[il*imax+0]; }
     ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); // 313
     ep = sigfig(ep,8,0);
+    std::cout << ep << std::endl;
     x[0] = ep;
-    Range s(nl-1,0.0);
-    Float pdf = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
+    for ( auto& val : s ){ val = 0.0; }
+    Float pdf = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                     sigma_b2,teff,s,true);
     y[0*imax+0] = pdf;
     for ( int il = 1; il < nl; ++il ){ y[il*imax+0] = s[il-1]; }
     do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nl,jbeta,scr,out,lastVals);
