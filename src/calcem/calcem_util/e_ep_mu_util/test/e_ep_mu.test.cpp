@@ -959,7 +959,7 @@ TEST_CASE( "main E E' mu function" ){
   -1.98720663, -2.78454600, -2.88531460, -3.71288120, -3.77142141, -4.71158392 };
 
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
-  int nbin = 2;
+  int nbin = 2, j = 0, jbeta = -7;
 
   std::vector<double> scr(65*imax*8,0.0);
   std::vector<double> xsi(4,0.0), correctVals(4);
@@ -967,8 +967,13 @@ TEST_CASE( "main E E' mu function" ){
 
   std::vector<double> eVec { 1.00E-5, 1.78E-5, 2.50E-5, 3.50E-5, 5.00E-5, 7.00E-5, 1.00E-4, 1.26E-4, 1.60E-4, 2.00E-4 };
 
-  e_ep_mu( eVec, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, sigma_b2, teff, nbin );
+  double enow = 1e-5;
+  std::vector<double> lastVals { 0.0, 0.0, 0.0, 0.0, 0.0 };
+  //e_ep_mu( eVec, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, sigma_b2, teff, nbin );
+  //do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+  e_ep_mu_MAIN(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
 
+  std::cout << "END" << std::endl;
 
   //GIVEN( " " ){
 
