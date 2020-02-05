@@ -325,6 +325,9 @@ TEST_CASE( "do 330 (and some things around it)" ){
   -2.71233943, -2.84291608, -3.69699590, -3.75199349, -4.77433858, -1.96121202, 
   -1.98720663, -2.78454600, -2.88531460, -3.71288120, -3.77142141, -4.71158392 };
 
+  std::vector<double> y(20*65,0.0);
+
+
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
   int nbin = 4, jbeta = 1,j = 0;
 
@@ -346,7 +349,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       AND_WHEN( "various tolerances considered" ){ 
         tol = 5e-1;
         for ( auto& val : scr ){ val = 0.0; }
-        auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+        auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
         correctSCR = { 0, 0, 0, 0, 1.245962E-6, 134.9500, -0.187640, 0.806634, 
         2.491924E-6, 134.7343,-0.275233,  0.72264533, 4.98384E-6, 133.6925, 
        -0.3407188,   0.658092, 9.967695E-6, 131.7394,-0.391743,   0.608060, 
@@ -373,7 +376,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
         for ( auto& val : scr ){ val = 0.0; }
         for ( auto& val : xsi ){ val = 0.0; }
         for ( auto& val : lastVals){ val = 0.0; }
-        out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+        out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
         correctSCR = {0, 0, 0, 0, 2.551730E-3, 94.58360, -0.4977176, 0.5022543, 
         3.827095E-3, 78.29074, -0.4998946, 0.50006329, 5.102460E-3, 64.80473, 
         -0.5014298, 0.49851398, 0.01913147, 9.077108, -0.5027530, 0.49722554, 
@@ -395,7 +398,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
         for ( auto& val : scr ){ val = 0.0; }
         for ( auto& val : xsi ){ val = 0.0; }
         for ( auto& val : lastVals ){ val = 0.0; }
-        auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+        auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
         correctSCR = {0.0, 0.0, 0.0, 0.0, 4.90562, 0.373818, 0.925628, 0.983460, 
         4.933680, 0.433181, 0.935837, 0.987965, 4.936231, 0.425528, 0.935521, 
         0.987938, 4.964289, 0.288884, 0.925321, 0.982937, 4.966840, 0.232108, 
@@ -480,7 +483,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       jbeta = -7;
       for ( auto& val : scr ){ val = 0.0; }
 
-      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
 
       correctSCR = {0.0, 0.0, 0.0, 0.0, 0.2028115, 2.088333, -0.0178393, 
       0.720697, 0.405623, 1.684778, 0.273684, 0.827656, 0.433681, 1.922670, 
@@ -511,7 +514,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       tol = 5e-1;
       jbeta = -7;
       for ( auto& val : scr ){ val = 0.0; }
-      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
       correctSCR = {0.0, 0.0, 0.0, 0.0, 0.952811, 0.660070, 0.415912, 0.761437, 
       1.905623, 0.520008, 0.809530, 0.958128, 1.933681, 0.585289, 0.833890, 
       0.969934, 1.936231, 0.576276, 0.833329, 0.969824, 1.964289, 0.658464, 
@@ -547,7 +550,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
         double tol = 5e-1;
         for ( auto& val : scr ){ val = 0.0; }
         for ( auto& val : lastVals ){ val = 0.0; }
-        auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+        auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
 
         correctSCR = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.24596E-6, 134.9500, -0.553199,  
         0.177917, 0.672898, 0.940370, 2.49192E-6, 134.7343, -0.609136,  5.866965E-2, 
@@ -578,7 +581,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
         for ( auto& val : scr ){ val = 0.0; }
         for ( auto& val : lastVals ){ val = 0.0; }
         for ( auto& val : xsi ){ val = 0.0; }
-        out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+        out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
 
         correctSCR = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.551730E-3, 94.58360, 
        -0.7485668, -0.2468684, 0.25310755, 0.75140105, 3.827095E-3, 78.29074, 
@@ -599,7 +602,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
         for ( auto& val : scr ){ val = 0.0; }
         for ( auto& val : lastVals ){ val = 0.0; }
         for ( auto& val : xsi ){ val = 0.0; }
-        out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+        out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
 
         correctSCR = { 0, 0, 0, 0, 0, 0, 2.551730E-3, 70.35257, -0.7485668, 
         -0.246868, 0.2531075, 0.7514010, 5.10246E-3, 48.20264, -0.7508800, 
@@ -627,7 +630,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       for ( auto& val : scr ){ val = 0.0; }
       for ( auto& val : xsi ){ val = 0.0; }
       for ( auto& val : lastVals ){ val = 0.0; }
-      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
       correctSCR = { 0, 0, 0, 0, 0, 0, 9.768411E-9, 
       4.428672, -0.7435070, -0.2357055, 0.2643070, 0.7564790, 1.95368E-8, 
       6.263472, -0.7408188, -0.2297769, 0.2702225, 0.7591794, 3.90736E-8, 
@@ -698,7 +701,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
 
       std::vector<double> scr(100,0.0);
       std::vector<double> xsi(100,0.0);
-      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
 
       correctSCR ={ 0, 0, 0, 0, 0, 0, 1.35449E-8, 0.413853,-0.749430,-0.2487471, 
       0.251252, 0.750569, 2.70899E-8, 0.585278,-0.749194,-0.2482280, 0.251771, 
@@ -759,7 +762,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       for ( auto& val : scr ){ val = 0.0; }
 
       std::vector<double> xsi(100,0.0);
-      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
 
       correctSCR = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.864013E-7, 2.036626E-2, 
       -7.494533E-1, -0.2487979, 0.251201, 0.750545, 1.37280E-6, 2.88021E-2, 
@@ -829,7 +832,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
       for ( auto& val : scr ){ val = 0.0; }
 
       std::vector<double> xsi(100,0.0);
-      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+      auto out = do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
 
       correctSCR = {0, 0, 0, 0, 0, 0, 8.05839E-7, 0.0131679, -0.7495806, -0.249078, 
       0.250920, 0.750418, 1.61167E-6, 0.0186222, -0.7494065, -0.2486961, 0.251302, 
@@ -947,7 +950,7 @@ TEST_CASE( "do 330 (and some things around it)" ){
 
 TEST_CASE( "main E E' mu function" ){
   int imax = 20, lat = 0, iinc = 2, lasym = 0;
-  double tev = 2.5507297688e-2, tol = 5.0;
+  double tev = 2.5507297688e-2, tol = 2.0;
   std::vector<double> 
   alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
   betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 },
@@ -963,17 +966,13 @@ TEST_CASE( "main E E' mu function" ){
 
   std::vector<double> scr(65*imax*8,0.0);
   std::vector<double> xsi(4,0.0), correctVals(4);
-
-
-  std::vector<double> eVec { 1.00E-5, 1.78E-5, 2.50E-5, 3.50E-5, 5.00E-5, 7.00E-5, 1.00E-4, 1.26E-4, 1.60E-4, 2.00E-4 };
-
-  double enow = 1e-5;
+  std::vector<double> eVec { 1.00E-5, 1.78E-5 };//, 2.50E-5, 3.50E-5, 5.00E-5, 7.00E-5, 1.00E-4, 1.26E-4, 1.60E-4, 2.00E-4 };
   std::vector<double> lastVals { 0.0, 0.0, 0.0, 0.0, 0.0 };
   //e_ep_mu( eVec, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, sigma_b2, teff, nbin );
-  //do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
-  e_ep_mu_MAIN(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals);
+  //do_330_extra(enow,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,lastVals,y);
+  double temp = 296.0;
+  e_ep_mu_MAIN(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,temp);
 
-  std::cout << "END" << std::endl;
 
   //GIVEN( " " ){
 

@@ -123,6 +123,7 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
   int i = 2; // 330 
   while ( i >= 2 ){
 
+    //std::cout << "*   " << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << "   " << y[0*imax+3] << std::endl;
     if ( i < imax ){
       Float xm = 0.5*(x[i-2]+x[i-1]); 
       xm = sigfig(xm,8,0);
@@ -136,6 +137,10 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
     }
 
     ++j; // 360 
+    //std::cout << "-   " << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
+    //std::cout << std::endl;
+
+
     if (j > 1) { 
       Range currentMoments (lastVals.size(),0.0);
       addToMoments( y, currentMoments, nl, imax, i );
@@ -187,34 +192,45 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
   const int lat, const int iinc, const int lasym, const Range& alphas, 
   const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
   const Float& sigma_b2, const Float& teff, const int nbin, int& jbeta, 
-  Range& scr, Range& lastVals ){
+  Range& scr, Range& lastVals, Range& y ){
 
-  Range x(20,0.0), y(20*65,0.0), out(4,0.0);
+  Range x(20,0.0), out(4,0.0);
   int nl = nbin + 1;
   int imax = x.size();
   Float ep;
-  Range s(nl-1,0.0);
 
   do {
     x[1] = x[0];
     for ( int il = 0; il < nl; ++il ){ y[il*imax+1] = y[il*imax+0]; }
+
+    //std::cout << "    (in 311)    " << std::endl;
+    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
+    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
+    //std::cout << std::endl;
+
+
     ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); // 313
     ep = sigfig(ep,8,0);
     x[0] = ep;
-    for ( auto& val : s ){ val = 0.0; }
+    Range s(nl-1,0.0);
     Float pdf = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
                      sigma_b2,teff,s,true);
     y[0*imax+0] = pdf;
     for ( int il = 1; il < nl; ++il ){ y[il*imax+0] = s[il-1]; }
-    std::cout << (x|ranges::view::all) << std::endl;
+    //std::cout << "+   " << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << "   " << y[0*imax+3] << std::endl;
     do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nl,jbeta,scr,out,lastVals);
-    std::cout << (x|ranges::view::all) << std::endl;
-    std::cout << std::endl;
 
   } while( jbeta <= int(betas.size()));
 
 
-  for ( auto& yVal : y ){ yVal = 0.0; }
+    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
+    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
+    //std::cout << std::endl;
+
+  //for ( auto& yVal : y ){ yVal = 0.0; }
+  for ( int il = 0; il < nl; ++il ){
+      y[il*imax] = 0.0;
+  }
 
   scr[(j)*(nl+1)] = ep;
   scr.resize((j+1)*(nl+1));
@@ -232,7 +248,6 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
   }
 
 
-  std::cout << "D" << std::endl;
   // 430
   ++j;
 
@@ -249,43 +264,65 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
 
 
 template <typename Range, typename Float>
-auto e_ep_mu_MAIN( const Float& enow, const Float& tev, const Float& tol, 
+auto e_ep_mu_MAIN( const Range& eVec, const Float& tev, const Float& tol, 
   const int lat, const int iinc, const int lasym, const Range& alphas, 
   const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
-  const Float& sigma_b2, const Float& teff, const int nbin, int& jbeta, 
-  Range& scr, Range& lastVals ){
+  const Float& sigma_b2, const Float& teff, const int nbin, const Float& temp ){
 
+    std::cout.precision(15);
   int j = 0;
-  do_330_extra( enow, j, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, 
-                sigma_b, sigma_b2, teff, nbin, jbeta, scr, lastVals );
-  std::cout << (scr|ranges::view::all) << std::endl;
-
-
-}
-
-
-/*
-template <typename Range, typename Float>
-auto e_ep_mu( const Range& eVec, const Float& tev, const Float& tol, 
-  const int lat, const int iinc, const int lasym, const Range& alphas, 
-  const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
-  const Float& sigma_b2, const Float& teff, const int nbin ){
-
-  Range lastVals(4,0.0);
+  int jbeta = -int(betas.size());
+  Range lastVals(5,0.0);
   Range scr(20*65*10,0.0);
-  int j = 0;
-  int jbeta = -betas.size();
+  Float eNow = 0.0;
+  int imax = 20;
+  Range y(20*65,0.0);
 
-  Float enow = eVec[0];
-  do_330_extra( enow, j, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, 
-                sigma_b, sigma_b2, teff, nbin, jbeta, scr, lastVals );
-  std::cout << (scr|ranges::view::all) << std::endl;
+  std::cout << std::endl;
+  for ( size_t iEnergy = 0; iEnergy < eVec.size(); ++iEnergy ){
+    eNow = eVec[iEnergy];
+    if ( temp > 3000.0 ){ eNow = highTempApprox(temp,eNow,eVec[0],eVec[eVec.size()-1]); }
+    eNow = sigfig(eNow,8,0);
+    //std::cout << "E   " << eNow << std::endl;
 
+    Range s(nbin,0.0);
+    Float ep = 0.0;
+    Float pdf = sigl(ep,eNow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+                     sigma_b2,teff,s,true);
+    y[0*imax+0] = pdf;
+    for ( int il = 1; il < nbin+1; ++il ){ y[il*imax+0] = s[il-1]; }
+    jbeta = -int(betas.size());
+    j = 0;
+
+    //std::cout << std::endl;
+    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
+    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
+    //std::cout << std::endl;
+    //std::cout << "    (before 311)    " << std::endl;
+    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
+    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
+    //std::cout << std::endl;
+
+    auto out = do_330_extra( eNow, j, tev, tol, lat, iinc, lasym, 
+    alphas, betas, sab, az, sigma_b, sigma_b2, teff, nbin, jbeta, scr, lastVals, y);
+    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
+    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
+    //std::cout << std::endl;
+    //return;
+    std::cout << (scr|ranges::view::all) << std::endl;
+    std::cout << std::endl;
+    for ( auto& val : scr ){ val = 0.0; }
+    //std::cout << std::endl;
+    //std::cout << std::endl;
+
+  }
 
 
 
 }
-*/
+
+
+
 
 
 
