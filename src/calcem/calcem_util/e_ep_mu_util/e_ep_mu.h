@@ -84,10 +84,8 @@ auto findFirstEprime( const int& lat, int& jbeta, const Float& E, //Float& Ep,
 
 template <typename Range, typename Float>
 auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, int nl, const Float& pdf ) {
-  int imax = x.size();
-  //std::cout << " --- 410 --- " << std::endl;
-
-  i += 1;
+  int imax = x.size(); // 410 
+  ++i;
   x[i-1] = x[i-2];
   x[i-2] = xm;
 
@@ -102,24 +100,18 @@ auto insertPoint(int& i, Range& x, Range& y, const Range& s, const Float& xm, in
 
 
 
-template <typename Range, typename Float> 
-auto getMoments(Float& ulast, Float& u2last, Float& u3last, const Range& y, const int& i, const int& imax, const int& nl ){
-  ulast  = 0; 
-  u2last = 0; 
-  u3last = 0;
-
-  int nll = 3;
+template <typename Range>
+auto addToMoments( const Range& y, Range& vecOfVals, const int nl, const int imax, const int i ){
   Range p(4,0.0);
-  for ( int il = 1; il < nl; ++il ){
-    legndr(y[il*imax+i-1],p,nll);
-    ulast  += p[1];
-    u2last += p[2];
-    u3last += p[3];
+  for (int il = 1; il < nl; ++il){
+    legndr(y[il*imax+i-1],p,3);
+    vecOfVals[2] += p[1]; // uu
+    vecOfVals[3] += p[2]; // u2
+    vecOfVals[4] += p[3]; // u3
   }
-  ulast  *= (y[0*imax+i-1]/(nl-1));
-  u2last *= (y[0*imax+i-1]/(nl-1));
-  u3last *= (y[0*imax+i-1]/(nl-1));
-  
+  vecOfVals[2] *= y[0*imax+i-1]/(nl-1);
+  vecOfVals[3] *= y[0*imax+i-1]/(nl-1);
+  vecOfVals[4] *= y[0*imax+i-1]/(nl-1);
 }
 
 
@@ -127,16 +119,22 @@ auto getMoments(Float& ulast, Float& u2last, Float& u3last, const Range& y, cons
 
 
 
+
 template <typename Range, typename Float>
-auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nnl, const int nl, int& jbeta, Range& scr, Range& xsi, int& ie, Range& lastVals ){//, int& counter ){
+auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, 
+  const Float& tol, const int lat, const int iinc, const int lasym, 
+  const Range& alphas, const Range& betas, const Range& sab, const Float& az, 
+  const Float& sigma_b, const Float& sigma_b2, const Float& teff, 
+  const int nl, int& jbeta, Range& scr, Range& out, Range& lastVals ){//, int& counter ){
   int imax = x.size();
   int i = 2;
-  while (true){  // 330
+  //while (true){  // 330
+  while ( i >= 2 ){
 
     if ( i < imax ){
       Float xm = 0.5*(x[i-2]+x[i-1]); 
       xm = sigfig(xm,8,0);
-      Range s(abs(nnl)-1,0.0);
+      Range s(nl-1,0.0);
       Float pdf = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
   
       if ( needMidpoint(x, y, xm, i, nl, s, tol, pdf) == true ){ 
@@ -145,36 +143,24 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, co
       }
     }
 
-    //std::cout << " --- 360 --- " << std::endl;
-    ++j;
-    if (j > 1) { xsi[ie] += (x[i-1]-lastVals[0])*(y[0*imax+i-1]+lastVals[1])*0.5; }
-    if (j > 1) {
-      Float uu, u2, u3;
-      getMoments(uu, u2, u3, y, i, x.size(), nl);
-      xsi[1] += 0.5*(x[i-1]-lastVals[0])*(uu+lastVals[2]);
-      xsi[2] += 0.5*(x[i-1]-lastVals[0])*(u2+lastVals[3]);
-      xsi[3] += 0.5*(x[i-1]-lastVals[0])*(u3+lastVals[4]); 
-      //std::cout << (xsi|ranges::view::all) << std::endl;
+    ++j; // 360 
+    if (j > 1) { 
+      Range currentMoments (lastVals.size(),0.0);
+      addToMoments( y, currentMoments, nl, imax, i );
+      out[0] += 0.5*(x[i-1]-lastVals[0])*(y[0*imax+i-1]    +lastVals[1]); // xs
+      out[1] += 0.5*(x[i-1]-lastVals[0])*(currentMoments[2]+lastVals[2]); // ubar
+      out[2] += 0.5*(x[i-1]-lastVals[0])*(currentMoments[3]+lastVals[3]); // p2
+      out[3] += 0.5*(x[i-1]-lastVals[0])*(currentMoments[4]+lastVals[4]); // p3
     }
  
-      
-    //if (j > 1) { std::cout << " ---  " << (x[i-1]-xlast)*(y[0*imax+i-1]+ylast)*0.5 << std::endl; }
-    //if (j > 1) { std::cout << " ---  " << xsi[ie] << std::endl; }
-    if ( j == 3 and xsi[ie] < 5e-7 ){ j = 2; }
-
-
+    if ( j == 3 and out[0] < 5e-7 ){ j = 2; }
     int jscr = (j-1)*(nl+1)+1;
-
     if ( (unsigned) jscr+nl > scr.size() ){ scr.resize((jscr+nl)*2); }
 
     scr[jscr-1]=x[i-1];
     scr[jscr] = (y[0*imax+i-1] < 1e-9) ? 
                  sigfig(y[0*imax+i-1],8,0) 
                : sigfig(y[0*imax+i-1],8,0) ;
-
-    lastVals[0] = x[i-1];
-    lastVals[1] = y[0*imax+i-1];
-
 
     for ( int il = 1; il < nl; ++il ){
       scr[il+jscr] = sigfig(y[il*imax+i-1],9,0);
@@ -183,50 +169,20 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, co
     }
 
    
-
-
-
     lastVals[0] = x[i-1];
     lastVals[1] = y[0*imax+i-1];
     lastVals[2] = 0.0;
     lastVals[3] = 0.0; 
     lastVals[4] = 0.0;
-    //std::cout << lastVals[1] << std::endl;
 
-    Range p(4,0.0);
-    for (int il = 1; il < nl; ++il){
-      legndr(y[il*imax+i-1],p,3);
-      //std::cout << y[il*imax+i-1] << "    " << (p|ranges::view::all) << std::endl;
-      lastVals[2] += p[1]; // ulast
-      lastVals[3] += p[2]; // u2last
-      lastVals[4] += p[3]; // u3last
-    }
-    lastVals[2] *= y[0*imax+i-1]/(nl-1);
-    lastVals[3] *= y[0*imax+i-1]/(nl-1);
-    lastVals[4] *= y[0*imax+i-1]/(nl-1);
-
-
+    addToMoments( y, lastVals, nl, imax, i );
 
 
     --i;
-    if ( i >= 2 ){ continue; } // go to 330
+  }
 
-    ++jbeta;
-    //if (jbeta > int(betas.size())){ // we will be going to 430 soon
-    //  for ( auto& yVal : y ){ yVal = 0.0; }
-    //  xsi[ie] += (x[i-1]-xlast)*(y[0*imax+i-1]+ylast)*0.5;
-    //}
+  ++jbeta;
 
-
-
-
-
-
-
-    return;
-    //return std::make_tuple(ulast,u2last,u3last);  // go to 311 or 430
-    
-  } // 330 LOOP
 }
 
 
@@ -238,47 +194,38 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, co
 
 
 template <typename Range, typename Float>
-auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol, const int lat, const int iinc, const int lasym, const Range& alphas, const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, const Float& teff, const int nbin, int& jbeta, Range& scr, Range& lastVals ){
-    std::cout.precision(15);
+auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol, 
+  const int lat, const int iinc, const int lasym, const Range& alphas, 
+  const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
+  const Float& sigma_b2, const Float& teff, const int nbin, int& jbeta, 
+  Range& scr, Range& lastVals ){
 
+  Range x(20,0.0), y(20*65,0.0), out(4,0.0);
   int nl = nbin + 1;
-  int nnl = -nl;
-
-  Range x(20,0.0), y(20*65,0.0);
   int imax = x.size();
   Float ep;
-  Range xsi(4,0.0);
-  int ie = 0;
 
   do {
-
     x[1] = x[0];
-  
     for ( int il = 0; il < nl; ++il ){ y[il*imax+1] = y[il*imax+0]; }
-
     ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); // 313
     ep = sigfig(ep,8,0);
     x[0] = ep;
-
-    Range s(abs(nnl)-1,0.0);
+    Range s(nl-1,0.0);
     Float pdf = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,sigma_b2,teff,s,true);
-  
     y[0*imax+0] = pdf;
     for ( int il = 1; il < nl; ++il ){ y[il*imax+0] = s[il-1]; }
-
-    do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nnl,nl,jbeta,scr,xsi,ie,lastVals);
-
+    do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nl,jbeta,scr,out,lastVals);
 
   } while( jbeta <= int(betas.size()));
 
 
   for ( auto& yVal : y ){ yVal = 0.0; }
 
-  int jscr = (j)*(nl+1)+1;
-  scr[jscr-1] = ep;
-  scr.resize((j+1)*(nl+1)+1);
+  scr[(j)*(nl+1)] = ep;
+  scr.resize((j+1)*(nl+1));
 
-  double sum = 0.0;
+  Float sum = 0.0;
   int lengthRow = nl+1;
 
   for ( size_t k = 0; k < scr.size(); ++k ){
@@ -294,22 +241,14 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
   // 430
   ++j;
 
-  //std::cout << xsi[0] << "   " << y[0*imax+0-1] << "   " << lastVals[0]  << std::endl;
-  xsi[0] += (x[0]-lastVals[0])*(y[0*imax+1-1]+lastVals[1])*0.5;
-  //std::cout << xsi[0] << std::endl;
-  //std::cout << std::endl;
+  out[0] += (x[0]-lastVals[0])*(y[0*imax+1-1]+lastVals[1])*0.5;
   Float uu = 0.0, u2 = 0.0, u3 = 0.0;
-  xsi[1] += 0.5*(x[0]-lastVals[0])*(uu+lastVals[2]);
-  xsi[2] += 0.5*(x[0]-lastVals[0])*(u2+lastVals[3]);
-  xsi[3] += 0.5*(x[0]-lastVals[0])*(u3+lastVals[4]);
+  out[1] += 0.5*(x[0]-lastVals[0])*(uu+lastVals[2]); out[1] /= out[0];
+  out[2] += 0.5*(x[0]-lastVals[0])*(u2+lastVals[3]); out[2] /= out[0];
+  out[3] += 0.5*(x[0]-lastVals[0])*(u3+lastVals[4]); out[3] /= out[0];
+  out[0] = sigfig(out[0],9,0);
 
-  xsi[1] /= xsi[0];
-  xsi[2] /= xsi[0];
-  xsi[3] /= xsi[0];
-  xsi[0] = sigfig(xsi[0],9,0);
-  //std::cout << (xsi|ranges::view::all) << std::endl;
-
-  return xsi;
+  return out;
 }
 
 
