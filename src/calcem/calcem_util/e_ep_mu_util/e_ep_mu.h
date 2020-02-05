@@ -31,11 +31,9 @@ bool needMidpoint(const Range& x, const Range& y, const Float& xm, //const int& 
       Float test2 = ( k > 0 ) ? tol : tol*abs(pdf);
 
       if ( k == 0 ){
-       // std::cout << " -------- " << pdf << "    " << ym << "   " << abs(pdf-ym) << std::endl;
         if ( abs(pdf-ym) > test2 ){ return true; } // need midpoint
       }
       else {
-        //std::cout << " -------- " << s[k-1] << "    " << ym << std::endl;
         if ( abs(s[k-1]-ym) > test2 ){ return true; } // need midpoint
       }
     }
@@ -60,18 +58,13 @@ auto findFirstEprime( const int& lat, int& jbeta, const Float& E, //Float& Ep,
   // Basically, we're trying to figure out the Ep the index of the lowest beta
   // value that can be invoked, and the corresponding E' value.
   using std::abs;
-  int sign; Float Ep;
-  do { //std::cout << " --- 313 --- " << std::endl;
+  int sign; Float Ep; // 313
+  do { 
     if ( jbeta == 0 ){ jbeta = 1; }
     sign = abs(jbeta) / jbeta;
-    //std::cout << E << "   " << betas[abs(jbeta)-1]*tev << "    " << E+ betas[abs(jbeta)-1]*tev << std::endl;
     Ep = ( lat == 1 ) ? E + sign*betas[abs(jbeta)-1]*0.0253 
                       : E + sign*betas[abs(jbeta)-1]*tev ;
-    //std::cout << " Ep (inside)" << Ep << std::endl;
-    //Ep = ( Ep == E )  ? sigfig(E, 8, sign) : sigfig(Ep, 8, 0);
     Ep = sigfig(Ep,8,0);
-    //std::cout << " Ep (inside)" << Ep << std::endl;
-    // This is the E' that we get with a beta value of betas[|jbeta|-1]
     ++jbeta;
   } while ( Ep <= x[1] );
 
@@ -125,10 +118,9 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
   const Float& tol, const int lat, const int iinc, const int lasym, 
   const Range& alphas, const Range& betas, const Range& sab, const Float& az, 
   const Float& sigma_b, const Float& sigma_b2, const Float& teff, 
-  const int nl, int& jbeta, Range& scr, Range& out, Range& lastVals ){//, int& counter ){
+  const int nl, int& jbeta, Range& scr, Range& out, Range& lastVals ){
   int imax = x.size();
-  int i = 2;
-  //while (true){  // 330
+  int i = 2; // 330 
   while ( i >= 2 ){
 
     if ( i < imax ){
@@ -169,11 +161,8 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
     }
 
    
-    lastVals[0] = x[i-1];
-    lastVals[1] = y[0*imax+i-1];
-    lastVals[2] = 0.0;
-    lastVals[3] = 0.0; 
-    lastVals[4] = 0.0;
+    lastVals[0] = x[i-1]; lastVals[1] = y[0*imax+i-1];
+    lastVals[2] = 0.0;    lastVals[3] = 0.0;    lastVals[4] = 0.0;
 
     addToMoments( y, lastVals, nl, imax, i );
 
@@ -238,6 +227,7 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
   }
 
 
+  std::cout << "D" << std::endl;
   // 430
   ++j;
 
@@ -254,6 +244,24 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
 
 
 
+template <typename Range, typename Float>
+auto e_ep_mu( const Range& eVec, const Float& tev, const Float& tol, 
+  const int lat, const int iinc, const int lasym, const Range& alphas, 
+  const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
+  const Float& sigma_b2, const Float& teff, const int nbin ){
+
+  Range lastVals(4,0.0);
+  Range scr(20*65*10,0.0);
+  int j = 0;
+  int jbeta = -betas.size();
+
+  Float enow = eVec[0];
+  do_330_extra( enow, j, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, sigma_b2, teff, nbin, jbeta, scr, lastVals );
+
+
+
+
+}
 
 
 
