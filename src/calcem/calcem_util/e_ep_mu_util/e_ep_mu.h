@@ -5,7 +5,7 @@
 
 template <typename Float>
 Float highTempApprox( const Float& T, const Float& enow, const Float& egrid_first, const Float& egrid_last ){
-  std::cout << "do temp approx" << std::endl;
+  //std::cout << "do temp approx" << std::endl;
   Float kb = 8.6173303E-5;
   Float tone = 0.0253/kb, elo = egrid_first;
   return elo*exp(log(enow/elo)*log((T/tone)*egrid_last/elo)/log(egrid_last/elo));
