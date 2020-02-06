@@ -13,7 +13,7 @@ inline auto do_113_116( int& jbeta, const int& lat, Range& epVec, Range& xsVec,
   const int& iinc){
 
   do {
-    std::cout << " --- 113 --- " << std::endl;
+    //std::cout << " --- 113 --- " << std::endl;
     if (jbeta == 0) jbeta = 1;
 
     epVec[0] = ( lat == 0 ) ? e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tev 
@@ -28,7 +28,7 @@ inline auto do_113_116( int& jbeta, const int& lat, Range& epVec, Range& xsVec,
 
   --jbeta;
    
-  std::cout << " --- 116 --- " << std::endl;
+  //std::cout << " --- 116 --- " << std::endl;
   Float root1_sq = pow((u*sqrt(e)+sqrt(u*u*e+(az-1)*(az+1)*e))/(az+1),2);
   if (u < 0 and 1.01*epVec[1] < root1_sq and root1_sq < epVec[0]) {
     epVec[0] = root1_sq;
@@ -49,7 +49,7 @@ auto do_150(int& i, Range& xsVec, Range& epVec, const Float& tol,
   const Float& sb, const Float& sb2, int iinc ){
 
    while ( i < int(epVec.size())-1 ){
-     std::cout << " --- 150 --- " << std::endl; 
+     //std::cout << " --- 150 --- " << std::endl; 
      if ( i > 2 and 0.5*(xsVec[i-1]+xsVec[i])*(epVec[i-1]-epVec[i]) < 1e-6 ){ return; }
 
      Float epMid = sigfig(0.5*(epVec[i-1]+epVec[i]),8,0);
@@ -100,7 +100,7 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
   int j = 0;
 
   do {
-    std::cout << " --- 111 --- " << std::endl;
+    //std::cout << " --- 111 --- " << std::endl;
     epVec[1] = epVec[0]; 
     xsVec[1] = xsVec[0];
 
@@ -115,7 +115,7 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
               betas, sab, az, tevz, lasym, lat, sb, sb2, iinc );
 
       do {
-        std::cout << " --- 160 --- " << std::endl;
+        //std::cout << " --- 160 --- " << std::endl;
         ++j;
         s1[j] = epVec[i];
         s2[j] = xsVec[i];
@@ -124,7 +124,7 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
         yl = xsVec[i];
 
         if (( j >= int(s1.size())-1 ) or ( jbeta > 0 and betas[jbeta-1] > 20.0 )){ 
-          std::cout << " --- 170 --- " << std::endl;
+          //std::cout << " --- 170 --- " << std::endl;
           s1[0] = sum; s2[0] = j;
           return;
         } 
@@ -139,7 +139,7 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
     } while(i > 0);
 
   } while( jbeta <= int(betas.size()));
-  std::cout << " --- 170 --- " << std::endl;
+  //std::cout << " --- 170 --- " << std::endl;
   s1[0] = sum; s2[0] = j;
 }
 #endif

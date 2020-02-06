@@ -1,8 +1,8 @@
 
 add_executable( calcem.calcem_util.e_mu_ep_util.test
-                sigu.test.cpp
+                adaptiveReconstruction.test.cpp
                 mainLoop.test.cpp
-                adaptiveReconstruction.test.cpp )
+                sigu.test.cpp )
 target_compile_options( calcem.calcem_util.e_mu_ep_util.test PRIVATE ${${PREFIX}_common_flags}
 $<$<BOOL:${strict}>:${${PREFIX}_strict_flags}>$<$<CONFIG:DEBUG>:
 ${${PREFIX}_DEBUG_flags}

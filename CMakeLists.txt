@@ -93,18 +93,6 @@ set( thermr_GNU_Linux_link_time_optimization_flags "-flto" )
 set( thermr_GNU_Linux_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
 set( thermr_GNU_Linux_nonportable_optimization_flags "-march=native" )
 set( thermr_GNU_Linux_static_flags "-static" )
-set( thermr_GNU_Darwin_common_flags "-Wall" "-Wextra" "-Wpedantic" "-std=c++14" )
-set( thermr_GNU_Darwin_DEBUG_flags "-O0" "-g" "-gdwarf-3" "-fsignaling-nans" )
-set( thermr_GNU_Darwin_RELEASE_flags "-O3" "-DNDEBUG" )
-set( thermr_GNU_Darwin_strict_flags "-Werror" )
-set( thermr_GNU_Darwin_coverage_flags "--coverage" )
-set( thermr_GNU_Darwin_subproject_flags  )
-set( thermr_GNU_Darwin_base_project_flags  )
-set( thermr_GNU_Darwin_profile_generate_flags "-fprofile-generate='${CMAKE_BINARY_DIR}/profiling'" )
-set( thermr_GNU_Darwin_link_time_optimization_flags "-flto" )
-set( thermr_GNU_Darwin_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
-set( thermr_GNU_Darwin_nonportable_optimization_flags "-march=native" )
-set( thermr_GNU_Darwin_static_flags "-static" )
 set( thermr_GNU_Windows_common_flags "-Wall" "-Wextra" "-Wpedantic" "-std=c++14" )
 set( thermr_GNU_Windows_DEBUG_flags "-O0" "-g" "-gdwarf-3" "-fsignaling-nans" )
 set( thermr_GNU_Windows_RELEASE_flags "-O3" "-DNDEBUG" )
@@ -117,6 +105,18 @@ set( thermr_GNU_Windows_link_time_optimization_flags "-flto" )
 set( thermr_GNU_Windows_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
 set( thermr_GNU_Windows_nonportable_optimization_flags "-march=native" )
 set( thermr_GNU_Windows_static_flags "-static" )
+set( thermr_GNU_Darwin_common_flags "-Wall" "-Wextra" "-Wpedantic" "-std=c++14" )
+set( thermr_GNU_Darwin_DEBUG_flags "-O0" "-g" "-gdwarf-3" "-fsignaling-nans" )
+set( thermr_GNU_Darwin_RELEASE_flags "-O3" "-DNDEBUG" )
+set( thermr_GNU_Darwin_strict_flags "-Werror" )
+set( thermr_GNU_Darwin_coverage_flags "--coverage" )
+set( thermr_GNU_Darwin_subproject_flags  )
+set( thermr_GNU_Darwin_base_project_flags  )
+set( thermr_GNU_Darwin_profile_generate_flags "-fprofile-generate='${CMAKE_BINARY_DIR}/profiling'" )
+set( thermr_GNU_Darwin_link_time_optimization_flags "-flto" )
+set( thermr_GNU_Darwin_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
+set( thermr_GNU_Darwin_nonportable_optimization_flags "-march=native" )
+set( thermr_GNU_Darwin_static_flags "-static" )
 set( thermr_Clang_Linux_common_flags "-stdlib=libstdc++" "-Wall" "-Wextra" "-Wpedantic" "-std=c++14" )
 set( thermr_Clang_Linux_DEBUG_flags "-O0" "-g" "-gdwarf-3" )
 set( thermr_Clang_Linux_RELEASE_flags "-O3" "-DNDEBUG" )
@@ -129,18 +129,6 @@ set( thermr_Clang_Linux_link_time_optimization_flags "-flto" )
 set( thermr_Clang_Linux_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
 set( thermr_Clang_Linux_nonportable_optimization_flags "-march=native" )
 set( thermr_Clang_Linux_static_flags "-static" )
-set( thermr_Clang_Darwin_common_flags "-stdlib=libc++" "-Wall" "-Wextra" "-Wpedantic" "-std=c++14" )
-set( thermr_Clang_Darwin_DEBUG_flags "-O0" "-g" "-gdwarf-3" )
-set( thermr_Clang_Darwin_RELEASE_flags "-O3" "-DNDEBUG" )
-set( thermr_Clang_Darwin_strict_flags "-Werror" )
-set( thermr_Clang_Darwin_coverage_flags "--coverage" )
-set( thermr_Clang_Darwin_subproject_flags  )
-set( thermr_Clang_Darwin_base_project_flags  )
-set( thermr_Clang_Darwin_profile_generate_flags "-fprofile-generate='${CMAKE_BINARY_DIR}/profiling'" )
-set( thermr_Clang_Darwin_link_time_optimization_flags "-flto" )
-set( thermr_Clang_Darwin_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
-set( thermr_Clang_Darwin_nonportable_optimization_flags "-march=native" )
-set( thermr_Clang_Darwin_static_flags "-static" )
 set( thermr_Clang_Windows_common_flags "-stdlib=libc++" "-Wall" "-Wextra" "-Wpedantic" "-std=c++14" )
 set( thermr_Clang_Windows_DEBUG_flags "-O0" "-g" "-gdwarf-3" )
 set( thermr_Clang_Windows_RELEASE_flags "-O3" "-DNDEBUG" )
@@ -153,6 +141,18 @@ set( thermr_Clang_Windows_link_time_optimization_flags "-flto" )
 set( thermr_Clang_Windows_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
 set( thermr_Clang_Windows_nonportable_optimization_flags "-march=native" )
 set( thermr_Clang_Windows_static_flags "-static" )
+set( thermr_Clang_Darwin_common_flags "-stdlib=libc++" "-Wall" "-Wextra" "-Wpedantic" "-std=c++14" )
+set( thermr_Clang_Darwin_DEBUG_flags "-O0" "-g" "-gdwarf-3" )
+set( thermr_Clang_Darwin_RELEASE_flags "-O3" "-DNDEBUG" )
+set( thermr_Clang_Darwin_strict_flags "-Werror" )
+set( thermr_Clang_Darwin_coverage_flags "--coverage" )
+set( thermr_Clang_Darwin_subproject_flags  )
+set( thermr_Clang_Darwin_base_project_flags  )
+set( thermr_Clang_Darwin_profile_generate_flags "-fprofile-generate='${CMAKE_BINARY_DIR}/profiling'" )
+set( thermr_Clang_Darwin_link_time_optimization_flags "-flto" )
+set( thermr_Clang_Darwin_profile_use_flags "-fprofile-use='${CMAKE_BINARY_DIR}/profiling'" )
+set( thermr_Clang_Darwin_nonportable_optimization_flags "-march=native" )
+set( thermr_Clang_Darwin_static_flags "-static" )
 
 if ( static_thermr )
     set( thermr_library_linkage STATIC )
@@ -170,10 +170,6 @@ endif()
 list( INSERT 0 CMAKE_INSTALL_RPATH "${rpath_prefix}/../lib" )
 set( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
 get_directory_property( is_subproject PARENT_DIRECTORY )
-
-if( NOT TARGET range-v3-adapter )
-    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/range-v3-adapter )
-endif()
 
 if( NOT TARGET catch-adapter )
     add_subdirectory( ${ROOT_DIRECTORY}/subprojects/catch-adapter )
@@ -201,6 +197,10 @@ endif()
 
 if( NOT TARGET header-utilities )
     add_subdirectory( ${ROOT_DIRECTORY}/subprojects/header-utilities )
+endif()
+
+if( NOT TARGET range-v3-adapter )
+    add_subdirectory( ${ROOT_DIRECTORY}/subprojects/range-v3-adapter )
 endif()
 
 if( NOT TARGET variant-adapter )
@@ -242,30 +242,29 @@ message( STATUS "" )
 message( STATUS "-----------------------------------------------------------" )
 
 add_library( thermr ${thermr_library_linkage} 
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/approximations/freeGas/freeGas.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sig.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/sigl.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/adaptiveReconstruction.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/mainLoop.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/sigu.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sig_util/terp1.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sig_util/terpq.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/coh/coh.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/coh/coh_util/upstk.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/coh/coh_util/sigcoh.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/coh/coh_util/upstk.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/coh/coh_util/sigcoh_util/form.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/coh/coh_util/sigcoh_util/terp.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/coh/coh_util/sigcoh_util/legndr.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/coh/coh_util/sigcoh_util/terp.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/general_util/sigfig.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/generalTools/testing.h"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/iel/incoherentElastic.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/temp_eff/temp_eff.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/temp_eff/temp_eff_util/gatef2.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/temp_eff/temp_eff_util/gateff.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/general_util/sigfig.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sig.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sig_util/terp1.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/sig_util/terpq.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/sigl.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_ep_mu_util/ep_mu.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/mainLoop.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/adaptiveReconstruction.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/calcem/calcem_util/e_mu_ep_util/sigu.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/approximations/freeGas/freeGas.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/iel/incoherentElastic.h"
-             "${CMAKE_CURRENT_SOURCE_DIR}/src/generalTools/testing.h"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/thermr.cpp" )
 
 target_include_directories( thermr PUBLIC src/ )
@@ -291,7 +290,7 @@ ${CXX_appended_flags} ${thermr_appended_flags} )
 
 target_link_libraries( thermr PUBLIC "$<$<AND:$<CONFIG:RELEASE>,$<BOOL:${link_time_optimization}>>:${${PREFIX}_RELEASE_flags};${${PREFIX}_link_time_optimization_flags}$<$<BOOL:${profile_generate}>:${${PREFIX}_profile_generate_flags};>$<$<BOOL:${profile_use}>:${${PREFIX}_profile_use_flags};>$<$<BOOL:${nonportable_optimization}>:${${PREFIX}_nonportable_optimization_flags};>>$<$<CONFIG:DEBUG>:$<$<BOOL:${coverage}>:${${PREFIX}_coverage_flags};>>$<$<BOOL:CXX_appended_flags>:${CXX_appended_flags};>$<$<BOOL:thermr_appended_flags>:${thermr_appended_flags};>" )
 
-target_link_libraries( thermr PUBLIC range-v3-adapter PUBLIC ENDFtk PUBLIC catch-adapter )
+target_link_libraries( thermr PUBLIC catch-adapter PUBLIC ENDFtk PUBLIC range-v3-adapter )
 
 if( NOT is_subproject )
     enable_testing() 
