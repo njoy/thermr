@@ -203,12 +203,6 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
     x[1] = x[0];
     for ( int il = 0; il < nl; ++il ){ y[il*imax+1] = y[il*imax+0]; }
 
-    //std::cout << "    (in 311)    " << std::endl;
-    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
-    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
-    //std::cout << std::endl;
-
-
     ep = findFirstEprime( lat, jbeta, enow, betas, x, tev ); // 313
     ep = sigfig(ep,8,0);
     x[0] = ep;
@@ -217,17 +211,10 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
                      sigma_b2,teff,s,true);
     y[0*imax+0] = pdf;
     for ( int il = 1; il < nl; ++il ){ y[il*imax+0] = s[il-1]; }
-    //std::cout << "+   " << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << "   " << y[0*imax+3] << std::endl;
     do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nl,jbeta,scr,out,lastVals);
 
   } while( jbeta <= int(betas.size()));
 
-
-    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
-    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
-    //std::cout << std::endl;
-
-  //for ( auto& yVal : y ){ yVal = 0.0; }
   for ( int il = 0; il < nl; ++il ){
       y[il*imax] = 0.0;
   }
@@ -257,6 +244,9 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
   out[2] += 0.5*(x[0]-lastVals[0])*(u2+lastVals[3]); out[2] /= out[0];
   out[3] += 0.5*(x[0]-lastVals[0])*(u3+lastVals[4]); out[3] /= out[0];
   out[0] = sigfig(out[0],9,0);
+  out[1] = sigfig(out[1],5,0);
+  out[2] = sigfig(out[2],5,0);
+  out[3] = sigfig(out[3],5,0);
 
   return out;
 }
@@ -264,58 +254,46 @@ auto do_330_extra( const Float& enow, int& j, const Float& tev, const Float& tol
 
 
 template <typename Range, typename Float>
-auto e_ep_mu_MAIN( const Range& eVec, const Float& tev, const Float& tol, 
+auto e_ep_mu_MAIN( Range eVec, const Float& tev, const Float& tol, 
   const int lat, const int iinc, const int lasym, const Range& alphas, 
   const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
   const Float& sigma_b2, const Float& teff, const int nbin, const Float& temp ){
+  std::cout.precision(15);
 
-    std::cout.precision(15);
-  int j = 0;
-  int jbeta = -int(betas.size());
   Range lastVals(5,0.0);
-  Range scr(20*65*10,0.0);
-  Float eNow = 0.0;
+  Float eNow, ePrime;
   int imax = 20;
   Range y(20*65,0.0);
 
-  std::cout << std::endl;
-  for ( size_t iEnergy = 0; iEnergy < eVec.size(); ++iEnergy ){
-    eNow = eVec[iEnergy];
-    if ( temp > 3000.0 ){ eNow = highTempApprox(temp,eNow,eVec[0],eVec[eVec.size()-1]); }
-    eNow = sigfig(eNow,8,0);
-    //std::cout << "E   " << eNow << std::endl;
 
+  std::vector<Range> total_SCR(eVec.size());
+  std::vector<Range> total_OutputData(eVec.size());
+
+
+  for ( size_t iEnergy = 0; iEnergy < eVec.size(); ++iEnergy ){
+    Range scr(y.size()*5,0.0);
+    eNow = eVec[iEnergy];
+    if (temp > 3000.0){ eNow = highTempApprox(temp,eNow,eVec[0],eVec[eVec.size()-1]); }
+    eNow = sigfig(eNow,8,0);
+    eVec[iEnergy] = eNow;
+
+    ePrime = 0.0;
     Range s(nbin,0.0);
-    Float ep = 0.0;
-    Float pdf = sigl(ep,eNow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
+    Float pdf = sigl(0.0,eNow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
                      sigma_b2,teff,s,true);
     y[0*imax+0] = pdf;
-    for ( int il = 1; il < nbin+1; ++il ){ y[il*imax+0] = s[il-1]; }
-    jbeta = -int(betas.size());
-    j = 0;
+    for (int il = 1; il < nbin+1; ++il){y[il*imax+0] = s[il-1];}
 
-    //std::cout << std::endl;
-    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
-    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
-    //std::cout << std::endl;
-    //std::cout << "    (before 311)    " << std::endl;
-    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
-    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
-    //std::cout << std::endl;
+    int j = 0, jbeta = -int(betas.size());
 
     auto out = do_330_extra( eNow, j, tev, tol, lat, iinc, lasym, 
     alphas, betas, sab, az, sigma_b, sigma_b2, teff, nbin, jbeta, scr, lastVals, y);
-    //std::cout << y[0*imax+0] << "  " << y[0*imax+1] <<  "   " << y[0*imax+2] << std::endl;
-    //std::cout << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
-    //std::cout << std::endl;
-    //return;
-    std::cout << (scr|ranges::view::all) << std::endl;
-    std::cout << std::endl;
-    for ( auto& val : scr ){ val = 0.0; }
-    //std::cout << std::endl;
-    //std::cout << std::endl;
+
+    total_SCR[iEnergy]        = scr;
+    total_OutputData[iEnergy] = out;
 
   }
+  return std::make_tuple(eVec,total_SCR,total_OutputData);
 
 
 
