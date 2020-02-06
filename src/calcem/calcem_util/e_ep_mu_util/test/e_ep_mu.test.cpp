@@ -19,44 +19,39 @@ void checkFirstEprime( const RangeInt& jbetaVec, int lat, const Float& enow, con
 
 
 
-/*
 
 TEST_CASE( "do we need a midpoint" ){ 
-  std::vector<double> x(20,0.0), y(20*65,0.0); 
-  
-  std::vector<double> initialY { 195158.09939262934, -0.87238772679496734, -0.61817875518802279, -0.36545660682035069, -0.11418564421716945, 0.13568062577950979, 0.38420180765640111, 0.63141488906433418, 0.87738226704862166 };
-
+  std::vector<double> x(20,0.0), y(20*65,0.0),
+  initialY { 195158.09939, -0.87238772, -0.61817875, -0.365456606, -0.11418564, 
+               0.13568062,  0.38420180,  0.63141488,  0.87738226 };
   x[0] = 2.54E-3;
   
-  for (size_t i = 0; i < initialY.size(); ++i){ 
-    y[i*x.size()+0] = initialY[i]; 
-  }
+  for (size_t i = 0; i < initialY.size(); ++i){ y[i*x.size()+0] = initialY[i]; }
 
 
 
   double xm = 1.27e-3;
-  std::vector<double> s { 235586.48147822541, -0.86806816809249565, -0.60677324533223020, -0.34926974510882292, -9.5577908119815064E-002, 0.15436521665672856, 0.40054354740949549, 0.64302993119542795, 0.88181200416435501, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+  std::vector<double> s { -0.868068168, -0.606773245, -0.349269745, -0.095577908, 
+  0.154365216, 0.400543547, 0.6430299311, 0.881812004, 0, 0, 0, 0, 0, 0, 0, 0, 
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0 };
 
   int i = 2;
-  int nl = 9;
-  double tol = 1.0;
-  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == false );
-  tol = 1e-2;
-  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == true  );
-  tol = 5e-1;
-  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == true  );
-  tol = 0.56;
-  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == true  );
-  tol = 0.59;
-  REQUIRE( needMidpoint(x,y,xm,i,nl,s,tol) == false );
-
+  int nbin = 8;
+  double tol = 1.0, 
+         pdf = 235586.4814;
+  std::vector<double> tolerancesVec { 1.0, 0.01, 0.5, 0.56, 0.59 };
+  std::vector<bool>   answersVec { false, true, true, true, false };
+  for ( size_t j = 0; j < tolerancesVec.size(); ++j ){
+    REQUIRE( needMidpoint(x,y,xm,i,nbin,s,tolerancesVec[j],pdf) == answersVec[j] );
+  }
 
 } // TEST CASE
-*/
 
 
 
 /*
+*/
 
 
 TEST_CASE( "do 330" ){ 
@@ -82,7 +77,7 @@ TEST_CASE( "do 330" ){
   -4.71158392 };
 
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
-  int nl = 5, jbeta = 1,j = 0;
+  int nbin = 4, jbeta = 1,j = 0;
 
   std::vector<double> scr(2*imax*65,0.0), xsi(100,0.0);
   
@@ -96,7 +91,7 @@ TEST_CASE( "do 330" ){
     enow = 1e-5;
 
     THEN( "Returned x values, y vector, and moment values are correct" ){
-      do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nl,jbeta,scr,xsi,lastVals);
+      do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,lastVals);
 
       correctX = { 2.560729E-3, 1.920547E-3, 1.280364E-3, 3.200912E-4, 1.600456E-4, 
       8.002281E-5, 4.001140E-5, 2.000570E-5, 1.000285E-5, 5.001426E-6, 2.500713E-6, 
@@ -169,7 +164,7 @@ TEST_CASE( "do 330" ){
 
     THEN( "Returned x values, y vector, and moment values are correct" ){
 
-      do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nl,jbeta,scr,xsi,lastVals);
+      do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,jbeta,scr,xsi,lastVals);
 
       correctX = { 2.5607298E-3, 2.5607297E-3, 2.5607295E-3, 6.4018245E-4, 
       1.6004562E-4, 8.0022810E-5, 4.0011405E-5, 2.0005703E-5, 1.0002852E-5, 
@@ -310,7 +305,6 @@ TEST_CASE( "313" ) {
 
 
 
-*/
 
 
 TEST_CASE( "do 330 (and some things around it)" ){ 
@@ -963,12 +957,13 @@ TEST_CASE( "main E E' mu function" ){
 
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
   int nbin = 2;
+  std::vector<double> eVec, correctEnergies;
 
   GIVEN( "temperature is reasonable (doesn't need scaling)" ){
     double temp = 296.0;
 
     WHEN( "small energies are considered" ){
-      std::vector<double> eVec { 1.00E-5, 1.78E-5, 2.50E-5, 3.50E-5, 5.00E-5, 7.00E-5, 1.00E-4, 1.26E-4, 1.60E-4, 2.00E-4 };
+      eVec = {1E-5, 1.78E-5, 2.5E-5, 3.5E-5, 5E-5, 7E-5, 1E-4, 1.26E-4, 1.6E-4, 2E-4};
       auto out = e_ep_mu_MAIN(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,temp);
       auto outputEnergy = std::get<0>(out);
       auto totalSCR     = std::get<1>(out);
@@ -1328,17 +1323,11 @@ TEST_CASE( "main E E' mu function" ){
                              { 17.19724,  0.99540,    0.98623,  0.97260   },
                              { 21.15485,  0.99834,    0.99501,  0.99005   } };
  
-      std::vector<double> correctEnergies { 1E-4,0.0253400393, 6.421176, 44.4333610, 102.215840 };
+      correctEnergies = { 1E-4,0.0253400393, 6.421176, 44.4333610, 102.215840 };
       REQUIRE( ranges::equal(correctEnergies, outputEnergy, equal) );
 
       for ( size_t i = 0; i < totalSCR.size(); ++i ){
-          //std::cout << (totalSCR[i]|ranges::view::all) << std::endl;
-        //for ( size_t j = 0; j < totalSCR[i].size(); ++j ){
-        //    std::cout << totalSCR[i][j] << "    " << correct_total_SCR[i][j] << std::endl;
-        //    REQUIRE( totalSCR[i][j] == Approx(correct_total_SCR[i][j]).epsilon(1e-6) );
-        //} 
         REQUIRE( ranges::equal(correct_total_SCR[i], totalSCR[i], equal) );
-        //std::cout << (totalOutput[i]|ranges::view::all) << std::endl;
         REQUIRE( ranges::equal(correct_total_Output[i], totalOutput[i], equal) );
       } // for
 
