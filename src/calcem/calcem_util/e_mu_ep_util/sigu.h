@@ -89,6 +89,8 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
   Float sum = 0.0, epLeft=0.0, yl=0.0, tevz = 0.0253;
   Range epVec(20,0.0), xsVec(20,0.0);
 
+  Range s3 (2*s1.size());
+  for ( size_t i = 0; i < s1.size(); ++i ){ s3[2*i] = s1[i]; s3[2*i+1] = s2[i]; }
   // xsVec[0] is the xs corresponding to E -> E'with scattering cosine u
   xsVec[0] = sig( e, epVec[0], u, tev, alphas, betas, sab, az, tevz, lasym, 
               lat, sb, sb2, teff, iinc );
@@ -119,6 +121,8 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
         ++j;
         s1[j] = epVec[i];
         s2[j] = xsVec[i];
+        s3[2*j+0] = epVec[i];
+        s3[2*j+1] = xsVec[i];
         if ( j > 1 ) { sum += (xsVec[i]+yl)*(epVec[i]-epLeft); }
         epLeft = epVec[i];
         yl = xsVec[i];
@@ -126,7 +130,9 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
         if (( j >= int(s1.size())-1 ) or ( jbeta > 0 and betas[jbeta-1] > 20.0 )){ 
           //std::cout << " --- 170 --- " << std::endl;
           s1[0] = sum; s2[0] = j;
-          return;
+          s3[0] = sum; s3[1] = j;
+
+          return s3;
         } 
 
         --i;
@@ -141,6 +147,8 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
   } while( jbeta <= int(betas.size()));
   //std::cout << " --- 170 --- " << std::endl;
   s1[0] = sum; s2[0] = j;
+  s3[0] = sum; s3[1] = j;
+  return s3;
 }
 #endif
 
