@@ -105,12 +105,13 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
 
 
 template <typename Range, typename Float>
-auto mu_ep( Float enow, const Float& tev, const Float& tol, 
+auto mu_ep( Range& eVec, const Float& tev, const Float& tol, 
   const int lat, const int iinc, const int lasym, const Range& alphas, 
   const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
   const Float& sigma_b2, const Float& teff ){
   std::cout.precision(15);
 
+  Float enow = eVec[0];
   auto out = do_530_etc( enow, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, 
               sigma_b2, teff );
 
@@ -126,7 +127,7 @@ auto mu_ep( Float enow, const Float& tev, const Float& tol,
   int i = 2;
   int j = 0;
   Float u = -1.0, sum = 2.0*std::get<0>(out);
-  Range scr(100,0.0);
+  Range scr(200,0.0);
 
   for (size_t il = 0; il < uj.size(); ++il ){
     //std::cout << uj[il] << std::endl;
@@ -145,26 +146,31 @@ auto mu_ep( Float enow, const Float& tev, const Float& tol,
     int istart = 1;
     int nw;
     while (true){
-      std::cout << " --- 595 --- " << std::endl;
+      //std::cout << " --- 595 --- " << std::endl;
+      int iend = nep;
       int ib = istart - 1;
       j = k-1;
       while (true){ 
-        std::cout << " --- 596 --- " << std::endl;
+        //std::cout << " --- 596 --- " << "   " << ib << "    " << iend  << std::endl;
         j  += 2;
         ib += 1;
-        scr[j-1] = yu[1+2*ib-1];
-        scr[j+0] = yu[2+2*ib-1]*2/sum;
+        scr[j-1-8] = yu[1+2*ib-1];
+        scr[j+0-8] = yu[2+2*ib-1]*2/sum;
         //std::cout << j << std::endl;
-        std::cout << scr[j-1] << "   " << std::endl;
-        std::cout << scr[j+0] << "   " << std::endl;
+        //std::cout << scr[j-1-8] << "   " << std::endl;
+        //std::cout << scr[j+0-8] << "   " << std::endl;
         //std::cout << std::endl;
-        //if ( ib < iend ){ continue; }
-        //nw = j + 1; 
-        if ( j > 10) {
-        return; }
+        //if ( j > 10) { return scr; }
+        if ( ib < iend ){ continue; }
+        break;
+
       }
+
+      return scr;
     }
+      return scr;
   }
+      return scr;
  
 
   //for ( int il = 0; il < nmu; ++il ){
