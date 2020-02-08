@@ -3,6 +3,7 @@
 #include "calcem/calcem_util/e_mu_ep_util/sigu.h"
 #include "generalTools/testing.h"
 
+/*
 TEST_CASE( "begin sigu (113,116)" ){
   GIVEN( "inputs" ){
     int jbeta = -7, lat = 1, iinc = 2, 
@@ -615,4 +616,5 @@ TEST_CASE( "sigu" ){
 
 } // TEST CASE
 
+*/
 

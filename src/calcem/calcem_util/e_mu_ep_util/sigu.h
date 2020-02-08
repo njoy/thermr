@@ -19,8 +19,12 @@ inline auto do_113_116( int& jbeta, const int& lat, Range& epVec, Range& xsVec,
     epVec[0] = ( lat == 0 ) ? e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tev 
                             : e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tevz; 
 
+
+    //std::cout << "Here   " << e << "    " << beta[-jbeta-1]<< "    " << tev << std::endl;
+    if ( jbeta <= 0 ){
     if ( jbeta < 0 and epVec[0] == e ){ epVec[0] = sigfig(e,       8,-1); }
     else                              { epVec[0] = sigfig(epVec[0],8,0 ); }
+    }
 
     ++jbeta;
 
@@ -34,6 +38,7 @@ inline auto do_113_116( int& jbeta, const int& lat, Range& epVec, Range& xsVec,
     epVec[0] = root1_sq;
   }
 
+  //std::cout << epVec[0] << "   (before) " << std::endl;
   epVec[0] = sigfig(epVec[0],8,0);
   xsVec[0] = sig( e, epVec[0], u, tev, alpha, beta, sab, az, tevz, lasym, lat, sb, sb2, 
               teff, iinc );
@@ -53,6 +58,7 @@ auto do_150(int& i, Range& xsVec, Range& epVec, const Float& tol,
      if ( i > 2 and 0.5*(xsVec[i-1]+xsVec[i])*(epVec[i-1]-epVec[i]) < 1e-6 ){ return; }
 
      Float epMid = sigfig(0.5*(epVec[i-1]+epVec[i]),8,0);
+     //std::cout << i+1 << "   " << epMid << std::endl;
 
      if ( epMid <= epVec[i] or epMid >= epVec[i-1] ){ return; }
 
@@ -60,6 +66,7 @@ auto do_150(int& i, Range& xsVec, Range& epVec, const Float& tol,
            xsTrue = sig( e, epMid, u, tev, alphas, betas, sab, az, tevz, lasym, lat, sb, sb2, teff, iinc );
 
      // Point passes
+     //std::cout << "HERE   " << xsTrue << "   " << xsGuess << "    " << tol << std::endl;
      if ( abs(xsTrue-xsGuess) < tol*abs(xsTrue) ){ return; }
 
      // We need to bisect again
@@ -90,6 +97,10 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
   Range epVec(20,0.0), xsVec(20,0.0);
 
   Range s3 (2*s1.size());
+
+
+  //std::cout << " in sigu " << std::endl;
+
   for ( size_t i = 0; i < s1.size(); ++i ){ s3[2*i] = s1[i]; s3[2*i+1] = s2[i]; }
   // xsVec[0] is the xs corresponding to E -> E'with scattering cosine u
   xsVec[0] = sig( e, epVec[0], u, tev, alphas, betas, sab, az, tevz, lasym, 
@@ -115,6 +126,7 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
 
       do_150( i, xsVec, epVec, tolin, teff, e, u, tev, alphas, 
               betas, sab, az, tevz, lasym, lat, sb, sb2, iinc );
+      //std::cout <<  i+1 << "  " << j << std::endl;// "    " << sum << std::endl;
 
       do {
         //std::cout << " --- 160 --- " << std::endl;
@@ -123,7 +135,9 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
         s2[j] = xsVec[i];
         s3[2*j+0] = epVec[i];
         s3[2*j+1] = xsVec[i];
-        if ( j > 1 ) { sum += (xsVec[i]+yl)*(epVec[i]-epLeft); }
+        if ( j > 1 ) { 
+            sum += (xsVec[i]+yl)*(epVec[i]-epLeft); 
+        }
         epLeft = epVec[i];
         yl = xsVec[i];
 

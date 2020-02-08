@@ -49,6 +49,10 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
   yu = sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
   yy[0]=yu[0];
   i = 2;
+  //std::cout << yu[0] << "   " << yu[1] << "      " << yu[2] << std::endl;
+  //return std::make_tuple(1.0,2.0,uj);
+
+
 
   while (true) {
     //std::cout << " --- 530 --- " << std::endl;
@@ -90,23 +94,7 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
   }
   ubar *= 0.5/sum;
 
-
-
-  for ( int il = 0; il < nmu; ++il ){
-    u = uj[il];
-    yu = sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
-    j = 0;
-    int nep = yu[1];
-    for ( int i = 1; i <= nep; ++i ){
-      j = nep-i;
-      if (yu[2*(nep-i)+4-1]/sum > 2e-7){ 
-          break;
-      }
-    }
-    nep = j;
-  }
-
-
+  uj.resize(j);
   return std::make_tuple(xsi,ubar,uj);
 }
 
@@ -116,13 +104,83 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
 
 
 
-/*
 template <typename Range, typename Float>
 auto mu_ep( Float enow, const Float& tev, const Float& tol, 
   const int lat, const int iinc, const int lasym, const Range& alphas, 
   const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
-  const Float& sigma_b2, const Float& teff, const int nbin, const Float& temp ){
+  const Float& sigma_b2, const Float& teff ){
   std::cout.precision(15);
+
+  auto out = do_530_etc( enow, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, 
+              sigma_b2, teff );
+
+  auto uj = std::get<2>(out);
+  
+  int imax = 20, mumax = 300, nemax = 5000;
+  Range x(imax,0.0); x[0] = 1.0; x[1] = -1.0;
+  Range yy(imax,0.0), yu(2*nemax);
+  //Range uj(mumax,0.0), sj(mumax,0.);
+  Range s1(5000,0.0);
+  Range s2(5000,0.0);
+  Float xm, ym, yl=0.0, xl=0.0;
+  int i = 2;
+  int j = 0;
+  Float u = -1.0, sum = 2.0*std::get<0>(out);
+  Range scr(100,0.0);
+
+  for (size_t il = 0; il < uj.size(); ++il ){
+    //std::cout << uj[il] << std::endl;
+
+    yu = sigu( enow, uj[il], tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
+    //std::cout << uj[il] << "     " << yu[1] << std::endl;
+    int nep = int(yu[1]);
+    j = 0;
+    for (int i = 0; i < nep; ++i ){
+      j = nep-i;
+      if (yu[2*(nep-i)+4-1]/sum > 2e-7){ break; }
+    }
+    nep = j;
+
+    int k = 8;
+    int istart = 1;
+    int nw;
+    while (true){
+      std::cout << " --- 595 --- " << std::endl;
+      int ib = istart - 1;
+      j = k-1;
+      while (true){ 
+        std::cout << " --- 596 --- " << std::endl;
+        j  += 2;
+        ib += 1;
+        scr[j-1] = yu[1+2*ib-1];
+        scr[j+0] = yu[2+2*ib-1]*2/sum;
+        //std::cout << j << std::endl;
+        std::cout << scr[j-1] << "   " << std::endl;
+        std::cout << scr[j+0] << "   " << std::endl;
+        //std::cout << std::endl;
+        //if ( ib < iend ){ continue; }
+        //nw = j + 1; 
+        if ( j > 10) {
+        return; }
+      }
+    }
+  }
+ 
+
+  //for ( int il = 0; il < nmu; ++il ){
+  //  u = uj[il];
+  //  yu = sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
+  //  j = 0;
+  //  int nep = yu[1];
+  //  for ( int i = 1; i <= nep; ++i ){
+  //    j = nep-i;
+  //    if (yu[2*(nep-i)+4-1]/sum > 2e-7){ 
+  //        break;
+  //    }
+  //  }
+  //  nep = j;
+  //}
+
 
 
   
@@ -131,6 +189,7 @@ auto mu_ep( Float enow, const Float& tev, const Float& tol,
 
 }
 
+/*
 */
 
 
