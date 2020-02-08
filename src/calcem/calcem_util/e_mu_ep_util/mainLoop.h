@@ -116,11 +116,10 @@ auto mu_ep( Range& eVec, const Float& tev, const Float& tol,
               sigma_b2, teff );
 
   auto uj = std::get<2>(out);
-  
+    
   int imax = 20, mumax = 300, nemax = 5000;
   Range x(imax,0.0); x[0] = 1.0; x[1] = -1.0;
   Range yy(imax,0.0), yu(2*nemax);
-  //Range uj(mumax,0.0), sj(mumax,0.);
   Range s1(5000,0.0);
   Range s2(5000,0.0);
   Float xm, ym, yl=0.0, xl=0.0;
@@ -128,9 +127,10 @@ auto mu_ep( Range& eVec, const Float& tev, const Float& tol,
   int j = 0;
   Float u = -1.0, sum = 2.0*std::get<0>(out);
   Range scr(200,0.0);
-
+  std::vector<Range> totalSCR(uj.size());
+  
   for (size_t il = 0; il < uj.size(); ++il ){
-    //std::cout << uj[il] << std::endl;
+    Range scr(200,0.0);
 
     yu = sigu( enow, uj[il], tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
     //std::cout << uj[il] << "     " << yu[1] << std::endl;
@@ -145,33 +145,25 @@ auto mu_ep( Range& eVec, const Float& tev, const Float& tol,
     int k = 8;
     int istart = 1;
     int nw;
-    while (true){
+    //while (true){
       //std::cout << " --- 595 --- " << std::endl;
-      int iend = nep;
-      int ib = istart - 1;
-      j = k-1;
-      while (true){ 
-        //std::cout << " --- 596 --- " << "   " << ib << "    " << iend  << std::endl;
-        j  += 2;
-        ib += 1;
-        scr[j-1-8] = yu[1+2*ib-1];
-        scr[j+0-8] = yu[2+2*ib-1]*2/sum;
-        //std::cout << j << std::endl;
-        //std::cout << scr[j-1-8] << "   " << std::endl;
-        //std::cout << scr[j+0-8] << "   " << std::endl;
-        //std::cout << std::endl;
-        //if ( j > 10) { return scr; }
-        if ( ib < iend ){ continue; }
-        break;
-
-      }
-
-      return scr;
+    int iend = nep;
+    int ib = istart - 1;
+    j = k-1;
+    while (true){  //std::cout << " --- 596 --- " << "   " << ib << "    " << iend  << std::endl;
+      j  += 2;
+      ib += 1;
+      scr[j-1-8] = yu[1+2*ib-1];
+      scr[j+0-8] = yu[2+2*ib-1]*2/sum;
+      //if ( j > 10) { return scr; }
+      if ( ib < iend ){ continue; }
+      break;
     }
-      return scr;
+    totalSCR[il] = scr;
+    //return std::make_tuple(uj,totalSCR);
   }
-      return scr;
- 
+  return std::make_tuple(uj,totalSCR);
+}
 
   //for ( int il = 0; il < nmu; ++il ){
   //  u = uj[il];
@@ -193,64 +185,3 @@ auto mu_ep( Range& eVec, const Float& tev, const Float& tol,
 
 
 
-}
-
-/*
-*/
-
-
-
-
-
-
-
-
-
-
-/*
-auto mainLoop(const int& nep, const int& npage, int& j, int& k, int& ib,
-  std::vector<double>& scr, const std::vector<double>& yu, const double& sum, 
-  int& nw, int& ncds, int& nb ){
-  int iend, istart = 1;
-  while (true) {
-    //std::cout << 595 << std::endl;
-    iend=nep;
-    if ((iend-istart) >= npage/2) iend=istart+npage/2-1;
-    j=k-1;
-    ib=istart-1;
-
-    do {
-     ///std::cout << 596 << std::endl;
-     j=j+2;
-     ib=ib+1;
-     scr[j-1]=yu[1+2*ib-1];
-     scr[j+1-1]=yu[2+2*ib-1]*2/sum;
-    }
-    while ( ib < iend );
-    nw=j+1;
-    if (k == 0) {
-      std::cout << 597 << std::endl;
-      //call moreio(0,0,nscr,scr,nb,nw)
-      if (nb == 0) {
-        std::cout << 598 << std::endl;
-        ncds=ncds+1+(j*(nep+1)+5)/6;
-        return std::make_tuple(istart,iend);
-      }
-      istart=iend+1;
-      continue;
-    }
-    k=0;
-    //call tab1io(0,0,nscr,scr,nb,nw)
-    if (nb == 0) {
-      std::cout << 598 << std::endl;
-      ncds=ncds+1+(j*(nep+1)+5)/6;
-      return std::make_tuple(istart,iend);
-    } 
-    istart=iend+1;
-    continue;
-
-  }
-  return std::make_tuple(istart,iend);
-
-}
-*/
