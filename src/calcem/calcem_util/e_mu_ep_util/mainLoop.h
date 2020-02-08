@@ -39,26 +39,26 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
   int j = 0;
   Float u = -1.0, sum = 0.0;
 
-  yy[0] = 2098.4409101816468;
-  yy[1] = 1961.3941806449136;
+  u = -1.0;
+  yu = sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
+  yy[1] = yu[0];
+  xl = x[1];
+  yl = yy[1];
 
-  xl = -1.0;
-  yl =  1961.3941806449136;
+  u = 1.0;
+  yu = sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
+  yy[0]=yu[0];
+  i = 2;
 
   while (true) {
     //std::cout << " --- 530 --- " << std::endl;
     if ( i != imax ){
       xm = 0.5*(x[i-2]+x[i-1]);
       xm = sigfig(xm,7,0);
-      std::cout << "xm  " << xm << std::endl;
-      //std::cout << x[i-1] << "   " << xm << "   " << x[i-2] << std::endl;
       if ( xm > x[i-1] and xm < x[i-2] ){
-         // std::cout << "HERE" << std::endl;
-        yu= sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
-        ym = yy[i-1]+(xm+x[i-1])*(yy[i-2]-yy[i-1])/(x[i-2]-x[i-1]);
-          //std::cout << i << "   " << j << "   " << ym <<  std::endl;
-        if (x[i-2]-x[i-1] > 0.25 or abs(yu[0]-ym ) > 2.0*tol*ym + 5e-7 ) { 
-            std::cout << " --- 575 --- " << i << "  " << yy[i-1] << "   " << yy[i-2] << std::endl;
+        yu = sigu( enow, xm, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
+        ym = yy[i-1]+(xm-x[i-1])*(yy[i-2]-yy[i-1])/(x[i-2]-x[i-1]);
+        if (x[i-2]-x[i-1] > 0.25 or (abs(yu[0]-ym ) > 2.0*tol*ym + 5e-7)) { 
             ++i;
             x[i-1] = x[i-2];
             x[i-2] = xm;
@@ -68,36 +68,46 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
         }
       }
     }
-    std::cout << yy[i-1] << "   " << yl << std::endl;
     do_560(i,j,uj,sj,x,yy,sum,xl,yl);
-    std::cout << i << "  " << j << "   " << sum << std::endl;
-    std::cout << std::endl;
-    //return;
-    if (j==2){ return; }
-
     if ( i < 2 ){ break; }
 
   }
 
-
-  //return; 
-  std::cout << " --- 580 --- " << std::endl;
+  //std::cout << " --- 580 --- " << std::endl;
   ++j;
   uj[j-1] = x[0];
   sj[j-1] = yy[0];
 
+  int nmu = j;
+
   sum += 0.5*(yy[0]+yl)*(x[0]-xl);
 
-  Float ubar = 0.0;
   Float xsi = sum*0.5;
+  Float ubar = 0.0;
 
-  for ( int i = 1; i < j; ++i ){
+  for ( int i = 2; i <= nmu; ++i ){
     ubar += 0.5*(uj[i-1]-uj[i-2])*(sj[i-1]+sj[i-2])*(uj[i-1]+uj[i-2]);
   }
   ubar *= 0.5/sum;
 
 
-  return;
+
+  for ( int il = 0; il < nmu; ++il ){
+    u = uj[il];
+    yu = sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
+    j = 0;
+    int nep = yu[1];
+    for ( int i = 1; i <= nep; ++i ){
+      j = nep-i;
+      if (yu[2*(nep-i)+4-1]/sum > 2e-7){ 
+          break;
+      }
+    }
+    nep = j;
+  }
+
+
+  return std::make_tuple(xsi,ubar,uj);
 }
 
 

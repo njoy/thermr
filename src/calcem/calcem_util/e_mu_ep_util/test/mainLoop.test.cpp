@@ -1,6 +1,6 @@
 #include "catch.hpp"
 #include "calcem/calcem_util/e_mu_ep_util/mainLoop.h"
-
+#include "generalTools/testing.h"
 
 
 TEST_CASE( " mu-E' ordering " ){
@@ -19,7 +19,42 @@ TEST_CASE( " mu-E' ordering " ){
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
   std::vector<double> eVec, correctEnergies;
   double enow = 1e-5;
-  do_530_etc(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+
+  std::vector<double> correct_uj;
+
+
+  auto out = do_530_etc(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+  REQUIRE( 2004.20546598 == Approx(std::get<0>(out)).epsilon(1e-6) );
+  REQUIRE( 0.00903406640 == Approx(std::get<1>(out)).epsilon(1e-6) );
+  correct_uj = {-1, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1 };
+  for (size_t i = 0; i < correct_uj.size(); ++i){
+    REQUIRE( correct_uj[i] == Approx(std::get<2>(out)[i]).epsilon(1e-6) );
+  }
+
+
+
+  enow = 1e-4;
+  out = do_530_etc(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+  REQUIRE( 648.0310824 == Approx(std::get<0>(out)).epsilon(1e-6) );
+  REQUIRE( 0.031418177 == Approx(std::get<1>(out)).epsilon(1e-6) );
+  correct_uj = {-1, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1 };
+  for (size_t i = 0; i < correct_uj.size(); ++i){
+    REQUIRE( correct_uj[i] == Approx(std::get<2>(out)[i]).epsilon(1e-6) );
+  }
+
+
+  enow = 1e-2;
+  out = do_530_etc(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+  //REQUIRE( 123.58074384 == Approx(std::get<0>(out)).epsilon(1e-6) );
+  //REQUIRE( 0.0903595258 == Approx(std::get<1>(out)).epsilon(1e-6) );
+  correct_uj = {-1, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1 };
+  for (size_t i = 0; i < correct_uj.size(); ++i){
+    //REQUIRE( correct_uj[i] == Approx(std::get<2>(out)[i]).epsilon(1e-6) );
+  }
+
+
+
+
 
 
 } // TEST CASE
