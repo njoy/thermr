@@ -130,54 +130,45 @@ auto mu_ep( Range& eVec, const Float& tev, const Float& tol,
   std::vector<Range> totalSCR(uj.size());
   
   for (size_t il = 0; il < uj.size(); ++il ){
-    Range scr(200,0.0);
+    Range scr(500,0.0);
 
     yu = sigu( enow, uj[il], tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
     //std::cout << uj[il] << "     " << yu[1] << std::endl;
     int nep = int(yu[1]);
     j = 0;
-    for (int i = 0; i < nep; ++i ){
+    for (int i = 1; i <= nep; ++i ){
       j = nep-i;
       if (yu[2*(nep-i)+4-1]/sum > 2e-7){ break; }
     }
     nep = j;
-
-    int k = 8;
     int istart = 1;
     int nw;
-    //while (true){
-      //std::cout << " --- 595 --- " << std::endl;
     int iend = nep;
     int ib = istart - 1;
-    j = k-1;
+    j = 0;
     while (true){  //std::cout << " --- 596 --- " << "   " << ib << "    " << iend  << std::endl;
       j  += 2;
       ib += 1;
-      scr[j-1-8] = yu[1+2*ib-1];
-      scr[j+0-8] = yu[2+2*ib-1]*2/sum;
-      //if ( j > 10) { return scr; }
+      if ( int(scr.size()) < j ){ scr.resize(2*scr.size()); }
+      scr[j-1-1] = yu[1+2*ib-1];
+      scr[j+0-1] = yu[2+2*ib-1]*2/sum;
       if ( ib < iend ){ continue; }
+      scr.resize(nep*2);
       break;
     }
     totalSCR[il] = scr;
-    //return std::make_tuple(uj,totalSCR);
   }
   return std::make_tuple(uj,totalSCR);
 }
 
-  //for ( int il = 0; il < nmu; ++il ){
-  //  u = uj[il];
-  //  yu = sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
-  //  j = 0;
-  //  int nep = yu[1];
-  //  for ( int i = 1; i <= nep; ++i ){
-  //    j = nep-i;
-  //    if (yu[2*(nep-i)+4-1]/sum > 2e-7){ 
-  //        break;
-  //    }
-  //  }
-  //  nep = j;
-  //}
+
+
+
+
+
+
+
+
 
 
 
