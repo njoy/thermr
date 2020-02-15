@@ -105,13 +105,13 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
 
 
 template <typename Range, typename Float>
-auto mu_ep( Range& eVec, const Float& tev, const Float& tol, 
+auto mu_ep( Float& enow, const Float& tev, const Float& tol, 
   const int lat, const int iinc, const int lasym, const Range& alphas, 
   const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
   const Float& sigma_b2, const Float& teff ){
   std::cout.precision(15);
 
-  Float enow = eVec[0];
+  //Float enow = eVec[0];
   auto out = do_530_etc( enow, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, 
               sigma_b2, teff );
 
@@ -132,8 +132,8 @@ auto mu_ep( Range& eVec, const Float& tev, const Float& tol,
   for (size_t il = 0; il < uj.size(); ++il ){
     Range scr(500,0.0);
 
-    yu = sigu( enow, uj[il], tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
-    //std::cout << uj[il] << "     " << yu[1] << std::endl;
+    yu = sigu( enow, uj[il], tev, alphas, betas, sab, tol, az, iinc, lat, lasym, 
+               sigma_b, sigma_b2, teff, s1, s2 );
     int nep = int(yu[1]);
     j = 0;
     for (int i = 1; i <= nep; ++i ){
