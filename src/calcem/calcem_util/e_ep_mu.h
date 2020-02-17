@@ -3,17 +3,15 @@
 
 
 template <typename Range, typename Float>
-auto e_ep_mu( Range eVec, const Float& tev, const Float& tol, 
-  const int lat, const int iinc, const int lasym, const Range& alphas, 
-  const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
-  const Float& sigma_b2, const Float& teff, const int nbin, const Float& temp ){
-  std::cout.precision(15);
+auto e_ep_mu( Range eVec, const Float& tev, const Float& tol, const int lat, 
+  const int iinc, const int lasym, const Range& alphas, const Range& betas, 
+  const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, 
+  const Float& teff, const int nbin, const Float& temp ){
 
   Range lastVals(5,0.0);
   Float eNow, ePrime;
   int imax = 20;
   Range y(20*65,0.0);
-
 
   std::vector<Range> total_SCR(eVec.size());
   std::vector<Range> total_OutputData(eVec.size());

@@ -3,7 +3,6 @@
 #include "calcem/calcem_util/e_mu_ep_util/sigu.h"
 #include "generalTools/testing.h"
 
-/*
 TEST_CASE( "begin sigu (113,116)" ){
   GIVEN( "inputs" ){
     int jbeta = -7, lat = 1, iinc = 2, 
@@ -24,8 +23,8 @@ TEST_CASE( "begin sigu (113,116)" ){
       } 
     } 
 
-    std::vector<double> cosines { -1.0, -0.8, -0.5, 0.1, 0.9 },
-      correct_xVals(5), correct_yVals(5), correct_x(20,0.0), correct_y(20,0.0);
+    std::vector<double> cosines {-1.0,-0.8,-0.5,0.1,0.9}, correct_xVals(5), 
+                        correct_yVals(5), correct_x(20,0.0), correct_y(20,0.0);
 
     WHEN( "lat = 1" ){
       correct_xVals = { 7.1395952E-4, 7.3838244E-4, 7.7664539E-4, 
@@ -35,7 +34,7 @@ TEST_CASE( "begin sigu (113,116)" ){
         for (size_t i = 0; i < cosines.size(); ++i){
           correct_x[0] = correct_xVals[i];
           correct_y[0] = correct_yVals[i];
-          do_113_116( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
+          initializeEpXS( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
                       az, lasym, teff, sb, sb2, iinc);
           REQUIRE( ranges::equal(x, correct_x, equal) );
           REQUIRE( ranges::equal(y, correct_y, equal) );
@@ -54,7 +53,7 @@ TEST_CASE( "begin sigu (113,116)" ){
         for (size_t i = 0; i < cosines.size(); ++i){
           correct_x[0] = correct_xVals[i];
           correct_y[0] = correct_yVals[i];
-          do_113_116( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
+          initializeEpXS( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
                       az, lasym, teff, sb, sb2, iinc);
           REQUIRE( ranges::equal(x, correct_x, equal) );
           REQUIRE( ranges::equal(y, correct_y, equal) );
@@ -111,7 +110,7 @@ TEST_CASE( "begin sigu (113,116)" ){
         for (size_t i = 0; i < cosines.size(); ++i){
           correct_x[0] = correct_xVals[i];
           correct_y[0] = correct_yVals[i];
-          do_113_116( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
+          initializeEpXS( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
                       az, lasym, teff, sb, sb2, iinc);
           REQUIRE( ranges::equal(x, correct_x, equal) );
           REQUIRE( ranges::equal(y, correct_y, equal) );
@@ -133,7 +132,7 @@ TEST_CASE( "begin sigu (113,116)" ){
         for (size_t i = 0; i < cosines.size(); ++i){
           correct_x[0] = correct_xVals[i];
           correct_y[0] = correct_yVals[i];
-          do_113_116( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
+          initializeEpXS( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
                       az, lasym, teff, sb, sb2, iinc);
           REQUIRE( ranges::equal(x, correct_x, equal) );
           REQUIRE( ranges::equal(y, correct_y, equal) );
@@ -149,7 +148,7 @@ TEST_CASE( "begin sigu (113,116)" ){
 
 TEST_CASE( "sigu" ){
 
-  int lasym = 0, lat = 1, iinc = 2, nemax = 5000;
+  int lasym = 0, lat = 1, iinc = 2, nemax = 60;
   double e = 1e-5, tev = 2.55e-2, az = 0.99917, sb = 4.0, sb2 = 0.0, teff = 0.12, tolin = 5e-2, u;
 
   std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
@@ -165,7 +164,7 @@ TEST_CASE( "sigu" ){
   GIVEN( "various scattering cosines" ){
     WHEN( "u = -1.0" ){
       u = -1.0;
-      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),
+      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0),
       correct_s1 { 393.910081, 0, 4.309201E-13, 8.618402E-13, 1.7236804E-12, 
       1.9342239E-8, 3.8682755E-8, 7.7363787E-8, 1.5472585E-7, 3.0944997E-7, 
       6.1889821E-7, 1.2377947E-6, 2.4755877E-6, 4.9511736E-6, 9.9023454E-6, 
@@ -201,18 +200,19 @@ TEST_CASE( "sigu" ){
       1302.9031178, 1302.9030507, 1302.9030060, 12.967700530, 0, 0, 0, 0, 0, 0, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
+
       }
 
     } // WHEN 
   
     WHEN( "u = -0.2" ){
       u = -0.2;
-      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),
+      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0),
       correct_s1 { 396.2647985, 0, 1.0993286E-11, 2.1986572E-11, 4.3973143E-11, 
       1.9384488E-8, 3.8725003E-8, 7.7406032E-8, 1.5476809E-7, 3.0949221E-7, 
       6.1894044E-7, 1.2378369E-6, 2.4756298E-6, 4.9512157E-6, 9.9023875E-6, 
@@ -245,17 +245,18 @@ TEST_CASE( "sigu" ){
       1302.83706, 1302.83645, 1302.83616, 1302.83601, 1302.83594, 1302.83590, 
       13.0751407, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
   
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
+
       }
     } // WHEN
 
     WHEN( "u = 0.0" ){
       u = 0.0;
-      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),
+      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0),
       correct_s1 { 396.95156, 0, 9.6893315E-9, 1.9378663E-8, 3.8757325E-8, 
       7.7514650E-8, 1.5502930E-7, 3.1005860E-7, 6.2011720E-7, 1.2402344E-6, 
       2.4804688E-6, 4.9609375E-6, 9.9218750E-6, 1.9843750E-5, 3.9687500E-5, 
@@ -288,17 +289,17 @@ TEST_CASE( "sigu" ){
       1302.81935, 1302.81919, 1302.81912, 1302.81908, 13.1022021, 0, 0, 0, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
   
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
       }
     } // WHEN
 
     WHEN( "u = 0.5" ){
       u = 0.5;
-      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),
+      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0),
       correct_s1 { 398.9380160, 0, 9.6893315E-9, 1.9378663E-8, 3.8757325E-8, 
       7.7514650E-8, 1.5502930E-7, 3.1005860E-7, 6.2011720E-7, 1.2402344E-6, 
       2.4804688E-6, 4.9609375E-6, 9.9218750E-6, 1.9843750E-5, 3.9687500E-5, 
@@ -331,18 +332,19 @@ TEST_CASE( "sigu" ){
       1302.77724, 1302.77709, 1302.77702, 1302.77697, 13.1702091, 0, 0, 0, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; 
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
+
       }
     } // WHEN
   
   
     WHEN( "u = 0.9" ){
       u = 0.9;
-      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),
+      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0),
       correct_s1 { 401.1051298, 0, 9.6893315E-9, 1.9378663E-8, 3.8757325E-8, 
       7.7514650E-8, 1.5502930E-7, 3.1005860E-7, 6.2011720E-7, 1.2402344E-6, 
       2.4804688E-6, 4.9609375E-6, 7.4414063E-6, 9.9218750E-6, 1.9843750E-5, 
@@ -375,11 +377,12 @@ TEST_CASE( "sigu" ){
       1302.74378, 1302.74349, 1302.74333, 1302.74327, 1302.74322, 13.2249793, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
   
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
+
       }
 
     } // WHEN
@@ -389,7 +392,7 @@ TEST_CASE( "sigu" ){
     u = -0.2;
     WHEN( "e = 1e-6" ){
       e = 1e-6;
-      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),
+      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0),
       correct_s1 { 1254.9218718, 0, 1.099328E-12, 2.198657E-12, 4.397314E-12, 
       1.9310579E-8, 3.8616761E-8, 7.7229124E-8, 1.5445385E-7, 3.0890330E-7, 
       6.1780220E-7, 1.2356000E-6, 2.4711957E-6, 4.9423870E-6, 9.8847697E-6, 
@@ -422,18 +425,19 @@ TEST_CASE( "sigu" ){
       4119.69568, 4119.69377, 4119.69285, 4119.69235, 4119.69214, 4119.69200, 
       41.4077054, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
+
       }
 
     } // WHEN 
  
     WHEN( "e = 1e-4" ){
       e = 1e-4;
-      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),
+      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0),
       correct_s1 { 124.88344935, 0, 1.099328E-10, 2.198657E-10, 4.397314E-10, 
       3.9807404E-8, 7.9175076E-8, 1.5791042E-7, 3.1538110E-7, 6.3032247E-7, 
       1.2602052E-6, 2.5199706E-6, 5.0395014E-6, 1.0078563E-5, 2.0156687E-5, 
@@ -466,18 +470,19 @@ TEST_CASE( "sigu" ){
       412.205014, 412.204922, 412.204872, 412.204851, 412.204837, 4.11432357, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
+
       }
 
     } // WHEN 
 
     WHEN( "e = 1e-2" ){
       e = 1e-2;
-      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),
+      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0),
       correct_s1 { 15.036463452, 0, 1.0993286E-8, 2.1986571E-8, 4.3973142E-8, 
       9.5583302E-7, 1.8676929E-6, 3.6914126E-6, 7.3388521E-6, 1.4633731E-5, 
       2.9223488E-5, 5.8403002E-5, 1.1676203E-4, 2.3348009E-4, 4.6691621E-4, 
@@ -507,18 +512,19 @@ TEST_CASE( "sigu" ){
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
       0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
+
       }
 
     } // WHEN 
  
     WHEN( "e = 1e-0" ){
       e = 1e-0;
-      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),
+      std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0),
       correct_s1 { 0.3267346590, 0, 1.0993286E-6, 2.1986572E-6, 4.3973143E-6, 
       6.1417312E-5, 1.1843731E-4, 2.3247731E-4, 4.6055731E-4, 9.1671731E-4, 
       1.8290373E-3, 3.6536773E-3, 7.3029572E-3, 1.4601517E-2, 2.9198636E-2, 
@@ -526,10 +532,7 @@ TEST_CASE( "sigu" ){
       0.70066610, 0.75905458, 0.81744305, 0.87583153, 0.93422000, 
       0.93675000, 0.96458000, 0.96711000, 0.99494000, 0.99747000, 
       1.00253000, 1.00506000, 1.01897500, 1.03289000, 1.03542000, 
-      1.04933500, 1.06325000, 1.06578000, 1.07969500, 1.09361000, 0, 0, 0, 0, 
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-      0, 0, 0, 0, 0, 0, 0, 0 }, 
+      1.04933500, 1.06325000, 1.06578000, 1.07969500, 1.09361000 },
       correct_s2 { 39.0, 0, 1.7065742E-3, 2.4132472E-3, 3.4124188E-3, 
       1.2737714E-2, 1.7676777E-2, 2.4741426E-2, 3.4773219E-2, 4.8951511E-2, 
       6.8909261E-2, 9.6858627E-2, 0.1356552801, 0.1885250673, 0.2574542065, 
@@ -537,16 +540,14 @@ TEST_CASE( "sigu" ){
       4.3525429E-2, 3.1085044E-2, 2.1980034E-2, 1.5404491E-2, 1.0710479E-2, 
       1.0541368E-2, 8.8407164E-3, 8.6997621E-3, 7.2839529E-3, 7.1667508E-3, 
       6.4162973E-3, 5.8383688E-3, 3.4732670E-3, 2.0655301E-3, 1.8792206E-3, 
-      1.1171059E-3, 6.6384237E-4, 6.0388366E-4, 3.5871988E-4, 2.1301905E-4, 
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }; 
+      1.1171059E-3, 6.6384237E-4, 6.0388366E-4, 3.5871988E-4, 2.1301905E-4 };//, 
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
+
       }
 
     } // WHEN 
@@ -576,10 +577,10 @@ TEST_CASE( "sigu" ){
     u = -1.0;
     e = 1e-5;
     int nemax = 1000;
-    std::vector<double> s1(nemax,0.0),s2(nemax,0.0);
+    std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0);
 
     WHEN( " " ){
-      sigu(e,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,sigma_b,sigma_b2,teff,s1,s2);
+      sigu(e,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,sigma_b,sigma_b2,teff,s3);
       std::vector<double> 
       correct_s1 { 1961.39420, 0.0, 4.3092008E-13, 8.6184015E-13, 1.7236803E-12, 
       1.9500396E-8, 3.8999068E-8, 7.7996412E-8, 1.5599110E-7, 3.1198047E-7, 
@@ -601,57 +602,64 @@ TEST_CASE( "sigu" ){
       9558.0062, 6607.6166, 4636.2229, 3248.6850, 2341.1063, 2272.6275, 2184.8212, 
       1574.4957, 1463.6744, 832.26113, 576.51928, 380.64264, 0.0 };
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
-        REQUIRE( correct_s1[i] == Approx(s1[i]).epsilon(1e-6) );
-        REQUIRE( correct_s2[i] == Approx(s2[i]).epsilon(1e-6) );
+        REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
+        REQUIRE( correct_s2[i] == Approx(s3[2*i+1]).epsilon(1e-6) );
+
       }
 
-
-      //std::cout << s1[0] << "   " << s1[1] << "   " << s1[2] << "   " << s1[3] << std::endl;
-      //std::cout << s2[0] << "   " << s2[1] << "   " << s2[2] << "   " << s2[3] << std::endl;
 
     } // WHEN
   } // GIVEN
 
 
 
-} // TEST CASE
+  GIVEN( "high tolerance, energy, and cosine (debugging)" ){
+    int imax = 20, lat = 0, iinc = 2, lasym = 0;
+    double tev = 2.5507297688e-2, tol = 5.0;
+    std::vector<double> 
+    alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
+    betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 },
+    sab {-0.18259619, -0.30201347, -3.93654779, -3.98809174, -4.33545607, 
+    -4.39515402, -5.88934921, -0.76225291, -0.81658341, -3.14161459, -3.30566186, 
+    -3.90554652, -3.96233362, -5.23696660, -1.19182884, -1.23155471, -2.79610565, 
+    -2.95633099, -3.74989225, -3.80837585, -4.93373911, -1.58342860, -1.61310713, 
+    -2.71233943, -2.84291608, -3.69699590, -3.75199349, -4.77433858, -1.96121202, 
+    -1.98720663, -2.78454600, -2.88531460, -3.71288120, -3.77142141, -4.71158392 };
+  
+    double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
+    std::vector<double> correctEnergies;
+    std::vector<double> correctSCR;
 
-*/
+    double enow = 8.6e-1;
+    double u = 1.0;
 
-TEST_CASE( "sigu" ){
-  int imax = 20, lat = 0, iinc = 2, lasym = 0;
-  double tev = 2.5507297688e-2, tol = 5.0;
-  std::vector<double> 
-  alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
-  betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 },
-  sab {-0.18259619, -0.30201347, -3.93654779, -3.98809174, -4.33545607, 
-  -4.39515402, -5.88934921, -0.76225291, -0.81658341, -3.14161459, -3.30566186, 
-  -3.90554652, -3.96233362, -5.23696660, -1.19182884, -1.23155471, -2.79610565, 
-  -2.95633099, -3.74989225, -3.80837585, -4.93373911, -1.58342860, -1.61310713, 
-  -2.71233943, -2.84291608, -3.69699590, -3.75199349, -4.77433858, -1.96121202, 
-  -1.98720663, -2.78454600, -2.88531460, -3.71288120, -3.77142141, -4.71158392 };
-
-  double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
-  std::vector<double> correctEnergies;
-  std::vector<double> correctSCR;
-
-  double enow = 8.6e-1;
-  double u = 1.0;
-
-  int nemax = 5000;
-  std::vector<double> s1(nemax,0.0),s2(nemax,0.0);
-
-  auto out = sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,sigma_b,sigma_b2,teff,s1,s2);
-
-  std::vector<double> correctYU_first_110 { 44.6334456177, 54.0, 0, 0, 0.765623, 5.979297, 0.79368103, 20.80756, 0.79623176, 20.28317, 0.82428978, 1.692838, 0.82684051, 0.7111114, 0.84086953, 22.83815, 0.84788404, 187.8350, 0.85489854, 2614.586, 0.85489855, 0, 0.85489856, 0, 0.85489858, 0, 0.85489862, 0, 0.85489870, 0, 0.85489886, 0, 0.85489917, 0, 0.85489979, 0, 0.85490104, 0, 0.85490353, 0, 0.85490851, 0, 0.85491847, 0, 0.85493840, 0, 0.85497826, 0, 0.85505797, 0, 0.85521739, 0, 0.85553623, 0, 0.85617391, 0, 0.85744927, 0, 0.86255073, 0, 0.86382610, 0, 0.86446378, 0, 0.86478262, 0, 0.86494204, 0, 0.86502175, 0, 0.86506161, 0, 0.86508154, 0, 0.86509150, 0, 0.86509648, 0, 0.86509897, 0, 0.86510022, 0, 0.86510084, 0, 0.86510115, 0, 0.86510131, 0, 0.86510139, 0, 0.86510143, 0, 0.86510145, 0, 0.86510146, 2153.377, 0.87211597, 117.9912, 0.87913048, 10.89082, 0.89315949, 0.1927072, 0.89571022, 0.4177208, 0.92376824, 1.712638, 0.92631897, 1.591015, 0.954377, 0.1488137 };
-  for (size_t i = 0; i < correctYU_first_110.size(); ++i){
-    REQUIRE( correctYU_first_110[i] == Approx(out[i]).epsilon(1e-6) );
-  }
-  for (size_t i = correctYU_first_110.size(); i < out.size(); ++i){
-    REQUIRE( 0.0 == Approx(out[i]).epsilon(1e-6) );
-  }
+    int nemax = 5000;
+    std::vector<double> s1(nemax,0.0),s2(nemax,0.0), s3(nemax*2,0.0);
+  
+    auto out = sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,sigma_b,sigma_b2,teff,s3);
+  
+    std::vector<double> correctYU_first_110 { 44.6334456177, 54.0, 0, 0, 
+    0.765623, 5.979297, 0.79368103, 20.80756, 0.79623176, 20.28317, 0.82428978, 
+    1.692838, 0.82684051, 0.7111114, 0.84086953, 22.83815, 0.84788404, 187.8350, 
+    0.85489854, 2614.586, 0.85489855, 0, 0.85489856, 0, 0.85489858, 0, 0.85489862, 
+    0, 0.85489870, 0, 0.85489886, 0, 0.85489917, 0, 0.85489979, 0, 0.85490104, 
+    0, 0.85490353, 0, 0.85490851, 0, 0.85491847, 0, 0.85493840, 0, 0.85497826, 
+    0, 0.85505797, 0, 0.85521739, 0, 0.85553623, 0, 0.85617391, 0, 0.85744927, 
+    0, 0.86255073, 0, 0.86382610, 0, 0.86446378, 0, 0.86478262, 0, 0.86494204, 
+    0, 0.86502175, 0, 0.86506161, 0, 0.86508154, 0, 0.86509150, 0, 0.86509648, 
+    0, 0.86509897, 0, 0.86510022, 0, 0.86510084, 0, 0.86510115, 0, 0.86510131, 
+    0, 0.86510139, 0, 0.86510143, 0, 0.86510145, 0, 0.86510146, 2153.377, 
+    0.87211597, 117.9912, 0.87913048, 10.89082, 0.89315949, 0.1927072, 0.89571022,
+    0.4177208, 0.92376824, 1.712638, 0.92631897, 1.591015, 0.954377, 0.1488137 };
+    for (size_t i = 0; i < correctYU_first_110.size(); ++i){
+      REQUIRE( correctYU_first_110[i] == Approx(out[i]).epsilon(1e-6) );
+    }
+    for (size_t i = correctYU_first_110.size(); i < out.size(); ++i){
+      REQUIRE( 0.0 == Approx(out[i]).epsilon(1e-6) );
+    }
 
 
 
+  } // GIVEN
 
 } // TEST CASE
