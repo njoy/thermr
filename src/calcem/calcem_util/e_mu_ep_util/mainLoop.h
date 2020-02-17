@@ -143,17 +143,14 @@ auto mu_ep( Float& enow, const Float& tev, const Float& tol,
     int iend = nep;
     int ib = istart - 1;
     j = 0;
-    while (true){  //std::cout << " --- 596 --- " << "   " << ib << "    " << iend  << std::endl;
+    do { // std::cout << " --- 596 --- " << std::endl;
       j  += 2;
       ib += 1;
       if ( int(scr.size()) < j ){ scr.resize(2*scr.size()); }
       scr[j-1-1] = yu[1+2*ib-1];
       scr[j+0-1] = yu[2+2*ib-1]*2/sum;
-      //std::cout << j << "   " << scr[j-2] << "   " << scr[j-1] << std::endl;
-      if ( ib < iend ){ continue; }
-      scr.resize(nep*2);
-      break;
-    }
+    } while ( ib < iend );
+    scr.resize(nep*2);
     totalSCR[il] = scr;
   }
   return std::make_tuple(uj,totalSCR);
