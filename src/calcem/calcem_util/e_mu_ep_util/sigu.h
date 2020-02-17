@@ -55,6 +55,8 @@ auto do_150(int& i, Range& xsVec, Range& epVec, const Float& tol,
 
    while ( i < int(epVec.size())-1 ){
      //std::cout << " --- 150 --- " << std::endl; 
+       std::cout << "         " << xsVec[i-1]+xsVec[i] << "  " << epVec[i-1]-epVec[i] << std::endl;
+     //if ( i > 2 and 0.5*(xsVec[i-1]+xsVec[i])*(epVec[i-1]-epVec[i]) < 1e-6 ){ std::cout << i << "   good" << std::endl;; }
      if ( i > 2 and 0.5*(xsVec[i-1]+xsVec[i])*(epVec[i-1]-epVec[i]) < 1e-6 ){ return; }
 
      Float epMid = sigfig(0.5*(epVec[i-1]+epVec[i]),8,0);
@@ -63,13 +65,14 @@ auto do_150(int& i, Range& xsVec, Range& epVec, const Float& tol,
      if ( epMid <= epVec[i] or epMid >= epVec[i-1] ){ return; }
 
      Float xsGuess = 0.5*(xsVec[i-1]+xsVec[i]),
-           xsTrue = sig( e, epMid, u, tev, alphas, betas, sab, az, tevz, lasym, lat, sb, sb2, teff, iinc );
+           xsTrue = sig( e, epMid, u, tev, alphas, betas, sab, az, tevz, 
+                         lasym, lat, sb, sb2, teff, iinc );
 
      // Point passes
-     //std::cout << "HERE   " << xsTrue << "   " << xsGuess << "    " << tol << std::endl;
      if ( abs(xsTrue-xsGuess) < tol*abs(xsTrue) ){ return; }
 
      // We need to bisect again
+     std::cout << " --- " << i+1 << "   " << epMid << std::endl;
      ++i;
      epVec[i] = epVec[i-1];
      xsVec[i] = xsVec[i-1];

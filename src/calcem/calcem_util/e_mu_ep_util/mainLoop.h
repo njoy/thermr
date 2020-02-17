@@ -111,7 +111,6 @@ auto mu_ep( Float& enow, const Float& tev, const Float& tol,
   const Float& sigma_b2, const Float& teff ){
   std::cout.precision(15);
 
-  //Float enow = eVec[0];
   auto out = do_530_etc( enow, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, 
               sigma_b2, teff );
 
@@ -127,13 +126,28 @@ auto mu_ep( Float& enow, const Float& tev, const Float& tol,
   int j = 0;
   Float u = -1.0, sum = 2.0*std::get<0>(out);
   Range scr(200,0.0);
+  uj = {1.0};
   std::vector<Range> totalSCR(uj.size());
   
   for (size_t il = 0; il < uj.size(); ++il ){
+
     Range scr(500,0.0);
 
+    std::cout << std::endl << std::endl;
+    std::cout << std::endl << std::endl;
+    std::cout << std::endl << std::endl;
+    std::cout << std::endl << std::endl;
+    std::cout << std::endl << std::endl;
+    std::cout << std::endl << std::endl;
+    std::cout << std::endl << std::endl;
+    std::cout << uj[il] << "   " << enow << "   " << tol << std::endl;
     yu = sigu( enow, uj[il], tev, alphas, betas, sab, tol, az, iinc, lat, lasym, 
                sigma_b, sigma_b2, teff, s1, s2 );
+    std::cout << yu[50] << "  " << yu[51] << "  " << yu[52] << std::endl;
+    std::cout << yu[53] << "  " << yu[54] << "  " << yu[55] << std::endl;
+    std::cout << yu[56] << "  " << yu[57] << "  " << yu[58] << std::endl;
+
+
     int nep = int(yu[1]);
     j = 0;
     for (int i = 1; i <= nep; ++i ){
@@ -152,6 +166,7 @@ auto mu_ep( Float& enow, const Float& tev, const Float& tol,
       if ( int(scr.size()) < j ){ scr.resize(2*scr.size()); }
       scr[j-1-1] = yu[1+2*ib-1];
       scr[j+0-1] = yu[2+2*ib-1]*2/sum;
+      //std::cout << j << "   " << scr[j-2] << "   " << scr[j-1] << std::endl;
       if ( ib < iend ){ continue; }
       scr.resize(nep*2);
       break;
