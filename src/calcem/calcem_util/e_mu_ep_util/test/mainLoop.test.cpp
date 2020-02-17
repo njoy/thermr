@@ -2,6 +2,7 @@
 #include "calcem/calcem_util/e_mu_ep_util/mainLoop.h"
 #include "generalTools/testing.h"
 
+/*
 
 TEST_CASE( " mu-E' ordering " ){
   int imax = 20, lat = 0, iinc = 2, lasym = 0;
@@ -120,6 +121,7 @@ TEST_CASE( " mu-E' ordering " ){
 
 
 
+*/
 
 TEST_CASE( "E-mu-E' ordering " ){
   int imax = 20, lat = 0, iinc = 2, lasym = 0;
@@ -490,7 +492,7 @@ correct_uj = { -1.00E+0, -7.50E-1, -6.25E-1, -5.00E-1, -3.75E-1, -2.50E-1, -1.25
   //REQUIRE( ranges::equal(std::get<0>(out),correct_uj,equal) );
   for ( size_t i = 0; i < totalSCR.size(); ++i ){
     //std::cout << (totalSCR[i]|ranges::view::all) << std::endl;
-    //REQUIRE( ranges::equal(correctFull_SCR[i],totalSCR[i],equal) );
+    REQUIRE( ranges::equal(correctFull_SCR[i],totalSCR[i],equal) );
   }
 
 

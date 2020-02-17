@@ -19,8 +19,6 @@ inline auto do_113_116( int& jbeta, const int& lat, Range& epVec, Range& xsVec,
     epVec[0] = ( lat == 0 ) ? e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tev 
                             : e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tevz; 
 
-
-    //std::cout << "Here   " << e << "    " << beta[-jbeta-1]<< "    " << tev << std::endl;
     if ( jbeta <= 0 ){
     if ( jbeta < 0 and epVec[0] == e ){ epVec[0] = sigfig(e,       8,-1); }
     else                              { epVec[0] = sigfig(epVec[0],8,0 ); }
@@ -38,7 +36,6 @@ inline auto do_113_116( int& jbeta, const int& lat, Range& epVec, Range& xsVec,
     epVec[0] = root1_sq;
   }
 
-  //std::cout << epVec[0] << "   (before) " << std::endl;
   epVec[0] = sigfig(epVec[0],8,0);
   xsVec[0] = sig( e, epVec[0], u, tev, alpha, beta, sab, az, tevz, lasym, lat, sb, sb2, 
               teff, iinc );
@@ -55,12 +52,9 @@ auto do_150(int& i, Range& xsVec, Range& epVec, const Float& tol,
 
    while ( i < int(epVec.size())-1 ){
      //std::cout << " --- 150 --- " << std::endl; 
-       std::cout << "         " << xsVec[i-1]+xsVec[i] << "  " << epVec[i-1]-epVec[i] << std::endl;
-     //if ( i > 2 and 0.5*(xsVec[i-1]+xsVec[i])*(epVec[i-1]-epVec[i]) < 1e-6 ){ std::cout << i << "   good" << std::endl;; }
      if ( i > 2 and 0.5*(xsVec[i-1]+xsVec[i])*(epVec[i-1]-epVec[i]) < 1e-6 ){ return; }
 
      Float epMid = sigfig(0.5*(epVec[i-1]+epVec[i]),8,0);
-     //std::cout << i+1 << "   " << epMid << std::endl;
 
      if ( epMid <= epVec[i] or epMid >= epVec[i-1] ){ return; }
 
@@ -69,10 +63,9 @@ auto do_150(int& i, Range& xsVec, Range& epVec, const Float& tol,
                          lasym, lat, sb, sb2, teff, iinc );
 
      // Point passes
-     if ( abs(xsTrue-xsGuess) < tol*abs(xsTrue) ){ return; }
+     if ( abs(xsTrue-xsGuess) <= tol*abs(xsTrue) ){ return; }
 
      // We need to bisect again
-     std::cout << " --- " << i+1 << "   " << epMid << std::endl;
      ++i;
      epVec[i] = epVec[i-1];
      xsVec[i] = xsVec[i-1];

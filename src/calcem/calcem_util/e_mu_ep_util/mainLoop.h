@@ -49,10 +49,6 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
   yu = sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, s1, s2 );
   yy[0]=yu[0];
   i = 2;
-  //std::cout << yu[0] << "   " << yu[1] << "      " << yu[2] << std::endl;
-  //return std::make_tuple(1.0,2.0,uj);
-
-
 
   while (true) {
     //std::cout << " --- 530 --- " << std::endl;
@@ -126,27 +122,14 @@ auto mu_ep( Float& enow, const Float& tev, const Float& tol,
   int j = 0;
   Float u = -1.0, sum = 2.0*std::get<0>(out);
   Range scr(200,0.0);
-  uj = {1.0};
   std::vector<Range> totalSCR(uj.size());
   
   for (size_t il = 0; il < uj.size(); ++il ){
 
     Range scr(500,0.0);
 
-    std::cout << std::endl << std::endl;
-    std::cout << std::endl << std::endl;
-    std::cout << std::endl << std::endl;
-    std::cout << std::endl << std::endl;
-    std::cout << std::endl << std::endl;
-    std::cout << std::endl << std::endl;
-    std::cout << std::endl << std::endl;
-    std::cout << uj[il] << "   " << enow << "   " << tol << std::endl;
     yu = sigu( enow, uj[il], tev, alphas, betas, sab, tol, az, iinc, lat, lasym, 
                sigma_b, sigma_b2, teff, s1, s2 );
-    std::cout << yu[50] << "  " << yu[51] << "  " << yu[52] << std::endl;
-    std::cout << yu[53] << "  " << yu[54] << "  " << yu[55] << std::endl;
-    std::cout << yu[56] << "  " << yu[57] << "  " << yu[58] << std::endl;
-
 
     int nep = int(yu[1]);
     j = 0;
