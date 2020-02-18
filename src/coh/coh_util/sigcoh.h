@@ -2,6 +2,7 @@
 #include "coh/coh_util/sigcoh_util/terp.h"
 #include "coh/coh_util/sigcoh_util/legndr.h"
 #include "general_util/sigfig.h"
+#include "generalTools/constants.h"
 #include <iostream>
 #include <range/v3/all.hpp>
 
@@ -72,9 +73,7 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
         be4  = 7.53, // pg. 18 Neutron Physics Karl-Heinrich Beckurts, Karl Wirtz
         beo4 = 1.0;
 
-  Float cw = 0.658173e-15, hbar = 1.0545718E-27, amu = 1.6605402e-24, 
-        amassn = 1.008664904, ev = 1.6021766208e-12;
-
+  Float cw = 0.658173e-15;
 
   // Temperatures interpolated over when trying to get correct Debye-Waller
   // Coefficient.
@@ -110,17 +109,14 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   * reciprocal lattice wave vectors and structure factors are computed, 
   * sorted into shells, and stored for later use.
   */
-  Float mass_n = amassn * amu;     // mass of neutron in grams
-  mass_n = 1.6749274715105767E-024;
-  Float econ = ev * 8 * ( mass_n / hbar ) / hbar;
+  Float econ = ev * 8 * (massNeutron)/(hbar*hbar*1e4);
   Float tsqx = econ / 20;
   Float scon = scoh * ( 16.0 * M_PI*M_PI )/( 2.0 * a * a * c * sqrt(3) * econ );
-
 
   // wal2 is (supposed to be) equal to
   //
   //       1   |' f(w)        
-  //      ---  |  ----  coth( w / kb T ) dw
+  //      ---  |  ----  coth( w / kb2 T ) dw
   //       M  ,|   w   
   //
   // this seems to be the case from pg. 5 of the General Atomics HEXSCAT code,
@@ -129,21 +125,18 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   // In this case, the main equation we're trying to compute ( Eq. 1 in the
   // GA HEXSCAT documentation, on pg. 1 ) can be computed using an exponential 
   // term 
-  //                exp[ ( -hbar^2 tau^2 / 2 ) * wal2 ]
+  //                exp[ ( -hbar2^2 tau^2 / 2 ) * wal2 ]
 
-  Float wal2 = terp(temps,dwf,temp,2),
-        wint = cw*amsc*wal2,
+  Float wal2 = terp(temps,dwf,temp,2);
+  Float wint = cw*amsc*wal2,
           c1 = 4.0/(3.0*a*a),
           c2 = 1.0/(c*c),
-          t2 = hbar/(2.0*amu*amsc);
+          t2 = hbar*1e4/(2.0*amu3*amsc);
   // This is the tau^2 value that corresponds to the maximum considered energy.
   // Calculated according to Eq. 223.
-  //ulim = econ * emax;
-  Float ulim = emax * ev * 8.0 * mass_n / (hbar*hbar);
-  //std::cout <<" ULIM " <<   ulim << "  " << ev << "   " << mass_n << "   " << hbar  << std::endl;
-
-  int k = 0;
+  Float ulim = emax * ev3 * 8.0 * massNeutron3/ (hbar3*hbar3*1e4);
   Float phi = ulim / ( 4 * M_PI * M_PI );  // phi = ( tau_max/2pi )^2
+  int k = 0
 
   // l1 --> 0 : a * tau_max / 2pi + 1
   // l1max = alpha * sqrt(phi), on pg 63 of the HEXSCAT document pdf. 
@@ -216,7 +209,6 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
     }
   }
 
-  //std::cout <<" ULIM " <<  ulim << std::endl;
   ++k;
   vec1[k-1] = ulim;
   vec2[k-1] = vec2[k-2];
@@ -242,7 +234,6 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
       Float tau_sq=vec1[i];
       elim = tau_sq*recon;
 
-      //std::cout << "----------- ELIM " << elim << "   " << tau_sq << "    " << recon << std::endl;
       if (elim >= e) { break; }
       Float f = ( e > emax ) ? 0.0 : vec2[i];
       Float u = 1.0-2.0*elim/e;
@@ -251,7 +242,7 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
       // Formulation. If l == 0, fl = 1. But if l == 1, then
       //            fl = 1 - tau^2 lambda^2 / 8 pi^2
       //    which simplifies to 
-      //                 1 - tau^2 hbar^2 / 4 m_n E
+      //                 1 - tau^2 hbar2^2 / 4 m_n E
       legndr(u,p,nl-1);
       for ( int il = 0; il < nl; ++il ){
          s[il] += f*p[il];
@@ -263,13 +254,10 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
    }
    if (last == 1 or elim > emax ) { elim=emax; }
 
-   //std::cout << elim << "    " << sigfig(elim,7,-1) << std::endl;
    Float enext = sigfig(elim,7,-1);
    if (e > sigfig(enext,7,-1)){
      enext = sigfig(elim,7,+1);
    }
-   //std::cout << "           ENEXT " << enext << std::endl;
-   //std::cout << std::endl;
    return enext;
 }
 

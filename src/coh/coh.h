@@ -3,6 +3,7 @@
 #include <vector>
 #include <range/v3/all.hpp>
 #include "general_util/sigfig.h"
+#include "generalTools/constants.h"
 
 template <typename Float, typename Range>
 auto findLocation( const Range& Egrid, const Float& bragg, int j = 0){
@@ -18,14 +19,11 @@ template <typename Float, typename Range>
 Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& finalXS,
   Range& vec1, Range& vec2, const Float& emax, const Float& scon, const Float& recon, 
   int nbragg, int& counter, const Float& tol ){ 
-
   using std::max;
 
   Range s1 (6,0.0), s2(6,0.0);
   auto enext1 = computeCrossSections( x1, vec1, vec2, emax, scon, recon, s1, nbragg );
   auto enext2 = computeCrossSections( x2, vec1, vec2, emax, scon, recon, s2, nbragg );
-
-  //if (egridPoint){ addedE[count2++] = x2; }
 
   Float xm = (x1+x2)*0.5;
 
@@ -60,12 +58,15 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& finalXS,
 
 template <typename Float, typename Range>
 auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Range& Egrid, const Float tol){
+
+  using std::abs;
   std::vector<Float> vec1 (5000,0.0), vec2 (5000,0.0);
   auto out = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
   int nbragg = std::get<0>(out);
   Float scon = std::get<1>(out);
 
-  Float recon = 5.1803120897E-20;
+  Float recon = (hbar*hbar)/(ev*8*(massNeutron))*1e4; 
+
   auto enext = vec1[0]*recon;
 
   Range finalE  (100,0.0),
@@ -74,8 +75,7 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   finalE[0]  = Egrid[0];
   finalXS[0] = 0.0;
 
-  int counter = 0, i_old = 0, count2 = 0;
-  int addedE_counter = 0;
+  int counter = 0, i_old = 0, count2 = 0, addedE_counter = 0;
  
   while (finalE[counter] <= emax) {
     if (counter > 0.8*finalE.size()){ 
