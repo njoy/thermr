@@ -13,17 +13,16 @@ TEST_CASE( "full sigcoh" ){
            recon = 5.1803120897E-20,
            emax = 0.01,
            eNext;
-    int nbragg = 21;
 
     std::vector<double> 
     vec1 { 8.794479E15, 8.794479E15, 3.517792E16, 3.517792E16, 7.915031E16, 
     7.915031E16, 8.717302E16, 8.717302E16, 8.717302E16, 9.596750E16, 9.596750E16, 
     9.596750E16, 1.223509E17, 1.223509E17, 1.223509E17, 1.407117E17, 1.407117E17, 
-    1.663233E17, 1.663233E17, 1.663233E17, 1.930386E17, 2.315842E77 },
+    1.663233E17, 1.663233E17, 1.663233E17, 1.930386E17 },
     vec2 { 0.000000E00, 0.000000E00, 2.0984634382E-8, 2.098463E-8, 0.000000E00, 
     0.000000E00, 1.626950E-9, 1.626950E-9, 1.626950E-9, 9.266134E-9, 9.266134E-9, 
     9.266134E-9, 2.702515E-9, 2.702515E-9, 2.702515E-9, 9.995415E-9, 9.995415E-9, 
-    6.814547E-9, 6.814547E-9, 6.814547E-9, 6.814547E-9, 0.000000E00 };
+    6.814547E-9, 6.814547E-9, 6.814547E-9, 6.814547E-9 };
 
     std::vector<double> epVec { 2*eFirstBragg, 5*eFirstBragg, 10*eFirstBragg};
     std::vector<std::vector<double>> sVariousEp{
@@ -40,7 +39,7 @@ TEST_CASE( "full sigcoh" ){
           for (size_t i = 0; i < epVec.size(); ++i){
             copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
             eNext = computeCrossSections( epVec[i], vec1, vec2, emax, scon, recon,
-                                      s, nbragg );
+                                      s );
             REQUIRE( eNext == Approx(nextBraggEdge[i]).epsilon(1e-6) );
             REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
           }
@@ -56,9 +55,7 @@ TEST_CASE( "full sigcoh" ){
            emax = 5.0,
            recon = 5.1803120897E-20,
            eNext;
-    auto     out = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
-    int   nbragg = std::get<0>(out);
-    double scon  = std::get<1>(out);
+    double scon = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
 
     using std::copy;
 
@@ -82,7 +79,7 @@ TEST_CASE( "full sigcoh" ){
           for (size_t i = 0; i < epVec.size(); ++i){
             copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
             eNext = computeCrossSections( epVec[i], vec1, vec2, emax, scon, recon, 
-                                      s, nbragg );
+                                      s );
             REQUIRE( eNext == Approx(nextBraggEdge[i]).epsilon(1e-6) );
             REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
           }
@@ -100,9 +97,7 @@ TEST_CASE( "full sigcoh" ){
              emax = 6.0,
              recon = 5.1803120897E-20,
              eNext;
-      auto     out = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
-      int   nbragg = std::get<0>(out);
-      double scon  = std::get<1>(out);
+      double scon = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
   
       using std::copy;
   
@@ -125,7 +120,7 @@ TEST_CASE( "full sigcoh" ){
           for (size_t i = 0; i < epVec.size(); ++i){
             copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
             eNext = computeCrossSections( epVec[i], vec1, vec2, emax, scon, recon,  
-                                        s, nbragg );
+                                        s );
             REQUIRE( eNext == Approx(nextBraggEdge[i]).epsilon(1e-6) );
             REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
           }
@@ -139,9 +134,7 @@ TEST_CASE( "full sigcoh" ){
              emax  = 8.0,
              recon = 5.1803120897E-20,
              eNext;
-      auto     out = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
-      int   nbragg = std::get<0>(out);
-      double scon  = std::get<1>(out);
+      double scon = prepareBraggEdges(lat, temp, emax, numAtoms, vec1, vec2);
   
       using std::copy;
 
@@ -166,7 +159,7 @@ TEST_CASE( "full sigcoh" ){
           for (size_t i = 0; i < epVec.size(); ++i){
             copy(sVariousEp[i].begin(), sVariousEp[i].begin()+nl,sThisEp.begin());
             eNext = computeCrossSections( epVec[i], vec1, vec2, emax, scon, recon,  
-                                        s, nbragg );
+                                        s );
             REQUIRE( eNext == Approx(nextBraggEdge[i]).epsilon(1e-6) );
             REQUIRE( ranges::equal( s, sThisEp, equal_1e5 ) );
           }
@@ -196,7 +189,6 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
     double temp = 296, emax;
     int lat = 1, natom = 1;
     std::vector<double> vec1(5000,0.0), vec2(5000,0.0);
-    int nbragg;
 
 
     std::vector<double> vec1_0_100, vec2_0_100, vec1_100_200, vec2_100_200,
@@ -309,23 +301,18 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
     WHEN( "smal value for emax" ){
       emax = 0.05;
       THEN ( "Not many bragg edges, rest of vec1 and vec2 are zero" ){
-        auto out = prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
-        nbragg = std::get<0>(out);
-        REQUIRE( nbragg == 132 );
+        prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
+        REQUIRE( vec1.size() == 132 );
+        REQUIRE( vec2.size() == 132 );
 
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( vec1_0_100[i] == Approx( vec1[i] ).epsilon(1e-6) );
           REQUIRE( vec2_0_100[i] == Approx( vec2[i] ).epsilon(1e-6) );
         }
 
-        for ( int i = 100; i < nbragg-1; ++i ){ 
+        for ( size_t i = 100; i < vec1.size()-1; ++i ){ 
           REQUIRE( vec1_100_200[i-100] == Approx( vec1[i] ).epsilon(1e-6) );
           REQUIRE( vec2_100_200[i-100] == Approx( vec2[i] ).epsilon(1e-6) );
-        }
-
-        for ( size_t i = nbragg; i < vec1.size(); ++i ){ 
-          REQUIRE( 0.0 == Approx( vec1[i] ).epsilon(1e-6) );
-          REQUIRE( 0.0 == Approx( vec2[i] ).epsilon(1e-6) );
         }
 
       } // THEN 
@@ -335,9 +322,9 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
     WHEN( "Medium value for emax" ){
       emax = 1.2;
       THEN ( "Healthy amount of bragg edges, rest of vec1 and vec2 are zero" ){
-        auto out = prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
-        nbragg = std::get<0>(out);
-        REQUIRE( nbragg == 294 );
+        prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
+        REQUIRE( vec1.size() == 294 );
+        REQUIRE( vec2.size() == 294 );
 
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( vec1_0_100[i] == Approx( vec1[i] ).epsilon(1e-6) );
@@ -349,25 +336,20 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
           REQUIRE( vec2_100_200[i-100] == Approx( vec2[i] ).epsilon(1e-6) );
         }
 
-        for ( int i = 200; i < nbragg-1; ++i ){ 
+        for ( size_t i = 200; i < vec1.size()-1; ++i ){ 
           REQUIRE( vec1_200_300[i-200] == Approx( vec1[i] ).epsilon(1e-6) );
           REQUIRE( vec2_200_300[i-200] == Approx( vec2[i] ).epsilon(1e-6) );
         }
 
-        for ( size_t i = nbragg; i < vec1.size(); ++i ){ 
-          REQUIRE( 0.0 == Approx( vec1[i] ).epsilon(1e-6) );
-          REQUIRE( 0.0 == Approx( vec2[i] ).epsilon(1e-6) );
-        }
-  
       } // THEN 
     } // WHEN
     WHEN( "large value for emax" ){
       emax = 5.5;
       THEN ( "Respectable # of bragg edges, rest of vec1 and vec2 are zero" ){
-        auto out = prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
-        nbragg = std::get<0>(out);
-        REQUIRE( nbragg == 435 );
-  
+        prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
+        REQUIRE( vec1.size() == 435 );
+        REQUIRE( vec2.size() == 435 );
+
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( vec1_0_100[i] == Approx( vec1[i] ).epsilon(1e-6) );
           REQUIRE( vec2_0_100[i] == Approx( vec2[i] ).epsilon(1e-6) );
@@ -383,18 +365,8 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
           REQUIRE( vec2_200_300[i-200] == Approx( vec2[i] ).epsilon(1e-6) );
         }
 
-        for ( size_t i = nbragg; i < vec1.size(); ++i ){ 
-          REQUIRE( 0.0 == Approx( vec1[i] ).epsilon(1e-6) );
-          REQUIRE( 0.0 == Approx( vec2[i] ).epsilon(1e-6) );
-        }
-  
-
-
-  
       } // THEN 
     } // WHEN
-    /*
-        */
   } // GIVEN
 
 
@@ -406,7 +378,6 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
     double temp = 500.0, emax;
     int lat = 2, natom = 1;
     std::vector<double> vec1(5000,0.0), vec2(5000,0.0);
-    int nbragg;
 
 
     std::vector<double> vec1_0_100, vec2_0_100, vec1_100_200, vec2_100_200,
@@ -487,23 +458,18 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
     WHEN( "small value for emax" ){
       emax = 0.8;
       THEN ( "Not many bragg edges, rest of vec1 and vec2 are zero" ){
-        auto out = prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
-        nbragg = std::get<0>(out);
-        REQUIRE( nbragg == 164 );
+        prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
+        REQUIRE( vec1.size() == 164 );
+        REQUIRE( vec2.size() == 164 );
 
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( vec1_0_100[i] == Approx( vec1[i] ).epsilon(1e-6) );
           REQUIRE( vec2_0_100[i] == Approx( vec2[i] ).epsilon(1e-6) );
         }
 
-        for ( int i = 100; i < nbragg-1; ++i ){ 
+        for ( size_t i = 100; i < vec1.size()-1; ++i ){ 
           REQUIRE( vec1_100_200[i-100] == Approx( vec1[i] ).epsilon(1e-6) );
           REQUIRE( vec2_100_200[i-100] == Approx( vec2[i] ).epsilon(1e-6) );
-        }
-
-        for ( size_t i = nbragg; i < vec1.size(); ++i ){ 
-          REQUIRE( 0.0 == Approx( vec1[i] ).epsilon(1e-6) );
-          REQUIRE( 0.0 == Approx( vec2[i] ).epsilon(1e-6) );
         }
 
       } // THEN 
@@ -513,9 +479,9 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
     WHEN( "Medium value for emax" ){
       emax = 2.5;
       THEN ( "Healthy amount of bragg edges, rest of vec1 and vec2 are zero" ){
-        auto out = prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
-        nbragg = std::get<0>(out);
-        REQUIRE( nbragg == 250 );
+        prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
+        REQUIRE( vec1.size() == 250 );
+        REQUIRE( vec2.size() == 250 );
 
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( vec1_0_100[i] == Approx( vec1[i] ).epsilon(1e-6) );
@@ -527,19 +493,14 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
           REQUIRE( vec2_100_200[i-100] == Approx( vec2[i] ).epsilon(1e-6) );
         }
 
-        for ( size_t i = nbragg; i < vec1.size(); ++i ){ 
-          REQUIRE( 0.0 == Approx( vec1[i] ).epsilon(1e-6) );
-          REQUIRE( 0.0 == Approx( vec2[i] ).epsilon(1e-6) );
-        }
-  
       } // THEN 
     } // WHEN
     WHEN( "large value for emax" ){
       emax = 5.0;
       THEN ( "Respectable # of bragg edges, rest of vec1 and vec2 are zero" ){
-        auto out = prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
-        nbragg = std::get<0>(out);
-        REQUIRE( nbragg == 296 );
+        prepareBraggEdges( lat, temp, emax, natom, vec1, vec2 );
+        REQUIRE( vec1.size() == 296 );
+        REQUIRE( vec2.size() == 296 );
   
         for ( size_t i = 0; i < 100; ++i ){ 
           REQUIRE( vec1_0_100[i] == Approx( vec1[i] ).epsilon(1e-6) );
@@ -551,13 +512,6 @@ TEST_CASE( "preparing bragg edges for coherent elastic calculations" ){
           REQUIRE( vec2_100_200[i-100] == Approx( vec2[i] ).epsilon(1e-6) );
         }
 
-        for ( size_t i = nbragg; i < vec1.size(); ++i ){ 
-          REQUIRE( 0.0 == Approx( vec1[i] ).epsilon(1e-6) );
-          REQUIRE( 0.0 == Approx( vec2[i] ).epsilon(1e-6) );
-        }
-  
-
-  
       } // THEN 
     } // WHEN
   } // GIVEN

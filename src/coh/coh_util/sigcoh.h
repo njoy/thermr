@@ -9,9 +9,10 @@
 template <typename Range, typename Float>
 bool finish( int& k, const Float& f, const Float& tau_sq, Range& vec1, Range& vec2 ){
   k++;
+  if ((unsigned) k > 10000){ return true; } //std::cout << "storage exceeded" << std::endl;
   if ((unsigned) k > vec1.size()){
-    std::cout << "storage exceeded" << std::endl;
-    return true;
+    vec1.resize(vec1.size()*2);
+    vec2.resize(vec2.size()*2);
   }
   vec1[k-1] = tau_sq; vec2[k-1] = f;
   return false;
@@ -136,7 +137,7 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   // Calculated according to Eq. 223.
   Float ulim = emax * ev3 * 8.0 * massNeutron3/ (hbar3*hbar3*1e4);
   Float phi = ulim / ( 4 * M_PI * M_PI );  // phi = ( tau_max/2pi )^2
-  int k = 0
+  int k = 0;
 
   // l1 --> 0 : a * tau_max / 2pi + 1
   // l1max = alpha * sqrt(phi), on pg 63 of the HEXSCAT document pdf. 
@@ -177,12 +178,17 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
                 if (tau_sq < vec1[i] or tau_sq >= 1.05*vec1[i]){
                   if ( i == k ){ 
                     if (finish(k,f,tau_sq,vec1,vec2)){ 
-                      return std::make_tuple(k,scon); 
+                      vec1.resize(k);
+                      vec2.resize(k);
+                      return scon;
                     }
                     break;
                   }
                 }
                 else {                        
+                  if ( i > int(vec2.size()) ){ vec1.resize(vec1.size()*2); 
+                                               vec2.resize(vec2.size()*2); 
+                  }
                   vec2[i] += f;
                   break;
                 }
@@ -190,7 +196,9 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
             }
             else {
               if (finish(k,f,tau_sq,vec1,vec2)){ 
-                return std::make_tuple(k,scon); 
+                vec1.resize(k);
+                vec2.resize(k);
+                return scon;
               }
             }
           } 
@@ -212,9 +220,10 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   ++k;
   vec1[k-1] = ulim;
   vec2[k-1] = vec2[k-2];
-  return std::make_tuple(k,scon); 
-  // This is nbragg, the number of bragg edges found, and some material specific
-  // constants
+  vec1.resize(k);
+  vec2.resize(k);
+  return scon; 
+  // Scon contains material specific constants
 
 }
 
@@ -222,7 +231,7 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
 
 template <typename Range, typename Float>
 auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax, 
-  Float scon, Float recon, Range& s, int nbragg ){
+  Float scon, Float recon, Range& s ){
   // compute cross sections at this energy
    Float elim;
    for ( Float& sVal : s ){ sVal = 0.0; }
@@ -230,7 +239,7 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
    Range p(nl,0.0);
    int last = 0;
 
-   for ( int i = 0; i < nbragg; ++i ){
+   for ( size_t i = 0; i < vec1.size(); ++i ){
       Float tau_sq=vec1[i];
       elim = tau_sq*recon;
 
@@ -247,7 +256,7 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
       for ( int il = 0; il < nl; ++il ){
          s[il] += f*p[il];
       }
-      if (i == nbragg-1) { last = 1; }
+      if (i == vec1.size()-1) { last = 1; }
    }
    for ( int il = 0; il < nl; ++il ){
       s[il] *= scon/e;
