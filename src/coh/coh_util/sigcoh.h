@@ -7,15 +7,15 @@
 #include <range/v3/all.hpp>
 
 template <typename Range, typename Float>
-bool finish( int& k, const Float& f, const Float& tau_sq, Range& vec1, Range& vec2 ){
+auto addBraggPeak( int& k, const Float& f, const Float& tau_sq, Range& vec1, Range& vec2 ){
   k++;
-  if ((unsigned) k > 10000){ return true; } //std::cout << "storage exceeded" << std::endl;
+  //if ((unsigned) k > 10000){ return true; } //std::cout << "storage exceeded" << std::endl;
   if ((unsigned) k > vec1.size()){
     vec1.resize(vec1.size()*2);
     vec2.resize(vec2.size()*2);
   }
   vec1[k-1] = tau_sq; vec2[k-1] = f;
-  return false;
+  //return false;
 }
 
 
@@ -175,31 +175,27 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
                 // closely spaced together, so a range of tau values can be 
                 // lumped together to give a single effective tau_i and f_i.
                 // This uses a 5% (eps) grouping factor.
-                if (tau_sq < vec1[i] or tau_sq >= 1.05*vec1[i]){
-                  if ( i == k ){ 
-                    if (finish(k,f,tau_sq,vec1,vec2)){ 
-                      vec1.resize(k);
-                      vec2.resize(k);
-                      return scon;
-                    }
-                    break;
-                  }
-                }
-                else {                        
+                if (tau_sq >= vec1[i] and tau_sq < 1.05*vec1[i]){
                   if ( i > int(vec2.size()) ){ vec1.resize(vec1.size()*2); 
                                                vec2.resize(vec2.size()*2); 
                   }
                   vec2[i] += f;
                   break;
                 }
+                else if ( i == k ){
+                  addBraggPeak(k,f,tau_sq,vec1,vec2);
+                  if ((unsigned) k > 1e4){ vec1.resize(k); 
+                                           vec2.resize(k); 
+                                           return scon; }
+                  break;
+                }
               }
             }
             else {
-              if (finish(k,f,tau_sq,vec1,vec2)){ 
-                vec1.resize(k);
-                vec2.resize(k);
-                return scon;
-              }
+              addBraggPeak(k,f,tau_sq,vec1,vec2);
+              if ((unsigned) k > 1e4){ vec1.resize(k); 
+                                       vec2.resize(k); 
+                                       return scon; }
             }
           } 
         }
@@ -233,41 +229,38 @@ template <typename Range, typename Float>
 auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax, 
   Float scon, Float recon, Range& s ){
   // compute cross sections at this energy
-   Float elim;
-   for ( Float& sVal : s ){ sVal = 0.0; }
-   int nl = s.size();
-   Range p(nl,0.0);
-   int last = 0;
+  Float elim;
+  for ( Float& sVal : s ){ sVal = 0.0; }
+  int nl = s.size();
+  Range p(nl,0.0);
 
-   for ( size_t i = 0; i < vec1.size(); ++i ){
-      Float tau_sq=vec1[i];
-      elim = tau_sq*recon;
+  for ( size_t i = 0; i < vec1.size(); ++i ){
+    elim = vec1[i]*recon; // vec1 = tau squared
+    if (elim >= e) { break; }
+    Float f = ( e > emax ) ? 0.0 : vec2[i],
+          u = 1.0-2.0*elim/e;
+    // u here is equal to fl for l = 1 (P1 component).
+    // This is defined in the General Atomics HEXSCAT paper, in Part 1 
+    // Formulation. If l == 0, fl = 1. But if l == 1, then
+    //            fl = 1 - tau^2 lambda^2 / 8 pi^2
+    //    which simplifies to 
+    //                 1 - tau^2 hbar2^2 / 4 m_n E
+    legndr(u,p,nl-1);
+    for ( int il = 0; il < nl; ++il ){
+      s[il] += f*p[il];
+    }
+    if (i == vec1.size()-1 ) { elim = emax; }
+  }
+  for ( int il = 0; il < nl; ++il ){
+    s[il] *= scon/e;
+  }
 
-      if (elim >= e) { break; }
-      Float f = ( e > emax ) ? 0.0 : vec2[i];
-      Float u = 1.0-2.0*elim/e;
-      // u here is equal to fl for l = 1 (P1 component).
-      // This is defined in the General Atomics HEXSCAT paper, in Part 1 
-      // Formulation. If l == 0, fl = 1. But if l == 1, then
-      //            fl = 1 - tau^2 lambda^2 / 8 pi^2
-      //    which simplifies to 
-      //                 1 - tau^2 hbar2^2 / 4 m_n E
-      legndr(u,p,nl-1);
-      for ( int il = 0; il < nl; ++il ){
-         s[il] += f*p[il];
-      }
-      if (i == vec1.size()-1) { last = 1; }
-   }
-   for ( int il = 0; il < nl; ++il ){
-      s[il] *= scon/e;
-   }
-   if (last == 1 or elim > emax ) { elim=emax; }
-
-   Float enext = sigfig(elim,7,-1);
-   if (e > sigfig(enext,7,-1)){
-     enext = sigfig(elim,7,+1);
-   }
-   return enext;
+  if (elim > emax){ elim = emax; }
+  Float enext = sigfig(elim,7,-1);
+  if (e > sigfig(enext,7,-1)){
+    enext = sigfig(elim,7,+1);
+  }
+  return enext;
 }
 
 

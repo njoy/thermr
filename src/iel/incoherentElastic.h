@@ -51,26 +51,3 @@ auto getIncohElasticXSGrid_withInterpolation( const Float& sigma_b, const Float&
   return getOnRightGrid(currentX,currentY,desiredX);
 }  
 
-
-/*
- // This isn't really going to be used right now because although lovely and 
- // beautiful, the answers it returns differ significantly from those provided
- // by legacy THERMR
-template <typename Range, typename Float>
-auto getIncohElasticXSGrid_directly( const Float& sigma_b, const Float& debyeWaller, 
-  int numAtoms, const Range& desiredX ){
-  Range currentY(desiredX.size(),0.0);
-  for ( size_t i = 0; i < desiredX.size(); ++i ){
-    currentY[i] = getIncohElasticXS( sigma_b, debyeWaller, desiredX[i], numAtoms );
-  }
-  currentY[desiredX.size()-1] = 0.0;
-  return currentY;
-}  
-*/
-
-
-
-
-
-
-

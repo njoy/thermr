@@ -1,0 +1,20 @@
+thermr
+24 23 25                   / 1 [a] nendf  - thermal scattering input
+                           /   [b] nin    - PENDF input
+                           /   [c] nout   - output
+                           / 
+101 1301 2 1 2 0 1 1 222 2 / 2 [a] matde  - material specified on nendf 
+                           /   [b] matdp  - material specified on nin 
+                           /   [c] nbin   - # equiprobable angles
+                           /   [d] ntemp  - # temperature
+                           /   [e] iin    - inelastic options (None, Free Gas, S(a,b))
+                           /   [f] icoh   - elastic options 
+                           /   [g] natom  - # principle atoms
+                           /   [h] mtref  - MT to be used to inelastic section
+                           /   [i] iprint - print control
+                           /
+296.0                      / 3 [a] tempr  - temps [K]. Must have ntemp values 
+                           /
+5.0 2.0                    / 4 [a] tol    - tolerance
+                           /   [b] emax   - max energy for thermal treatment
+stop
