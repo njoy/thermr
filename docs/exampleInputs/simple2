@@ -1,6 +1,6 @@
 thermr
-24 23 25                   / 1 nenedf, nin, nout
-101 1301 2 1 2 0 1 1 222 2 / 2 matde, matdp, nbin, ntemp, iin, icoh, natom, mtref, iprint
-296.0                      / 3 tempr
-5.0 2.0                    / 4 tol, emax
+24 23 25                / 1 nenedf, nin, nout
+1 125 2 1 2 0 0 2 222 2 / 2 matde, matdp, nbin, ntemp, iin, icoh, natom, mtref, iprint
+296.0                   / 3 tempr
+5.0 2.0                 / 4 tol, emax
 stop

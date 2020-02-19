@@ -13,6 +13,7 @@ Welcome to thermr's documentation!
    overview
    theory 
    quickStart
+   inputs
    usersGuide
    codingDetails 
    additional 

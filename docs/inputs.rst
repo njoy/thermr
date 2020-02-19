@@ -7,7 +7,7 @@
    :width: 1em
 
 **********************
-QuickStart
+Inputs
 **********************
 
 
@@ -41,14 +41,18 @@ This simple example is for instructional purposes only. Note that parentheses fo
    :language: html
    :lines: 1-4
 
-After specifying the module (THERMR), the input and output files are stated. Here, thermal scattering input (which is the output from LEAPR) is tape24, and the PENDF (which could come from RECONR and BROADR, for example) is in tape23. THERMR will write its output file to tape25.
+First, we specify the module (THERMR). 
+
+The first card is used to specify input and output files. Here, thermal scattering input (which is the output from LEAPR) is tape24, and the PENDF (which could come from RECONR and BROADR, for example) is in tape23. THERMR will write its output file to tape25.
   
 
-.. .. glossary::
+.. glossary::
     nendf 
         Thermal scattering input, which is the output from LEAPR. nendf can be set to zero if no LEAPR run is performed prior to this calculation, but doing so does limit THERMR's capabilities. In the directory that NJOY is run, nendf should appear as "tape24"
+
     nin
         Input PENDF file, which can be obtained from (for example) RECONR and BROADR. This should be available in the NJOY bin directory as "tape23".
+
     nout
         Desired output file to which THERMR will write the final PENDF. Here, it's "tape25"
 
@@ -69,17 +73,17 @@ After specifying the module (THERMR), the input and output files are stated. Her
 
 .. literalinclude:: exampleInputs/simple
    :language: html
-   :lines: 1-15
+   :lines: 1-13
 
-The ``matde`` value is set to be 1, which corresponds to light water. The full list of material ID number is available in the current ENDF manual. ``matdp`` equals 125, which is the ENDF-B/VIII.0 MAT number for H-1. Thus, these two values indicate that this THERMR run is for :math:`\mbox{H}` bound :math:`\mbox{H}_2\mbox{O}`.
+.. glossary::
+    matde 
+        Material ID for the material on the ``nendf`` tape. This will be equal to the ``mat`` value defined in the corresponding LEAPR run (LEAPR card 4, value 1).
 
-We ask for two angular bins, which means that the scattering distribution for inelastic and incoherent elastic scattering will be split into two equi-probable cosines. One temperature is requested, which means that there should only be one value in the temperature card (Card 3). ``iin`` is set to 2, meaning that we will read the scattering law :math:`S(\alpha,\beta)` off of the ``nendf`` tape, and convert it to an inelastic scattering distribution. Following ``iin`` is the ``iform`` flag, which dictates the ordering that will be used for inelastic scattering distributions (``iform`` set to 0 means :math:`E,E',\mu` ordering). Elastic calculation control is set by ``icoh``, which is 0 here (meaning that no elastic calculation is necessary). 
+    matdp 
+        Material ID for the material on the ``nin`` tape, and will match the material identification used in preceding modules. For example, if tape23 was created using the RECONR module, then ``matdp`` will equal RECONR's ``mat`` specification from (RECONR card 3, value 1).
 
-The number of principle atoms is set using ``natom``, which for :math:`\mbox{H}` in :math:`\mbox{H}_2\mbox{O}` is, of course, two.The ``mtref`` value indicates the desired MT that will be used in
+    nbin
+        Number of equiprobable angle bins to be used for inelastic scattering distributions.
+        
 
 
-
-
--------------------------------------------------------------------------------
-
- here 
