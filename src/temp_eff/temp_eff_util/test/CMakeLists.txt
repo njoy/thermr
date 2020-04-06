@@ -1,7 +1,7 @@
 
 add_executable( temp_eff.temp_eff_util.test
-                gateff.test.cpp
-                gatef2.test.cpp )
+                gatef2.test.cpp
+                gateff.test.cpp )
 target_compile_options( temp_eff.temp_eff_util.test PRIVATE ${${PREFIX}_common_flags}
 $<$<BOOL:${strict}>:${${PREFIX}_strict_flags}>$<$<CONFIG:DEBUG>:
 ${${PREFIX}_DEBUG_flags}

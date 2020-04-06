@@ -1,6 +1,3 @@
-[submodule "catch-adapter"]
-	path = catch-adapter
-	url = https://github.com/njoy/catch-adapter
 [submodule "dependencies/catch-adapter"]
 	path = dependencies/catch-adapter
 	url = https://github.com/njoy/catch-adapter
