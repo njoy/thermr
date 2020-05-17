@@ -9,7 +9,7 @@ inline auto terp1( const double& x1, const double& y1, const double& x2,
    * thr6 is the kinematic threshold for i = 6 (thr6 > 0)
    */
 
-  double a, b, t;
+  //double a, b, t;
 
   // make sure x2 .ne. x1
   if (x2 == x1) {

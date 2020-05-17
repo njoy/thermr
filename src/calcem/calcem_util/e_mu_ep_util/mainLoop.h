@@ -104,8 +104,8 @@ auto mu_ep( Float& enow, const Float& tev, const Float& tol,
   auto out = do_530_etc( enow, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, 
               sigma_b2, teff );
   auto uj = std::get<2>(out);
-  int imax = 20, mumax = 300, nemax = 5000;
-  int i = 2, j = 0;
+  int imax = 20, nemax = 5000;
+  int j = 0;
   Range x(imax,0.0); x[0] = 1.0; x[1] = -1.0;
   Range yy(imax,0.0), yu(2*nemax);
   Float xm, ym, yl=0.0, xl=0.0;
@@ -127,7 +127,7 @@ auto mu_ep( Float& enow, const Float& tev, const Float& tol,
     }
     nep = j;
     int istart = 1;
-    int nw;
+    //int nw;
     int iend = nep;
     int ib = istart - 1;
     j = 0;

@@ -8,7 +8,8 @@ TEST_CASE( "thermr" ){
     WHEN( "" ){
         std::string fileName = "/Users/ameliajo/thermr/src/test/tape24";
         int mat = 101;
-        thermr(mat,fileName);
+        int iform = 0;
+        thermr(mat,fileName,iform);
 
         REQUIRE( 0 == 0 );
 
