@@ -78,7 +78,7 @@ template <typename Float, typename Range>
 inline auto sig( const Float& e, const Float& ep, const Float& u, 
   const Float& tev, const Range& alphas, const Range& betas, const Range& sab, 
   const Float az, const Float tevz, const int lasym, const int lat, 
-  const Float sigma_b, const Float sigma_b2, const Float teff, 
+  const Range& boundXsVec, const Float teff, 
   const int iinc ){
  /*-------------------------------------------------------------------
   * Compute the differential scattering cross section from e to
@@ -98,6 +98,9 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
 
   Float maxAlpha = alphas[alphas.size()-1],
         maxBeta  = betas [betas.size() -1];
+
+  Float sigma_b  = boundXsVec[0];
+  Float sigma_b2 = boundXsVec[1];
  
   // ----------------------------------------------------------------------
   // ------------------------ FREE GAS SCATTERING ------------------------- 

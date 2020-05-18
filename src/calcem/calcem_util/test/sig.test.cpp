@@ -40,6 +40,7 @@ TEST_CASE( "sig - free gas (iinc = 1)" ){
   int iinc = 1, lasym = 0, lat = 1;
   double e = 1.0e-5, ep = 0.0, u = -1.0, tev = 2.5e-2, az = 11.9,
     tevz = 2.53e-2, sb = 5.53, sb2 = 0.0, teff = 6.14e-2, sigVal;
+  std::vector<double> boundXsVec {sb,sb2};
 
   std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
                        beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
@@ -49,7 +50,7 @@ TEST_CASE( "sig - free gas (iinc = 1)" ){
     iinc = 0;
     THEN( "throw exception" ){
       REQUIRE_THROWS( sig( e, ep, u, tev, alpha, beta, sab, az, tevz, lasym, 
-                           lat, sb, sb2, teff, iinc ) );
+                           lat, boundXsVec, teff, iinc ) );
     } // THEN
   } // GIVEN
 
@@ -67,7 +68,7 @@ TEST_CASE( "sig - free gas (iinc = 1)" ){
         THEN( "all output cross sections are correct" ) {
           for (size_t i = 0; i < ePrimeVals.size(); ++i ){
             sigVal = sig( e, ePrimeVals[i], u, tev, alpha, beta, sab, az, tevz, 
-                           lasym, lat, sb, sb2, teff, iinc );
+                           lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( correct_XS[i] == Approx( sigVal ).epsilon(1e-6) );
           } 
         } // THEN
@@ -80,7 +81,7 @@ TEST_CASE( "sig - free gas (iinc = 1)" ){
         THEN( "all output cross sections are correct" ) {
           for (size_t i = 0; i < ePrimeVals.size(); ++i ){
             sigVal = sig( e, ePrimeVals[i], u, tev, alpha, beta, sab, az, tevz, 
-                           lasym, lat, sb, sb2, teff, iinc );
+                           lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( correct_XS[i] == Approx( sigVal ).epsilon(1e-6) );
           } 
         } // THEN
@@ -94,7 +95,7 @@ TEST_CASE( "sig - free gas (iinc = 1)" ){
         THEN( "all output cross sections are correct" ) {
           for (size_t i = 0; i < ePrimeVals.size(); ++i ){
             sigVal = sig( e, ePrimeVals[i], u, tev, alpha, beta, sab, az, tevz, 
-                           lasym, lat, sb, sb2, teff, iinc );
+                           lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( correct_XS[i] == Approx( sigVal ).epsilon(1e-6) );
           } 
         } // THEN
@@ -115,6 +116,7 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
     teff = 6.14e-2;
 
   double sigVal;
+  std::vector<double> boundXsVec {sb,sb2};
 
   std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
                        beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
@@ -141,7 +143,7 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
         THEN( "SCT Approximation is used" ){
           for (size_t i = 0; i < uVals.size(); ++i){
             sigVal = sig( e, ep, uVals[i], tev, alpha, beta, sab, az, tevz,
-                          lasym, lat, sb, sb2, teff, iinc );
+                          lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( xsVals[i] == Approx( sigVal ).epsilon(1e-6) );
           }
         } // THEN
@@ -155,7 +157,7 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
         THEN( "interpolation is used" ){
           for (size_t t = 0; t < temps.size(); ++t){
             sigVal = sig( e, ep, u, temps[t], alpha, beta, sab, az, 
-                          tevz, lasym, lat, sb, sb2, teff, iinc );
+                          tevz, lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( xsVals[t] == Approx( sigVal ).epsilon(1e-6) );
           }
         } // THEN
@@ -179,7 +181,7 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
         THEN( "SCT Approximation is used" ){
           for (size_t i = 0; i < uVals.size(); ++i){
             sigVal = sig( e, ep, uVals[i], tev, alpha, beta, sab, az, tevz,
-                          lasym, lat, sb, sb2, teff, iinc );
+                          lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( xsVals[i] == Approx( sigVal ).epsilon(1e-6) );
           }
         } // THEN
@@ -196,7 +198,7 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
         THEN( "interpolation is used" ){
           for (size_t i = 0; i < uVals.size(); ++i){
             sigVal = sig( e, ep, uVals[i], tev, alpha, beta, sab, az, tevz, 
-                          lasym, lat, sb, sb2, teff, iinc );
+                          lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( xsVals[i] == Approx( sigVal ).epsilon(1e-6) );
           }
         } // THEN
@@ -208,7 +210,7 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
         THEN( "interpolation is used" ){
           for (size_t i = 0; i < eVals.size(); ++i){
             sigVal = sig( eVals[i], ep, u, tev, alpha, beta, sab, az, tevz, 
-                          lasym, lat, sb, sb2, teff, iinc );
+                          lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( xsVals[i] == Approx( sigVal ).epsilon(1e-6) );
           }
         } // THEN
@@ -220,7 +222,7 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
         THEN( "interpolation is used" ){
           for (size_t i = 0; i < epVals.size(); ++i){
             sigVal = sig( e, epVals[i], u, tev, alpha, beta, sab, az, tevz,
-                          lasym, lat, sb, sb2, teff, iinc );
+                          lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( xsVals[i] == Approx( sigVal ).epsilon(1e-6) );
           }
         } // THEN
@@ -233,7 +235,7 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
         THEN( "interpolation is used" ){
           for (size_t t = 0; t < temps.size(); ++t){
             sigVal = sig( e, ep, u, temps[t], alpha, beta, sab, az, tevz, 
-                          lasym, lat, sb, sb2, teff, iinc );
+                          lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( xsVals[t] == Approx( sigVal ).epsilon(1e-6) );
           }
         } // THEN
@@ -247,30 +249,30 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
         
         e = 1.0e-4, ep = 1e-3, tev = 1.5e-1; u = -0.2;
         sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz, lasym, lat, 
-                      sb, sb2, teff, iinc );
+                      boundXsVec, teff, iinc );
         REQUIRE( 1051.65979708 == Approx( sigVal ).epsilon(1e-6) );
 
         e = 1.1e-3, ep = 1e-3, tev = 3.e-2; u = -0.8;
         sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz, lasym, lat, 
-                      sb, sb2, teff, iinc );
+                      boundXsVec, teff, iinc );
         REQUIRE( 833.52957179 == Approx( sigVal ).epsilon(1e-6) );
 
 
         tev = 1.5e-1; e = 1.0e-2, ep = 1.2e-2; u = -0.2;
         sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz, lasym, lat, 
-                      sb, sb2, teff, iinc );
+                      boundXsVec, teff, iinc );
         REQUIRE( 73.2776830507 == Approx( sigVal ).epsilon(1e-6) );
 
 
         tev = 1.5e-1; e = 1.0e-2, ep = 1.0e-2; u = -0.2;
         sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz, lasym, lat, 
-                      sb, sb2, teff, iinc );
+                      boundXsVec, teff, iinc );
 
         REQUIRE( 69.2317931294 == Approx( sigVal ).epsilon(1e-6) );
 
         tev = 1e-2; e = 1e-2; ep = 1.2e-2; u = -0.2;
         sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz, lasym, lat, 
-                      sb, sb2, teff, iinc );
+                      boundXsVec, teff, iinc );
         REQUIRE( 1001.218476926 == Approx( sigVal ).epsilon(1e-6) );
 
 
@@ -285,7 +287,7 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
       for (double& betaVal  : beta ){ betaVal  *= 100; }
       sab[1] = -226.0;
       e = 1.0e-1, ep = 6e-1, tev = 2e-1; u = -0.2;
-      sigVal = sig(e,ep,u,tev,alpha,beta,sab,az,tevz,lasym,lat,sb,sb2,teff,iinc);
+      sigVal = sig(e,ep,u,tev,alpha,beta,sab,az,tevz,lasym,lat,boundXsVec,teff,iinc);
       REQUIRE( 2.78824367E-5 == Approx( sigVal ).epsilon(1e-6) );
     } // WHEN
 
@@ -309,12 +311,14 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
       sb = 1.0;
       for (size_t i = 0; i < eVec.size(); ++i){
         for (size_t j = 0; j < muVec.size(); ++j){
+          boundXsVec = {sb,sb2};
           REQUIRE( correctVals[i*muVec.size()+j] == 
                    Approx(sig(eVec[i],eVec[i],muVec[j],tev,alpha,beta,sab,az,
-                          tevz,lasym,lat,sb,sb2,teff,iinc ) ).epsilon(1e-6) );
+                          tevz,lasym,lat,boundXsVec,teff,iinc ) ).epsilon(1e-6) );
+          boundXsVec = {4*sb,sb2};
           REQUIRE( 4.0*correctVals[i*muVec.size()+j] == 
                    Approx(sig(eVec[i],eVec[i],muVec[j],tev,alpha,beta,sab,az,
-                      tevz,lasym,lat,4.0*sb,sb2,teff,iinc ) ).epsilon(1e-6) );
+                      tevz,lasym,lat,boundXsVec,teff,iinc ) ).epsilon(1e-6) );
         }
       }
     } // WHEN
@@ -340,6 +344,7 @@ TEST_CASE( "sig - additional because i'm spooked" ){
     teff = 0.12044192657731301;
 
   double sigVal;
+  std::vector<double> boundXsVec{sb,sb2};
 
   std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
                        beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
@@ -390,19 +395,17 @@ TEST_CASE( "sig - additional because i'm spooked" ){
     WHEN( "either alpha or beta is outside of given range" ){
       AND_WHEN( "various scattering cosines" ){
         THEN( "SCT Approximation is used" ){
-            //std::cout.precision(15);
-            //std::cout << sigVal << std::endl;
             u = 1.0;
             sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz,
-                          lasym, lat, sb, sb2, teff, iinc );
+                          lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( 2804297.7748918594 == Approx( sigVal ).epsilon(1e-6) );
             u = 0.95;
             sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz,
-                          lasym, lat, sb, sb2, teff, iinc );
+                          lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( 14157.155384780059 == Approx( sigVal ).epsilon(1e-6) );
             u = -0.95;
             sigVal = sig( e, ep, u, tev, alpha, beta, sab, az, tevz,
-                          lasym, lat, sb, sb2, teff, iinc );
+                          lasym, lat, boundXsVec, teff, iinc );
             REQUIRE( 2093.6429488489475 == Approx( sigVal ).epsilon(1e-6) );
 
 

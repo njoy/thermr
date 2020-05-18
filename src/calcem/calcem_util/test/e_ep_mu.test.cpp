@@ -22,13 +22,14 @@ TEST_CASE( "main E E' mu function" ){
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
   int nbin = 2;
   std::vector<double> eVec, correctEnergies;
+  std::vector<double> boundXsVec {sigma_b,sigma_b2};
 
   GIVEN( "temperature is reasonable (doesn't need scaling)" ){
     double temp = 296.0;
 
     WHEN( "small energies are considered" ){
       eVec = {1E-5, 1.78E-5, 2.5E-5, 3.5E-5, 5E-5, 7E-5, 1E-4, 1.26E-4, 1.6E-4, 2E-4};
-      auto out = e_ep_mu(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,temp);
+      auto out = e_ep_mu(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff,nbin,temp);
       auto outputEnergy = std::get<0>(out);
       auto totalSCR     = std::get<1>(out);
       auto totalOutput  = std::get<2>(out);
@@ -110,7 +111,7 @@ TEST_CASE( "main E E' mu function" ){
       std::vector<double> eVec { 0.0115, 0.015, 0.020493, 0.028, 0.0395, 
       0.056925, 0.081972, 0.111573, 0.145728, 0.20, 0.2907501, 0.39, 0.56, 0.86, 
       1.28, 1.855, 2.59, 3.75, 5.35, 7.65 };
-      auto out = e_ep_mu(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,temp);
+      auto out = e_ep_mu(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff,nbin,temp);
       auto outputEnergy = std::get<0>(out);
       auto totalSCR     = std::get<1>(out);
       auto totalOutput  = std::get<2>(out);
@@ -335,7 +336,7 @@ TEST_CASE( "main E E' mu function" ){
     WHEN( "small energies are considered" ){
       tol = 1.5;
       std::vector<double> eVec { 1e-4, 1e-2, 1.0, 5.0, 10.0 };
-      auto out = e_ep_mu(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff,nbin,temp);
+      auto out = e_ep_mu(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff,nbin,temp);
       auto outputEnergy = std::get<0>(out);
       auto totalSCR     = std::get<1>(out);
       auto totalOutput  = std::get<2>(out);

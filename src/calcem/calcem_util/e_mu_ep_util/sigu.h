@@ -9,7 +9,7 @@ template <typename Range, typename Float>
 inline auto initializeEpXS( int& jbeta, const int& lat, Range& epVec, Range& xsVec, 
   const Float& e, const Float& tev, const Float& tevz, const Float& u, 
   const Range& alpha, const Range& beta,  const Range& sab, const Float& az, 
-  const int lasym, const Float& teff, const Float& sb, const Float& sb2, 
+  const int lasym, const Float& teff, const Range& boundXsVec,  
   const int& iinc){
 
   do { // 113
@@ -32,7 +32,7 @@ inline auto initializeEpXS( int& jbeta, const int& lat, Range& epVec, Range& xsV
 
   epVec[0] = sigfig(epVec[0],8,0);
   xsVec[0] = sig( e, epVec[0], u, tev, alpha, beta, sab, az, tevz, lasym, lat, 
-                  sb, sb2, teff, iinc );
+                  boundXsVec, teff, iinc );
 
 } 
 
@@ -42,7 +42,7 @@ template <typename Range, typename Float>
 auto refineEpXS(int& i, Range& xsVec, Range& epVec, const Float& tol, 
   const Float& teff, const Float& e, const Float& u, const Float& tev, 
   const Range& alphas, const Range& betas, const Range& sab, const Float& az, 
-  const Float& tevz, int lasym,int lat, const Float& sb, const Float& sb2, int iinc ){
+  const Float& tevz, int lasym,int lat, const Range& boundXsVec, int iinc ){
 
    while ( i < int(epVec.size())-1 ){ //std::cout << " --- 150 --- " << std::endl; 
      if ( i > 2 and 0.5*(xsVec[i-1]+xsVec[i])*(epVec[i-1]-epVec[i]) < 1e-6 ){ return; }
@@ -53,7 +53,7 @@ auto refineEpXS(int& i, Range& xsVec, Range& epVec, const Float& tol,
 
      Float xsGuess = 0.5*(xsVec[i-1]+xsVec[i]),
            xsTrue = sig( e, epMid, u, tev, alphas, betas, sab, az, tevz, 
-                         lasym, lat, sb, sb2, teff, iinc );
+                         lasym, lat, boundXsVec, teff, iinc );
 
      // Point passes
      if ( abs(xsTrue-xsGuess) <= tol*abs(xsTrue) ){ return; }
@@ -73,7 +73,7 @@ template <typename Range, typename Float>
 inline auto sigu( const Float& e, const Float& u, const Float& tev, 
   const Range& alphas, const Range& betas, const Range& sab, 
   const Float& tolin, const Float& az, const int& iinc, const int& lat, 
-  const int& lasym, const Float& sb, const Float& sb2, const Float& teff, Range& s3 ){
+  const int& lasym, const Range& boundXsVec, const Float& teff, Range& s3 ){
 
  /*-------------------------------------------------------------------
   * Compute the secondary energy distribution scattering for cosine u.
@@ -85,7 +85,7 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
   Range epVec(20,0.0), xsVec(20,0.0);
   // xsVec[0] is the xs corresponding to E -> E'with scattering cosine u
   xsVec[0] = sig( e, epVec[0], u, tev, alphas, betas, sab, az, tevz, lasym, 
-              lat, sb, sb2, teff, iinc );
+              lat, boundXsVec, teff, iinc );
 
   // jbeta = 1 if S(a,b) doesn't abide by normal symmetric/non-symmetric 
   // rules (e.g. cold deuterium or hydrogen)
@@ -99,12 +99,12 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
 
 
     initializeEpXS( jbeta, lat, epVec, xsVec, e, tev, tevz, u, alphas, betas, sab, az, 
-                lasym, teff, sb, sb2, iinc );
+                lasym, teff, boundXsVec, iinc );
 
     int i = 1;
     do {
       refineEpXS( i, xsVec, epVec, tolin, teff, e, u, tev, alphas, 
-              betas, sab, az, tevz, lasym, lat, sb, sb2, iinc );
+              betas, sab, az, tevz, lasym, lat, boundXsVec, iinc );
       do { // 160
         if (2*j+10 >= int(s3.size())){ 
             s3.resize(2*s3.size()); 

@@ -2,14 +2,14 @@
 
 
 
-template <typename Range, typename Float>
-auto e_ep_mu( Range eVec, const Float& tev, const Float& tol, const int lat, 
+template <typename Range>
+auto e_ep_mu( Range eVec, const double& tev, const double& tol, const int lat, 
   const int iinc, const int lasym, const Range& alphas, const Range& betas, 
-  const Range& sab, const Float& az, const Float& sigma_b, const Float& sigma_b2, 
-  const Float& teff, const int nbin, const Float& temp ){
+  const Range& sab, const double& az, const Range& boundXsVec, 
+  const double& teff, const int nbin, const double& temp ){
 
   Range lastVals(5,0.0);
-  Float eNow, ePrime;
+  double eNow, ePrime;
   int imax = 20;
   Range y(20*65,0.0);
 
@@ -26,15 +26,19 @@ auto e_ep_mu( Range eVec, const Float& tev, const Float& tol, const int lat,
 
     ePrime = 0.0;
     Range s(nbin,0.0);
-    Float pdf = sigl(0.0,eNow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-                     sigma_b2,teff,s,true);
+    //auto sigma_b = boundXsVec[0];
+    //auto sigma_b2 = boundXsVec[1];
+    double pdf = sigl(0.0,eNow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,boundXsVec,
+                     teff,s,true);
     y[0*imax+0] = pdf;
     for (int il = 1; il < nbin+1; ++il){y[il*imax+0] = s[il-1];}
 
     int j = 0, jbeta = -int(betas.size());
 
+    std::cout << "HERE" << std::endl;
     auto out = prepareEpMu( eNow, j, tev, tol, lat, iinc, lasym, 
-    alphas, betas, sab, az, sigma_b, sigma_b2, teff, nbin, jbeta, scr, lastVals, y);
+    alphas, betas, sab, az, boundXsVec, teff, nbin, jbeta, scr, lastVals, y);
+    std::cout << "THERE" << std::endl;
 
     total_SCR[iEnergy]        = scr;
     total_OutputData[iEnergy] = out;

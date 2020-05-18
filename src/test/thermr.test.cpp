@@ -9,7 +9,12 @@ TEST_CASE( "thermr" ){
         std::string fileName = "/Users/ameliajo/thermr/src/test/tape24";
         int mat = 101;
         int iform = 0;
-        thermr(mat,fileName,iform);
+        int iinc = 2;
+        int nbin = 8;
+        int natom = 1;
+        std::vector<double> temperatures {296.0};
+        double tol = 0.05, emax = 0.625;
+        thermr(mat,fileName,iform,iinc,nbin,temperatures,tol,emax,natom);
 
         REQUIRE( 0 == 0 );
 

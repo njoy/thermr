@@ -20,10 +20,11 @@ TEST_CASE( "main E mu E' function" ){
 
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
   std::vector<double> eVec;
+  std::vector<double> boundXsVec { sigma_b, sigma_b2 };
 
   GIVEN( "temperature is reasonable (doesn't need scaling)" ){
     eVec = {1E-5, 1.78E-5, 2.5E-5, 3.5E-5, 5E-5, 7E-5, 1E-4, 1.26E-4, 1.6E-4, 2E-4};
-    e_mu_ep(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+    e_mu_ep(eVec,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
   } // GIVEN 
 } // TEST CASE 
 

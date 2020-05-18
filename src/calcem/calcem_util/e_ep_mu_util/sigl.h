@@ -10,7 +10,7 @@ template <typename Range, typename Float>
 auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e, 
   const Float& ep, const Float& az, const Float& tev, const Range& alphas, 
   const Range& betas, const Range& sab, int lasym, int lat, 
-  const Float& sigma_b, const Float& sigma_b2, const Float& teff, int iinc){
+  const Range& boundXsVec, const Float& teff, int iinc){
 
   Float beta = std::abs((ep-e)/tev);
   if ( lat == 1 and iinc == 2 ){ beta *= tev/0.0253; }
@@ -23,12 +23,12 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
   if (muVec[1] > 0.999){ muVec[1] = 0.99; }
   muVec[0] =  1.0; 
 
-  xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,
-                 sigma_b2,teff,iinc);
-  xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,
-                 sigma_b2,teff,iinc);
-  xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,0.0253,lasym,lat,sigma_b,
-                 sigma_b2,teff,iinc);
+  xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,boundXsVec,
+                 teff,iinc);
+  xsVec[1] = sig(e,ep,muVec[1],tev,alphas,betas,sab,az,0.0253,lasym,lat,boundXsVec,
+                 teff,iinc);
+  xsVec[2] = sig(e,ep,muVec[2],tev,alphas,betas,sab,az,0.0253,lasym,lat,boundXsVec,
+                 teff,iinc);
 }
 
 template <typename Float>
@@ -104,7 +104,7 @@ template <typename Range, typename Float>
 inline auto addMidpointsRight(int& i, Range& muVec, Range& xsVec, const Float& e, 
   const Float& ep, const Float& tev, const Range& alphas, const Range& betas, 
   const Range& sab, const Float& az, const int& lasym, const int& lat, 
-  const Float& sb, const Float& sb2, const Float& teff, const int& iinc, 
+  const Range& boundXsVec, const Float& teff, const int& iinc, 
   const Float& tol, const Float& xsMax ){
   using std::abs;
 
@@ -112,7 +112,7 @@ inline auto addMidpointsRight(int& i, Range& muVec, Range& xsVec, const Float& e
   while ( (unsigned) i < muVec.size() ){ //std::cout << " --- 110 --- " << std::endl;
     muMid    = 0.5*( muVec[i-2] + muVec[i-1] ); muMid = sigfig(muMid,8,0);
     xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
-    xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,0.0253,lasym,lat,sb,sb2,teff,iinc);
+    xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,0.0253,lasym,lat,boundXsVec,teff,iinc);
 
     if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*xsMax/50.0 and 
            abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+xsMax/100.0 and 
@@ -127,7 +127,7 @@ inline auto addMidpointsRight(int& i, Range& muVec, Range& xsVec, const Float& e
 template <typename Range, typename Float>
 inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc, 
   const Range& alphas, const Range& betas, const Range& sab, Float az,
-  int lasym, Float sigma_b, Float sigma_b2, Float teff ){
+  int lasym, const Range& boundXsVec, Float teff ){
   // This computes integral -1 -> +1 of sigma(E->E',mu) d mu
   // through trapezoidal integration
 
@@ -135,7 +135,7 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   Float pdf = 0;
   Range muVec(20,0.0), xsVec(20,0.0);
   initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
-                        sigma_b,sigma_b2,teff,iinc);
+                        boundXsVec,teff,iinc);
   Float xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001);
   Float muLeft = muVec[2], xsLeft = xsVec[2];
   // The outer loop will check between i-2 and i-1 to see if we need a midpoint
@@ -146,7 +146,7 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   Float muRight = muVec[i-1];
   do {
     addMidpointsRight(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
-                      sigma_b,sigma_b2,teff,iinc,tol,xsMax);
+                      boundXsVec,teff,iinc,tol,xsMax);
     do { // If i = 2, then do this action twice. Else do it once
       pdf += 0.5*( xsVec[i-1] + xsLeft )*( muRight - muLeft );
       muLeft = muVec[i-1];
@@ -167,7 +167,7 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
 template <typename Range, typename Float>
 inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc, 
   const Range& alphas, const Range& betas, const Range& sab, Float az,
-  int lasym, Float sigma_b, Float sigma_b2, Float teff, Range& s, 
+  int lasym, const Range& boundXsVec, Float teff, Range& s, 
   bool equiprobableBins = true ){
   using std::abs; using std::min; using std::pow;
 
@@ -179,14 +179,14 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   // that we can later divide by the requested # of angle bins so that we know
   // how much to fill up each bin
   Float pdf = getPDF(ep, e, tev, tol, lat, iinc, alphas, betas, sab, az, lasym, 
-                     sigma_b, sigma_b2, teff);
+                     boundXsVec, teff);
 
   //Range s(nbin,0.0);
   if ( pdf <= 1e-32 ){ return pdf; }
 
   Range muVec(20), xsVec(20); 
   initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
-                        sigma_b,sigma_b2,teff,iinc); // 130
+                        boundXsVec,teff,iinc); // 130
 
   Float xsMax  = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001),
         muLeft = muVec[2],
@@ -203,7 +203,7 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   //std::cout << "XS beginning " << xsVec[0] << "    " << xsVec[1] << "   " << xsVec[2] << std::endl;
   do { 
     addMidpointsRight(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
-                      sigma_b,sigma_b2,teff,iinc,tol,xsMax);
+                      boundXsVec,teff,iinc,tol,xsMax);
     do { //std::cout << " --- 160 ---  "<< std::endl;
       muRight = muVec[i-1];
       if (muRight == muLeft) {  

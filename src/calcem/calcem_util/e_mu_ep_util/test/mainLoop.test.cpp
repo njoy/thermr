@@ -20,6 +20,7 @@ TEST_CASE( " mu-E' ordering " ){
   double enow = 1e-5;
   std::vector<double> correct_uj {-1, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 
                                    0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1 };
+  std::vector<double> boundXsVec { sigma_b, sigma_b2 };
 
   GIVEN( "various incoming energies" ){
     std::vector<double> 
@@ -29,7 +30,7 @@ TEST_CASE( " mu-E' ordering " ){
 
     THEN( "preliminary uj vector is correctly generated, as is xs (xsi) and ubar" ){
       for (size_t i = 0; i < enowVec.size(); ++i){
-        auto out = do_530_etc(enowVec[i],tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+        auto out = do_530_etc(enowVec[i],tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
         REQUIRE( correctXSI[i] == Approx(std::get<0>(out)).epsilon(1e-6) );
         REQUIRE( correctUBAR[i] == Approx(std::get<1>(out)).epsilon(1e-6) );
         REQUIRE( ranges::equal(correct_uj,std::get<2>(out),equal) );
@@ -44,7 +45,7 @@ TEST_CASE( " mu-E' ordering " ){
       correctXSI   { 122.347462,  143.754642, 145.794799 }, 
       correctUBAR  { 0.024551863, 0.038463983, 0.050169921 };
     for ( size_t i = 0; i < toleranceVec.size(); ++i ){
-      auto out = do_530_etc(enow,tev,toleranceVec[i],lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+      auto out = do_530_etc(enow,tev,toleranceVec[i],lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
       REQUIRE( correctXSI[i] == Approx(std::get<0>(out)).epsilon(1e-6) );
       REQUIRE( correctUBAR[i] == Approx(std::get<1>(out)).epsilon(1e-6) );
       REQUIRE( ranges::equal(correct_uj,std::get<2>(out),equal) );
@@ -74,12 +75,13 @@ TEST_CASE( "E-mu-E' ordering " ){
   double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
   std::vector<double> correct_uj = {-1, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 
                                     0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 1 };
+  std::vector<double> boundXsVec { sigma_b, sigma_b2 };
 
   GIVEN( "low tolerance" ){
     tol = 0.05;
     WHEN( "we consider various incoming energies" ){
       double enow = 1e-2;
-      auto out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+      auto out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
       auto totalSCR = std::get<1>(out);
       std::vector<double> 
       correctSCR_0 = { 0, 0, 4.30920E-10, 2.091391E-3, 8.61840E-10, 2.957775E-3, 
@@ -127,7 +129,7 @@ TEST_CASE( "E-mu-E' ordering " ){
 
 
       enow = 1e-5;
-      out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+      out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
       totalSCR = std::get<1>(out);
       correctSCR_0 = { 0, 0, 4.30920E-13, 0.01464430, 8.61840E-13, 0.02070840, 
       1.72368E-12, 0.02928255, 1.950040E-8, 2.98444322, 3.899907E-8, 4.14807360, 
@@ -171,7 +173,7 @@ TEST_CASE( "E-mu-E' ordering " ){
 
 
       enow = 5.0;
-      out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+      out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
       totalSCR = std::get<1>(out);
       correctSCR_0 = { 0, 0, 2.154601E-7, 1.514951E-4, 4.309201E-7, 2.142270E-4, 
       8.618402E-7, 3.029235E-4, 1.968234E-5, 1.445061E-3, 3.850283E-5, 2.019164E-3, 
@@ -215,7 +217,7 @@ TEST_CASE( "E-mu-E' ordering " ){
   GIVEN( "higher tolerance" ){
     tol = 5.0;
     double enow = 1e-5;
-    auto out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+    auto out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
     std::vector<double> uj = std::get<0>(out);
     std::vector<std::vector<double>> totalSCR = std::get<1>(out);
 
@@ -289,7 +291,7 @@ TEST_CASE( "E-mu-E' ordering " ){
           0.03658022, 0.6497708, 0.06463824, 0.515770, 0.0671889, 0.483693}, 
     {0,0,3.420730E-3, 35.469137, 5.97146E-3, 16.89347, 0.0340294, 0.564510, 
           0.03658022, 0.5899743, 0.06463824, 0.493578, 0.0671889, 0.464616} };
-    out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+    out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
     uj = std::get<0>(out);
     totalSCR = std::get<1>(out);
 
@@ -345,7 +347,7 @@ TEST_CASE( "E-mu-E' ordering " ){
       0.9568966, 0.0123014, 0.9568963, 0.0123014, 18.288192, 0.0263304, 1.3631208, 
       0.0403594, 0.2175854, 0.0429102, 0.2531586, 0.0709682, 0.2710199, 0.0735189, 
       0.2554516 } } ;
-    out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+    out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
     uj = std::get<0>(out);
     totalSCR = std::get<1>(out);
 
@@ -441,7 +443,7 @@ TEST_CASE( "E-mu-E' ordering " ){
     0.8651013, 0, 0.8651013, 0, 0.8651014, 0, 0.8651014, 0, 0.8651014, 167.277480, 
     0.87211597, 9.16573122, 0.87913048, 0.84601494, 0.8931594, 0.01496978, 
     0.89571022, 0.03244915, 0.92376824, 0.13304018, 0.9263189, 0.12359235 } };
-  out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+  out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
   uj = std::get<0>(out);
   totalSCR = std::get<1>(out);
 
@@ -535,7 +537,7 @@ TEST_CASE( "E-mu-E' ordering " ){
      0, 1.425100, 0, 1.425100, 0, 1.425101, 0, 1.425101, 0, 1.425101, 255.876955, 
      1.432116, 12.13325, 1.439130, 0.970071, 1.453159, 0.012913, 1.455710, 
      0.03032921, 1.48376820, 0.1485215, 1.486319, 0.13766607}};
-  out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+  out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
   uj = std::get<0>(out);
   totalSCR = std::get<1>(out);
 
@@ -630,7 +632,7 @@ TEST_CASE( "E-mu-E' ordering " ){
       1.860100, 0, 1.860101, 0, 1.860101, 0, 1.860101, 351.62597, 1.867116, 15.43929, 
       1.87413, 1.1434019, 1.888159, 0.0130726, 1.890710, 0.03204937, 1.9187682, 
       0.17267, 1.921319, 0.15986281}};
-  out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,teff);
+  out = mu_ep(enow,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff);
   uj = std::get<0>(out);
   totalSCR = std::get<1>(out);
 

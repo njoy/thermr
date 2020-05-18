@@ -13,6 +13,7 @@ TEST_CASE( "begin sigu (113,116)" ){
       az2 = 0.0, teff2 = 0.0, sb = 5.53, sb2 = 0.0,
       teff = 6.14e-2, tolin = 5e-2, u,
       e = 1.0000000474974513E-003;
+    std::vector<double> boundXsVec {sb,sb2};
 
     std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
       beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 }, x(20,0.0), y(20,0.0);
@@ -35,7 +36,7 @@ TEST_CASE( "begin sigu (113,116)" ){
           correct_x[0] = correct_xVals[i];
           correct_y[0] = correct_yVals[i];
           initializeEpXS( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
-                      az, lasym, teff, sb, sb2, iinc);
+                      az, lasym, teff, boundXsVec, iinc);
           REQUIRE( ranges::equal(x, correct_x, equal) );
           REQUIRE( ranges::equal(y, correct_y, equal) );
           REQUIRE( jbeta == 1 );
@@ -54,7 +55,7 @@ TEST_CASE( "begin sigu (113,116)" ){
           correct_x[0] = correct_xVals[i];
           correct_y[0] = correct_yVals[i];
           initializeEpXS( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
-                      az, lasym, teff, sb, sb2, iinc);
+                      az, lasym, teff, boundXsVec, iinc);
           REQUIRE( ranges::equal(x, correct_x, equal) );
           REQUIRE( ranges::equal(y, correct_y, equal) );
           REQUIRE( jbeta == -7 );
@@ -76,6 +77,7 @@ TEST_CASE( "begin sigu (113,116)" ){
     double e = 1.0e-5, tev = 2.5507297688E-2, az = 0.99917,
       tevz = 2.53E-2, az2 = 0.0, teff2 = 0.0, sb = 163.72792237360667, sb2 = 0.0,
       teff = 0.12044192657731301, tolin = 5e-2, u = -1.0;
+    std::vector<double> boundXsVec {sb,sb2};
 
     std::vector<double> alpha { 1.1, 2.2, 3.3, 4.5, 5.8 },
       beta { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 }, x(20,0.0), y(20,0.0);
@@ -111,7 +113,7 @@ TEST_CASE( "begin sigu (113,116)" ){
           correct_x[0] = correct_xVals[i];
           correct_y[0] = correct_yVals[i];
           initializeEpXS( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
-                      az, lasym, teff, sb, sb2, iinc);
+                      az, lasym, teff, boundXsVec, iinc);
           REQUIRE( ranges::equal(x, correct_x, equal) );
           REQUIRE( ranges::equal(y, correct_y, equal) );
           REQUIRE( jbeta == 1 );
@@ -133,7 +135,7 @@ TEST_CASE( "begin sigu (113,116)" ){
           correct_x[0] = correct_xVals[i];
           correct_y[0] = correct_yVals[i];
           initializeEpXS( jbeta, lat, x, y, e, tev, tevz, cosines[i], alpha, beta, sab, 
-                      az, lasym, teff, sb, sb2, iinc);
+                      az, lasym, teff, boundXsVec, iinc);
           REQUIRE( ranges::equal(x, correct_x, equal) );
           REQUIRE( ranges::equal(y, correct_y, equal) );
           REQUIRE( jbeta == 1 );
@@ -150,6 +152,7 @@ TEST_CASE( "sigu" ){
 
   int lasym = 0, lat = 1, iinc = 2, nemax = 60;
   double e = 1e-5, tev = 2.55e-2, az = 0.99917, sb = 4.0, sb2 = 0.0, teff = 0.12, tolin = 5e-2, u;
+  std::vector<double> boundXsVec {sb,sb2};
 
   std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
                        betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
@@ -200,7 +203,7 @@ TEST_CASE( "sigu" ){
       1302.9031178, 1302.9030507, 1302.9030060, 12.967700530, 0, 0, 0, 0, 0, 0, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,boundXsVec,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
         REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
@@ -245,7 +248,7 @@ TEST_CASE( "sigu" ){
       1302.83706, 1302.83645, 1302.83616, 1302.83601, 1302.83594, 1302.83590, 
       13.0751407, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,boundXsVec,teff,s3);
   
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
         REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
@@ -289,7 +292,7 @@ TEST_CASE( "sigu" ){
       1302.81935, 1302.81919, 1302.81912, 1302.81908, 13.1022021, 0, 0, 0, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,boundXsVec,teff,s3);
   
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
         REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
@@ -332,7 +335,7 @@ TEST_CASE( "sigu" ){
       1302.77724, 1302.77709, 1302.77702, 1302.77697, 13.1702091, 0, 0, 0, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; 
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,boundXsVec,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
         REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
@@ -377,7 +380,7 @@ TEST_CASE( "sigu" ){
       1302.74378, 1302.74349, 1302.74333, 1302.74327, 1302.74322, 13.2249793, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,boundXsVec,teff,s3);
   
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
         REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
@@ -425,7 +428,7 @@ TEST_CASE( "sigu" ){
       4119.69568, 4119.69377, 4119.69285, 4119.69235, 4119.69214, 4119.69200, 
       41.4077054, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,boundXsVec,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
         REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
@@ -470,7 +473,7 @@ TEST_CASE( "sigu" ){
       412.205014, 412.204922, 412.204872, 412.204851, 412.204837, 4.11432357, 
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,boundXsVec,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
         REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
@@ -512,7 +515,7 @@ TEST_CASE( "sigu" ){
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
       0, 0, 0, 0, 0, 0, 0, 0 };
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,boundXsVec,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
         REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
@@ -542,7 +545,7 @@ TEST_CASE( "sigu" ){
       6.4162973E-3, 5.8383688E-3, 3.4732670E-3, 2.0655301E-3, 1.8792206E-3, 
       1.1171059E-3, 6.6384237E-4, 6.0388366E-4, 3.5871988E-4, 2.1301905E-4 };//, 
   
-      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,sb,sb2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tolin,az,iinc,lat,lasym,boundXsVec,teff,s3);
     
       for ( size_t i = 0; i < correct_s1.size(); ++i ){
         REQUIRE( correct_s1[i] == Approx(s3[2*i]).epsilon(1e-6) );
@@ -572,6 +575,7 @@ TEST_CASE( "sigu" ){
     double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
     int imax = 20, lat = 0, iinc = 2, lasym = 0;
     int nbin = 2;
+    std::vector<double> boundXsVec {sigma_b,sigma_b2};
 
 
     u = -1.0;
@@ -580,7 +584,7 @@ TEST_CASE( "sigu" ){
     std::vector<double> s1(nemax,0.0),s2(nemax,0.0),s3(2*nemax,0.0);
 
     WHEN( " " ){
-      sigu(e,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,sigma_b,sigma_b2,teff,s3);
+      sigu(e,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,s3);
       std::vector<double> 
       correct_s1 { 1961.39420, 0.0, 4.3092008E-13, 8.6184015E-13, 1.7236803E-12, 
       1.9500396E-8, 3.8999068E-8, 7.7996412E-8, 1.5599110E-7, 3.1198047E-7, 
@@ -629,6 +633,7 @@ TEST_CASE( "sigu" ){
     double az = 0.99917, sigma_b = 163.72792237, sigma_b2 = 0.0, teff = 0.120441926;
     std::vector<double> correctEnergies;
     std::vector<double> correctSCR;
+    std::vector<double> boundXsVec {sigma_b,sigma_b2};
 
     double enow = 8.6e-1;
     double u = 1.0;
@@ -636,7 +641,7 @@ TEST_CASE( "sigu" ){
     int nemax = 5000;
     std::vector<double> s1(nemax,0.0),s2(nemax,0.0), s3(nemax*2,0.0);
   
-    auto out = sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,sigma_b,sigma_b2,teff,s3);
+    auto out = sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,s3);
   
     std::vector<double> correctYU_first_110 { 44.6334456177, 54.0, 0, 0, 
     0.765623, 5.979297, 0.79368103, 20.80756, 0.79623176, 20.28317, 0.82428978, 

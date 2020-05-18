@@ -112,7 +112,7 @@ template <typename Range, typename Float>
 auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev, 
   const Float& tol, const int lat, const int iinc, const int lasym, 
   const Range& alphas, const Range& betas, const Range& sab, const Float& az, 
-  const Float& sigma_b, const Float& sigma_b2, const Float& teff, 
+  const Range& boundXsVec, const Float& teff, 
   const int nbin, int& jbeta, Range& scr, Range& out, Range& lastVals ){
   int imax = x.size();
 
@@ -124,7 +124,7 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
       xm = sigfig(xm,8,0);
       Range s(nbin,0.0);
       Float pdf = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,
-                       sigma_b,sigma_b2,teff,s,true);
+                       boundXsVec,teff,s,true);
   
       if ( needMidpoint(x, y, xm, i, nbin, s, tol, pdf) == true ){ 
         insertPoint(i, x, y, s, xm, nbin, pdf );
@@ -186,8 +186,8 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
 template <typename Range, typename Float>
 auto prepareEpMu( const Float& enow, int& j, const Float& tev, const Float& tol, 
   const int lat, const int iinc, const int lasym, const Range& alphas, 
-  const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
-  const Float& sigma_b2, const Float& teff, const int nbin, int& jbeta, 
+  const Range& betas, const Range& sab, const Float& az, 
+  const Range& boundXsVec, const Float& teff, const int nbin, int& jbeta, 
   Range& scr, Range& lastVals, Range& y ){
 
   Range x(20,0.0), out(4,0.0);
@@ -202,11 +202,11 @@ auto prepareEpMu( const Float& enow, int& j, const Float& tev, const Float& tol,
     ep = sigfig(ep,8,0);
     x[0] = ep;
     Range s(nbin,0.0);
-    Float pdf = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-                     sigma_b2,teff,s,true);
+    Float pdf = sigl(ep,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,boundXsVec,
+                     teff,s,true);
     y[0*imax+0] = pdf;
     for ( int il = 1; il < nbin+1; ++il ){ y[il*imax+0] = s[il-1]; }
-    do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,sigma_b,sigma_b2,
+    do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,
            teff,nbin,jbeta,scr,out,lastVals);
 
   } while( jbeta <= int(betas.size()));

@@ -20,8 +20,8 @@ bool addPoint( Range& x, Range& yy, const Range& yu, const Float& xm, const Floa
 template <typename Range, typename Float>
 auto do_530_etc( Float enow, const Float& tev, const Float& tol, 
   const int lat, const int iinc, const int lasym, const Range& alphas, 
-  const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
-  const Float& sigma_b2, const Float& teff ){
+  const Range& betas, const Range& sab, const Float& az, const Range& boundXsVec, 
+  const Float& teff ){
   std::cout.precision(15);
 
   int imax = 20, mumax = 300, nemax = 50;
@@ -34,13 +34,13 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
   Float u = -1.0, sum = 0.0;
 
   u = -1.0;
-  sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, yu);
+  sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, boundXsVec, teff, yu);
   yy[1] = yu[0];
   xl = x[1];
   yl = yy[1];
 
   u = 1.0;
-  sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, sigma_b, sigma_b2, teff, yu );
+  sigu( enow, u, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, boundXsVec, teff, yu );
   yy[0]=yu[0];
   i = 2;
 
@@ -50,7 +50,7 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
       xm = sigfig(xm,7,0);
       if ( xm > x[i-1] and xm < x[i-2] ){
         sigu( enow, xm, tev, alphas, betas, sab, tol, az, iinc, lat, lasym, 
-              sigma_b, sigma_b2, teff, yu );
+              boundXsVec, teff, yu );
         ym = yy[i-1]+(xm-x[i-1])*(yy[i-2]-yy[i-1])/(x[i-2]-x[i-1]);
 
         if (addPoint(x,yy,yu,xm,ym,tol,i)){ continue; }
@@ -97,12 +97,12 @@ auto do_530_etc( Float enow, const Float& tev, const Float& tol,
 template <typename Range, typename Float>
 auto mu_ep( Float& enow, const Float& tev, const Float& tol, 
   const int lat, const int iinc, const int lasym, const Range& alphas, 
-  const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
-  const Float& sigma_b2, const Float& teff ){
+  const Range& betas, const Range& sab, const Float& az, const Range& boundXsVec, 
+  const Float& teff ){
   std::cout.precision(15);
 
-  auto out = do_530_etc( enow, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, sigma_b, 
-              sigma_b2, teff );
+  auto out = do_530_etc( enow, tev, tol, lat, iinc, lasym, alphas, betas, sab, az, boundXsVec, 
+              teff );
   auto uj = std::get<2>(out);
   int imax = 20, nemax = 5000;
   int j = 0;
@@ -117,7 +117,7 @@ auto mu_ep( Float& enow, const Float& tev, const Float& tol,
     Range scr(500,0.0);
 
     sigu( enow, uj[il], tev, alphas, betas, sab, tol, az, iinc, lat, lasym, 
-               sigma_b, sigma_b2, teff, yu );
+               boundXsVec, teff, yu );
 
     int nep = int(yu[1]);
     j = 0;
