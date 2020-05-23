@@ -84,7 +84,7 @@ int thermr( int mat, std::string fileName, int iform, int iinc, int nbin,
   }
   std::vector<double> alphas = table.betas()[0].alphas();
 
-  auto sab = table.betas()[0].thermalScatteringValues();
+  //auto sab = table.betas()[0].thermalScatteringValues();
 
   //std::cout << value.beta() << std::endl;
   //std::cout << value.LT() << std::endl;
@@ -98,8 +98,32 @@ int thermr( int mat, std::string fileName, int iform, int iinc, int nbin,
   //std::cout << (betas|ranges::view::all) << std::endl;
 
 
-  //auto table = ;
+  /*
+  std::vector<double> sab;
+  std::vector<std::vector<double>> chunkySAB;
+  for (size_t i = 0; i < (unsigned) nbeta; ++i){
+    betas[i] = table.betas()[i].beta();
+    chunkySAB.push_back(table.betas()[i].thermalScatteringValues()[0]);
+  }
 
+  for (size_t j =0; j < chunkySAB[0].size(); ++j){
+    for (size_t i = 0; i < chunkySAB.size(); ++i){
+      sab.push_back(std::log(chunkySAB[i][j]));
+    }
+  }
+
+  int a, b;
+  a = 10; 
+  b = 5;
+  std::cout << sab[a*nbeta+b] << std::endl;
+
+
+  return 0;
+
+  */
+
+
+  
 
   if (iform == 0){
     // E E' mu
@@ -163,7 +187,7 @@ chunk.analyticalFunctionTypes()[1] );
   std::cout << (atomicWeightRatios|ranges::view::all) << std::endl;
   std::cout << (alphas|ranges::view::all) << std::endl;
   std::cout << ( betas|ranges::view::all) << std::endl;
-  std::cout << sab.size() << std::endl;
+  //std::cout << sab.size() << std::endl;
 
 
 

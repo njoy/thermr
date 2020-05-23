@@ -60,6 +60,7 @@ auto calcem( int iinc, int mat, int nbin, int natom, double tol, double temp,
   //std::cout << "--------" << std::endl;
   double sb = smz*std::pow(((awr+1)/awr),2);
   std::cout << "SB  " << sb << std::endl;
+  double sb2 = 0.0;
 
   double tev = temp * kb;
 
@@ -69,16 +70,25 @@ auto calcem( int iinc, int mat, int nbin, int natom, double tol, double temp,
   auto nbeta = table.numberBetas();
   std::vector<double> betas (nbeta);
   std::vector<double> sab;//(nbeta);
+  std::vector<std::vector<double>> chunkySAB;
   for (size_t i = 0; i < (unsigned) nbeta; ++i){
     betas[i] = table.betas()[i].beta();
-    //std::vector<double> sabVal = table.betas()[i].thermalScatteringValues()[0];
-    for (auto& sabVal : table.betas()[i].thermalScatteringValues()[0]){
-        sab.push_back(sabVal);
-    }
-    //sab.push_back(table.betas()[i].thermalScatteringValues()[0]);
+    //for (auto& sabVal : table.betas()[i].thermalScatteringValues()[0]){
+    //    sab.push_back(sabVal);
+    //}
+    chunkySAB.push_back(table.betas()[i].thermalScatteringValues()[0]);
     //sab[i] = table.betas()[i].thermalScatteringValues()[0];
 
   }
+
+  for (size_t j =0; j < chunkySAB[0].size(); ++j){
+    for (size_t i = 0; i < chunkySAB.size(); ++i){
+      sab.push_back(std::log(chunkySAB[i][j]));
+    }
+  }
+
+
+
   std::vector<double> alphas = table.betas()[0].alphas();
 
 
@@ -89,15 +99,24 @@ auto calcem( int iinc, int mat, int nbin, int natom, double tol, double temp,
   std::cout << iinc << std::endl;
   std::cout << lasym << std::endl;
   std::cout << alphas[0] << "    " << alphas[10] << "     " << alphas.size() << std::endl;
-  std::cout << betas[0] << "    " << betas[10] << "     " << betas.size() << std::endl;
-  std::cout << sab[0] << "    " << sab.size() << std::endl;
+  std::cout <<  betas[0] << "    " <<  betas[10] << "     " << betas.size() << std::endl;
+  std::cout <<    sab[0] << "    " << sab.size() << std::endl;
   std::cout << za  << std::endl;
-  std::cout << (totalFreeXs|ranges::view::all) << std::endl;
+  //std::cout << (totalFreeXs|ranges::view::all) << std::endl;
   std::cout << effectiveTemperature  << std::endl;
   std::cout <<  nbin << std::endl;
   std::cout <<  temp<< std::endl;
+  std::vector<double> boundXsVec {sb, sb2};
+  effectiveTemperature *= 8.6173303e-5;
 
-  //e_ep_mu(egrid, tev, tol, lat, iinc, lasym, alphas, betas, sab, za, totalFreeXs, effectiveTemperature, nbin, temp);
+  auto out  = e_ep_mu(egrid, tev, tol, lat, iinc, lasym, alphas, betas, sab,
+                      awr, boundXsVec, effectiveTemperature, nbin, temp);
+
+  auto outputEnergy = std::get<0>(out);
+  auto totalSCR     = std::get<1>(out);
+  auto totalOutput  = std::get<2>(out);
+
+
   return;
 
   std::cout << effectiveTemperature << std::endl;

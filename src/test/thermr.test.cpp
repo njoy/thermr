@@ -6,7 +6,8 @@
 TEST_CASE( "thermr" ){
   GIVEN( "" ){
     WHEN( "" ){
-        std::string fileName = "/Users/ameliajo/thermr/src/test/tape24";
+        //std::string fileName = "/Users/ameliajo/thermr/src/test/tape24";
+        std::string fileName = "/Users/ameliajo/thermr/src/test/tape24_smaller_alpha_beta_grid";
         int mat = 101;
         int iform = 0;
         int iinc = 2;

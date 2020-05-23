@@ -10,7 +10,7 @@ inline auto legndr( const Float& x, Range& p, int np ){
   * Place p(subl) in p(l+1).
   *--------------------------------------------------------------------
   */
-  if ( x < -1 or x > 1 ){ throw std::exception(); }
+  //if ( x < -1 or x > 1 ){ throw std::exception(); }
   // Defined to be the first two Legendre polynomial values.
   p[0] = 1; p[1] = x;
   if (np > 1){

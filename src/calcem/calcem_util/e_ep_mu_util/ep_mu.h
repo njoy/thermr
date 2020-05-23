@@ -59,7 +59,15 @@ auto findFirstEprime( const int& lat, int& jbeta, const Float& E, //Float& Ep,
     sign = abs(jbeta) / jbeta;
     Ep = ( lat == 1 ) ? E + sign*betas[abs(jbeta)-1]*0.0253 
                       : E + sign*betas[abs(jbeta)-1]*tev ;
-    Ep = sigfig(Ep,8,0);
+    if (Ep == E and jbeta <= 0){ 
+        Ep = sigfig(Ep,8,-1);
+    }
+    else if (Ep == E and jbeta > 0){ 
+        Ep = sigfig(Ep,8,1);
+    }
+    else {
+      Ep = sigfig(Ep,8,0);
+    }
     ++jbeta;
   } while ( Ep <= x[1] );
 
@@ -133,8 +141,6 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
     }
 
     ++j; // 360 
-    //std::cout << "-   " << y[1*imax+0] << "  " << y[1*imax+1] <<  "   " << y[1*imax+2] << std::endl;
-    //std::cout << std::endl;
 
 
     if (j > 1) { 
@@ -208,12 +214,13 @@ auto prepareEpMu( const Float& enow, int& j, const Float& tev, const Float& tol,
     for ( int il = 1; il < nbin+1; ++il ){ y[il*imax+0] = s[il-1]; }
     do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,
            teff,nbin,jbeta,scr,out,lastVals);
-
   } while( jbeta <= int(betas.size()));
 
   for ( int il = 0; il < nbin+1; ++il ){
     y[il*imax] = 0.0;
   }
+
+
 
   scr[(j)*(nbin+2)] = ep;
   scr.resize((j+1)*(nbin+2));
@@ -229,6 +236,7 @@ auto prepareEpMu( const Float& enow, int& j, const Float& tev, const Float& tol,
   for ( size_t k = 1; k < scr.size(); ++k ){
     if ( (k-1)%lengthRow == 0 ){ scr[k] = scr[k]/sum; }
   }
+
 
   ++j; // 430
 
