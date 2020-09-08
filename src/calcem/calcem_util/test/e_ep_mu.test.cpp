@@ -102,7 +102,6 @@ TEST_CASE( "main E E' mu function" ){
         REQUIRE( ranges::equal(correct_total_SCR[i], totalSCR[i], equal) );
         REQUIRE( ranges::equal(correct_total_Output[i], totalOutput[i], equal) );
       } // for
-
     } // WHEN 
 
     WHEN( "larger energies are considered" ){
@@ -396,14 +395,9 @@ TEST_CASE( "main E E' mu function" ){
         REQUIRE( ranges::equal(correct_total_Output[i], totalOutput[i], equal) );
       } // for
 
-
-
- 
-
     } // WHEN
 
   } // GIVEN 
-
 
 } // TEST CASE 
 

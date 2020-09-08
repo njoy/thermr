@@ -51,7 +51,7 @@ auto prepareBraggEdges( int lat, Float temp, Float emax, int natom, Range& vec1,
   * nl returns no. of Bragg edges on initialization call.
   *-------------------------------------------------------------------
   */
-  int l1;
+  //int l1;
   Float w, f;
   
   // These are lattice factors (borrowed from HEXSCAT)

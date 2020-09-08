@@ -43,7 +43,7 @@ auto upstk( const F& e, const A& s, R& stk2, int nl, int& i, int nx ){
   *-------------------------------------------------------------------
   */
 
-  int index = 0+i*nx;
+  //int index = 0+i*nx;
   stk2[0+(i  )*nx] = stk2[0+(i-1)*nx];
   stk2[0+(i-1)*nx] = e;
 

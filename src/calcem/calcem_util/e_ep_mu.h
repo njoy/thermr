@@ -38,32 +38,8 @@ auto e_ep_mu( Range eVec, const double& tev, const double& tol, const int lat,
     auto out = prepareEpMu( eNow, j, tev, tol, lat, iinc, lasym, 
     alphas, betas, sab, az, boundXsVec, teff, nbin, jbeta, scr, lastVals, y);
     
-
-
     total_SCR[iEnergy]        = scr;
     total_OutputData[iEnergy] = out;
-
-
-    std::cout << std::endl << std::endl << std::endl;
-    std::cout << total_SCR.size() << std::endl;
-    std::cout << (total_SCR[0]|ranges::view::all) << std::endl;
-    //for (size_t i = 0; i < eVec.size(); ++i){
-      //std::cout << i << "    " << eVec[i] << std::endl;
-      //std::cout << i << "    " << total_SCR[i] << std::endl;
-    //}
-    std::cout << std::endl << std::endl << std::endl;
-
-    
-    return std::make_tuple(eVec,total_SCR,total_OutputData);
-    //std::cout << "finished" << std::endl;
-    //return std::make_tuple(eVec,total_SCR,total_OutputData);
-    // 
-
-
-
-
-
-
 
   }
   return std::make_tuple(eVec,total_SCR,total_OutputData);

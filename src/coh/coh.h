@@ -78,6 +78,7 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   using std::abs;
   std::vector<Float> vec1 (50,0.0), vec2 (50,0.0);
   Float scon  = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
+
   Float recon = (hbar*hbar)/(ev*8*(massNeutron))*1e4; 
   auto enext = vec1[0]*recon;
 
@@ -85,8 +86,8 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
         finalXS (100,0.0); 
   finalE[0]  = Egrid[0];
 
-  int counter = 0, i_old = 0, count2 = 0;
- 
+  int counter = 0, i_old = 0;// count2 = 0;
+
   while (finalE[counter] <= emax) {
     // Where is out next bragg edge? 
     int i = findLocation(Egrid,enext); // Egrid[i] <= Enext <= Egrid[i+1]
