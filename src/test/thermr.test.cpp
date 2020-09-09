@@ -4,6 +4,7 @@
 #include <range/v3/all.hpp>
 #include "correct_h2o_info/tape23.h"
 #include "correct_h2o_info/tape24.h"
+#include "correct_h2o_info/correct_6222.h"
 #include <typeinfo>
 
 using Tabulated = section::Type<7,4>::Tabulated;
@@ -22,15 +23,25 @@ TEST_CASE( "thermr" ){
       std::cout << MT1.ZA() << std::endl; 
       std::cout << MT1.AWR() << std::endl; 
       */
-    
-      auto begin = h2o_leapr_out.begin(), end = h2o_leapr_out.end();
+      auto begin = correct_6222.begin(), end = correct_6222.end();
       long lineNumber = 1;
+      StructureDivision division1(begin,end,lineNumber);
+      njoy::ENDFtk::file::Type<6> MF6(division1,begin,end,lineNumber);
+      //njoy::ENDFtk::section::Type<3,1> MT1 = MF3.MT(1_c);
+      //auto MT1 = MF3.MT(1_c);
+      //auto MT2 = MF3.MT(2_c);
+      //std::cout << MT1.ZA() << std::endl; 
+      //std::cout << MT1.AWR() << std::endl; 
+ 
+    
+      begin = h2o_leapr_out.begin(), end = h2o_leapr_out.end();
+      lineNumber = 1;
       StructureDivision division(begin,end,lineNumber);
       njoy::ENDFtk::file::Type<7> h2o_MF7(division,begin,end,lineNumber);
       
       int matde = 101;
       int matdp = 1301;
-      int nbin  = 8;
+      int nbin  = 4;
       //int ntemp = 1;
       int iinc  = 2;
       int icoh  = 0; 

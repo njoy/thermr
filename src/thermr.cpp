@@ -16,6 +16,7 @@ using MF7 = njoy::ENDFtk::file::Type<7>;
 
 using namespace njoy::ENDFtk;
 
+/*
 std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 0.000253, 0.000297, 0.000350, 0.00042, 
    0.000506, 0.000615, 0.00075, 0.00087, 0.001012, 0.00123, 0.0015, 
@@ -30,6 +31,8 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    0.625, 0.70, 0.78, 0.86, 0.95, 1.05, 1.16, 1.28, 1.42, 1.55, 1.70, 1.855,
    2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 3.42, 3.75, 4.07, 4.46, 4.90, 5.35,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
+   */
+std::vector<double> egrid {1.e-5,10.0};
 
 
 
@@ -40,6 +43,7 @@ auto thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
   MF7 leapr_MF7 ){
 
   double kb = 8.6173303e-5;
+  std::cout.precision(15);
 
   //njoy::ENDFtk::section::Type<7,2> leapr_MT2 = leapr_MF7.MT(2_c);
   njoy::ENDFtk::section::Type<7,4> leapr_MT4 = leapr_MF7.MT(4_c);
@@ -138,20 +142,25 @@ auto thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
          // E E' mu
          //std::cout << "E E' mu" << std::endl;
          //std::cout << tev << std::endl;
+         auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
+         teff = effectiveTemp.effectiveTemperatures()[0]*kb;
+
+         std::cout << "THIS TEFF    " << teff << std::endl;
          auto out = e_ep_mu( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
                              sab, awr, boundCrossSections, teff, nbin, temp );
 
-         auto outputEnergy = std::get<0>(out);
-         auto totalSCR     = std::get<1>(out);
-         auto totalOutput  = std::get<2>(out);
-         std::cout << outputEnergy[0] << "   " << outputEnergy[1] << std::endl;
-         std::cout << totalOutput[0][0] << "   " << totalOutput[0][1] << std::endl;
-         std::cout << totalSCR[0][0] << "   " << totalSCR[0][1] << std::endl;
+         //auto outputEnergy = std::get<0>(out);
+         //std::cout << (outputEnergy|ranges::view::all) << std::endl;
+         //auto totalSCR     = std::get<1>(out);
+         //auto totalOutput  = std::get<2>(out);
+         //std::cout << outputEnergy[0] << "   " << outputEnergy[1] << std::endl;
+         //std::cout << totalOutput[0][0] << "   " << totalOutput[0][1] << std::endl;
+         //std::cout << totalSCR[0][0] << "   " << totalSCR[0][1] << std::endl;
 
 
-         for (int i = 0; i < 20; ++i){
-           std::cout << totalSCR[0][i] << std::endl;
-         }
+         //for (int i = 0; i < 50; ++i){
+         //  std::cout << totalSCR[0][i] << std::endl;
+         //}
        }
        else {
          // E mu E' 
