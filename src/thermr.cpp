@@ -15,7 +15,7 @@ using EffectiveTemperature = section::Type< 7, 4 >::EffectiveTemperature;
 using MF7 = njoy::ENDFtk::file::Type<7>;
 using ContinuumEnergyAngle  = section::Type<6>::ContinuumEnergyAngle;
 using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
-
+using Variant = section::Type< 6 >::ContinuumEnergyAngle::Variant;
 using namespace njoy::ENDFtk;
 
 /*
@@ -135,7 +135,7 @@ auto thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
     auto teff = eftemp[itemp];
 
     
-    // compute incoherent cross sections
+    // compute incoherent inelastic cross sections
     if (iinc != 0){
        //double teff  = 0;
        //double teff2 = 0;
@@ -168,13 +168,30 @@ auto thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
 
          auto firstSCR = totalSCR[0];
          ThermalScatteringData chunk( incidentEnergies[0], n2, std::move(firstSCR) );
-         std::cout << chunk.LANG() << std::endl;
-         std::cout << chunk.LTT() << std::endl;
-         std::cout << chunk.energy() << std::endl;
-         std::cout << chunk.NW() << std::endl;
-         std::cout << chunk.N2() << std::endl;
-         std::cout << std::endl;
-         std::cout << std::endl;
+         std::vector<Variant> chunks {chunk};
+         ThermalScatteringData chunk1( incidentEnergies[1], n2, std::move(firstSCR) );
+         ThermalScatteringData chunk2( incidentEnergies[2], n2, std::move(firstSCR) );
+         chunks[0] = chunk;
+         chunks.push_back(chunk1);
+         chunks.push_back(chunk2);
+
+
+      //int lang = 3;
+      long lep = 1;
+      std::vector< long > boundaries = { 3 };
+      std::vector< long > interpolants = { 2 };
+      ContinuumEnergyAngle continuumChunk( lep, std::move( boundaries ),
+                                  std::move( interpolants ),
+                                  std::move( chunks ) );
+         /*
+                                  */
+         //std::cout << chunk.LANG() << std::endl;
+         //std::cout << chunk.LTT() << std::endl;
+         //std::cout << chunk.energy() << std::endl;
+         //std::cout << chunk.NW() << std::endl;
+         //std::cout << chunk.N2() << std::endl;
+         //std::cout << std::endl;
+         //std::cout << std::endl;
          //for ( size_t i = 0; i < incidentEnergies.size(); ++i ){
            //auto chunkSCR = totalSCR[i] | ranges::view::chunk(n2);
            //ThermalScatteringData chunk( incidentEnergies[i], n2, std::move(chunkSCR) );
