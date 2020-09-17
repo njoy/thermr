@@ -13,6 +13,8 @@ using Tabulated = section::Type< 7, 4 >::Tabulated;
 using ScatteringFunction = section::Type< 7, 4 >::Tabulated::ScatteringFunction;
 using EffectiveTemperature = section::Type< 7, 4 >::EffectiveTemperature;
 using MF7 = njoy::ENDFtk::file::Type<7>;
+using ContinuumEnergyAngle  = section::Type<6>::ContinuumEnergyAngle;
+using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
 
 using namespace njoy::ENDFtk;
 
@@ -32,7 +34,7 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 3.42, 3.75, 4.07, 4.46, 4.90, 5.35,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
    */
-std::vector<double> egrid {1.e-5,10.0};
+std::vector<double> egrid {1.e-5,1.78e-5,10.0};
 
 
 
@@ -145,21 +147,54 @@ auto thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
          auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
          teff = effectiveTemp.effectiveTemperatures()[0]*kb;
 
-         std::cout << "THIS TEFF    " << teff << std::endl;
+         //std::cout << "THIS TEFF    " << teff << std::endl;
          auto out = e_ep_mu( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
                              sab, awr, boundCrossSections, teff, nbin, temp );
 
-         //auto outputEnergy = std::get<0>(out);
-         //std::cout << (outputEnergy|ranges::view::all) << std::endl;
-         //auto totalSCR     = std::get<1>(out);
-         //auto totalOutput  = std::get<2>(out);
+         auto incidentEnergies = std::get<0>(out);
+         //std::cout << "INCIDENT ENERGY    " << (incidentEnergies |ranges::view::all) << std::endl;
+         auto totalSCR     = std::get<1>(out);
+         auto totalOutput  = std::get<2>(out);
          //std::cout << outputEnergy[0] << "   " << outputEnergy[1] << std::endl;
          //std::cout << totalOutput[0][0] << "   " << totalOutput[0][1] << std::endl;
          //std::cout << totalSCR[0][0] << "   " << totalSCR[0][1] << std::endl;
+         int n2 = nbin+2;
+         //std::cout << "N2    " << n2 << std::endl;
+         //std::cout << (totalSCR[0]|ranges::view::all) << std::endl;
+         //std::cout << (chunkSCR[0]|ranges::view::all) << std::endl;
+         //std::cout << (chunkSCR[1]|ranges::view::all) << std::endl;
+         //std::cout << (chunkSCR[2]|ranges::view::all) << std::endl;
+         //std::cout << (chunkSCR[3]|ranges::view::all) << std::endl;
+
+         auto firstSCR = totalSCR[0];
+         ThermalScatteringData chunk( incidentEnergies[0], n2, std::move(firstSCR) );
+         std::cout << chunk.LANG() << std::endl;
+         std::cout << chunk.LTT() << std::endl;
+         std::cout << chunk.energy() << std::endl;
+         std::cout << chunk.NW() << std::endl;
+         std::cout << chunk.N2() << std::endl;
+         std::cout << std::endl;
+         std::cout << std::endl;
+         //for ( size_t i = 0; i < incidentEnergies.size(); ++i ){
+           //auto chunkSCR = totalSCR[i] | ranges::view::chunk(n2);
+           //ThermalScatteringData chunk( incidentEnergies[i], n2, std::move(chunkSCR) );
+         //}      
+         /*
+
+         */
 
 
-         //for (int i = 0; i < 50; ++i){
-         //  std::cout << totalSCR[0][i] << std::endl;
+         /*
+      double energy = 1e-5; // INCOMING ENERGY
+      int n2 = 6;                  // Eout, pp/totalpp?, mu1, mu2, mu3 Eout pp/totalpp? mu1...
+      std::vector< double > data = { 0., 0., 0., 0., 0., 0.,
+                                     9.999999e-6, 9.477167e+1, -5.379121e-1,
+                                     0.21062848, 0.70490082, 9.552579e-1,
+                                     1.265100e-1, 0., 0., 0., 0., 0. };
+                                     */
+
+         //for (int i = 0; i < 20; ++i){
+         //  std::cout << " ----  " << totalSCR[0][i] << std::endl;
          //}
        }
        else {
