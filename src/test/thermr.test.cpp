@@ -25,6 +25,11 @@ TEST_CASE( "thermr" ){
       auto products = section.products();
       auto law = std::get< ContinuumEnergyAngle >(products[0].distribution() );
 
+      //std::cout << products[0].multiplicity().energies().size() << std::endl;
+      //std::cout << (products[0].multiplicity().multiplicities() | ranges::view::all )  << std::endl;
+      std::cout << (products[0].multiplicity().boundaries() | ranges::view::all )  << std::endl;
+      std::cout << (products[0].multiplicity().interpolants() | ranges::view::all )  << std::endl;
+
 
       auto energies = law.subsections();
       
@@ -39,26 +44,32 @@ TEST_CASE( "thermr" ){
         //std::cout << subsection.energy() << std::endl;
         //std::cout << subsection.NW() << std::endl;
         //std::cout << subsection.N2() << std::endl;
+        /*
         std::cout << law.LEP() << std::endl;
         std::cout << (law.boundaries()|ranges::view::all) << std::endl;
         std::cout << (law.interpolants()|ranges::view::all) << std::endl;
         std::cout << std::endl;
         std::cout << std::endl;
+        */
         auto incidentEnergy   = subsection.energy();
         auto outgoingEnergies = subsection.energies();
         auto cosines = subsection.cosines();
         auto pp = subsection.PP();
 
+        /*
         std::cout << "INCIDENT ENERGY    " << incidentEnergy << std::endl;
         std::cout << "PP                 " << pp << std::endl;
+        */
         //std::cout << (outgoingEnergies|ranges::view::all) << std::endl;
         //std::cout << (cosines|ranges::view::all) << std::endl;
 
+        /*
         std::cout << outgoingEnergies[0] << "  " << (cosines[0]|ranges::view::all) << std::endl;
         std::cout << outgoingEnergies[1] << "  " << (cosines[1]|ranges::view::all) << std::endl;
         std::cout << outgoingEnergies[2] << "  " << (cosines[2]|ranges::view::all) << std::endl;
         std::cout << outgoingEnergies[3] << "  " << (cosines[3]|ranges::view::all) << std::endl;
         break;
+        */
 
       }
         /*
