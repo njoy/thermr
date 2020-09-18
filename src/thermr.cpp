@@ -40,7 +40,8 @@ std::vector<double> egrid {1.e-5,1.78e-5,10.0};
 
 
 template <typename Range, typename Float>
-auto thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
+std::optional<section::Type<6>>  
+  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
   int natom, int mtref, Range temps, Float tol, Float emax,
   MF7 leapr_MF7 ){
 
@@ -119,12 +120,12 @@ auto thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
          auto firstSCR = totalSCR[0];
          ThermalScatteringData chunk( incidentEnergies[0], n2, std::move(firstSCR) );
          std::vector<Variant> chunks {chunk};
-         ThermalScatteringData chunk1( incidentEnergies[1], n2, std::move(firstSCR) );
-         ThermalScatteringData chunk2( incidentEnergies[2], n2, std::move(firstSCR) );
-         chunks[0] = chunk;
-         chunks.push_back(chunk1);
-         chunks.push_back(chunk2);
-
+         //chunks.resize(incidentEnergies.size());
+         for ( size_t j = 1; j < incidentEnergies.size(); ++j){
+           auto scratch = totalSCR[j];
+           ThermalScatteringData chunk( incidentEnergies[j], n2, std::move(firstSCR) );
+           chunks.push_back(chunk);
+         }
 
       //int lang = 3;
       long lep = 1;
@@ -136,24 +137,17 @@ auto thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
       
 
       std::vector<ReactionProduct> products {ReactionProduct(
-          // multiplicity
-          { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }},
-             // distribution
-            continuumChunk )};
+        // multiplicity
+        { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }},
+        // distribution
+         continuumChunk )};
 
-
-            int jp = 0;
-            int lct = 1;
-            section::Type< 6 > file6( mtref, za, awr, jp, lct, std::move( products ) );
-
-
+         int jp = 0, lct = 1;
+         return section::Type< 6 > ( mtref, za, awr, jp, lct, std::move( products ) );
        }
        else {
          // E mu E' 
        }
-       //if (sz2 > 0) {teff2=eftmp2[itemp];}
-       //if (iinc == 2) temp=t;
-       //calcem(temp,itemp,iold,inew,np,nex)
     }
 
 
@@ -169,7 +163,7 @@ auto thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
   }
 
   
-  return;
+  return {};
   std::cout << za << awr << lat << lasym << std::endl;
   std::cout << matde+matdp+nbin+iinc+icoh+iform+natom+mtref<< std::endl;
   std::cout << tol + emax + temps[0] << std::endl;
