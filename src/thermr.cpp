@@ -123,14 +123,14 @@ std::optional<section::Type<6>>
          //chunks.resize(incidentEnergies.size());
          for ( size_t j = 1; j < incidentEnergies.size(); ++j){
            auto scratch = totalSCR[j];
-           ThermalScatteringData chunk( incidentEnergies[j], n2, std::move(firstSCR) );
+           ThermalScatteringData chunk( incidentEnergies[j], n2, std::move(scratch) );
            chunks.push_back(chunk);
          }
 
       //int lang = 3;
       long lep = 1;
-      std::vector< long > boundaries = { 3 };
-      std::vector< long > interpolants = { 2 };
+      std::vector<long>   boundaries = {3},
+                        interpolants = {2};
       ContinuumEnergyAngle continuumChunk( lep, std::move( boundaries ),
                                   std::move( interpolants ),
                                   std::move( chunks ) );
@@ -143,7 +143,7 @@ std::optional<section::Type<6>>
          continuumChunk )};
 
          int jp = 0, lct = 1;
-         return section::Type< 6 > ( mtref, za, awr, jp, lct, std::move( products ) );
+         return section::Type<6> (mtref, za, awr, jp, lct, std::move(products));
        }
        else {
          // E mu E' 
