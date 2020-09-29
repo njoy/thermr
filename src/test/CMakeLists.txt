@@ -11,4 +11,8 @@ $<$<BOOL:${nonportable_optimization}>:${${PREFIX}_nonportable_optimization_flags
 
 ${CXX_appended_flags} ${thermr_appended_flags} )
 target_link_libraries( thermr.test PUBLIC thermr ) 
+file( GLOB resources "resources/*" )
+foreach( resource ${resources})
+    file( COPY "${resource}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}" )
+endforeach()
 add_test( NAME thermr COMMAND thermr.test )

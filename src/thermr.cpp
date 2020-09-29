@@ -18,7 +18,6 @@ using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalSca
 using Variant = section::Type< 6 >::ContinuumEnergyAngle::Variant;
 using ReactionProduct = section::Type< 6 >::ReactionProduct;
 
-/*
 std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 0.000253, 0.000297, 0.000350, 0.00042, 
    0.000506, 0.000615, 0.00075, 0.00087, 0.001012, 0.00123, 0.0015, 
@@ -33,10 +32,6 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    0.625, 0.70, 0.78, 0.86, 0.95, 1.05, 1.16, 1.28, 1.42, 1.55, 1.70, 1.855,
    2.02, 2.18, 2.36, 2.59, 2.855, 3.12, 3.42, 3.75, 4.07, 4.46, 4.90, 5.35,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
-   */
-std::vector<double> egrid {1.e-5,1.78e-5,10.0};
-
-
 
 
 template <typename Range, typename Float>
@@ -72,7 +67,8 @@ std::optional<section::Type<6>>
   if (constants.analyticalFunctionTypes().size() > 0){
     if (constants.analyticalFunctionTypes()[0] == 0){
       auto awr2 = constants.atomicWeightRatios()[0];
-      boundCrossSections[1] = freeCrossSections[1]*std::pow((awr2+1)/awr2,2)/natom; // also divided by scr(18) whatever that is
+      boundCrossSections[1] = freeCrossSections[1]*std::pow((awr2+1)/awr2,2)/natom; 
+      // also divided by scr(18) whatever that is
     }
   }
     
@@ -103,8 +99,10 @@ std::optional<section::Type<6>>
     
     // compute incoherent inelastic cross sections
     if (iinc != 0){
+        //std::cout << "IINC" << std::endl;
 
        if (iform == 0){
+        //std::cout << "IFORM" << std::endl;
          // E E' mu
          auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
          teff = effectiveTemp.effectiveTemperatures()[0]*kb;
@@ -112,29 +110,36 @@ std::optional<section::Type<6>>
          auto out = e_ep_mu( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
                              sab, awr, boundCrossSections, teff, nbin, temp );
 
+        //std::cout << "A" << std::endl;
          auto incidentEnergies = std::get<0>(out);
          auto totalSCR     = std::get<1>(out);
          auto totalOutput  = std::get<2>(out);
          int n2 = nbin+2;
 
+         for (size_t i = 0; i < incidentEnergies.size(); ++i){
+           if (incidentEnergies[i] >= emax){
+               incidentEnergies.resize(i+2);
+               totalSCR.resize(i+2);
+               break;
+           }
+         }
+
+
          auto firstSCR = totalSCR[0];
          ThermalScatteringData chunk( incidentEnergies[0], n2, std::move(firstSCR) );
          std::vector<Variant> chunks {chunk};
-         //chunks.resize(incidentEnergies.size());
          for ( size_t j = 1; j < incidentEnergies.size(); ++j){
            auto scratch = totalSCR[j];
            ThermalScatteringData chunk( incidentEnergies[j], n2, std::move(scratch) );
            chunks.push_back(chunk);
          }
 
-      //int lang = 3;
       long lep = 1;
-      std::vector<long>   boundaries = {3},
+      std::vector<long>   boundaries = {(long) incidentEnergies.size()},
                         interpolants = {2};
       ContinuumEnergyAngle continuumChunk( lep, std::move( boundaries ),
                                   std::move( interpolants ),
                                   std::move( chunks ) );
-      
 
       std::vector<ReactionProduct> products {ReactionProduct(
         // multiplicity

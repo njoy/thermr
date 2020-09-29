@@ -154,7 +154,7 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
         }
       }
     }
-    return cutoff( doSCT(alpha,teff,sigc,sigma_b2,tev,sabflg,beta,sigma_b) );
+    //return cutoff( doSCT(alpha,teff,sigc,sigma_b2,tev,sabflg,beta,sigma_b) );
   }
 
 
