@@ -198,9 +198,6 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
 
   int i = 3, j = 0;
 
-  //std::cout.precision(15);
-  //std::cout << "MU beginning " << muVec[0] << "    " << muVec[1] << "   " << muVec[2] << std::endl;
-  //std::cout << "XS beginning " << xsVec[0] << "    " << xsVec[1] << "   " << xsVec[2] << std::endl;
   do { 
     addMidpointsRight(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
                       boundXsVec,teff,iinc,tol,xsMax);

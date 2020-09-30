@@ -99,10 +99,10 @@ std::optional<section::Type<6>>
     
     // compute incoherent inelastic cross sections
     if (iinc != 0){
-        //std::cout << "IINC" << std::endl;
+        std::cout << "IINC" << std::endl;
 
        if (iform == 0){
-        //std::cout << "IFORM" << std::endl;
+         std::cout << "IFORM" << std::endl;
          // E E' mu
          auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
          teff = effectiveTemp.effectiveTemperatures()[0]*kb;
@@ -118,9 +118,9 @@ std::optional<section::Type<6>>
 
          for (size_t i = 0; i < incidentEnergies.size(); ++i){
            if (incidentEnergies[i] >= emax){
-               incidentEnergies.resize(i+2);
-               totalSCR.resize(i+2);
-               break;
+             incidentEnergies.resize(i+2);
+             totalSCR.resize(i+2);
+             break;
            }
          }
 
@@ -134,26 +134,26 @@ std::optional<section::Type<6>>
            chunks.push_back(chunk);
          }
 
-      long lep = 1;
-      std::vector<long>   boundaries = {(long) incidentEnergies.size()},
-                        interpolants = {2};
-      ContinuumEnergyAngle continuumChunk( lep, std::move( boundaries ),
-                                  std::move( interpolants ),
-                                  std::move( chunks ) );
-
-      std::vector<ReactionProduct> products {ReactionProduct(
-        // multiplicity
-        { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }},
-        // distribution
-         continuumChunk )};
-
-         int jp = 0, lct = 1;
-         return section::Type<6> (mtref, za, awr, jp, lct, std::move(products));
+          long lep = 1;
+          std::vector<long>   boundaries = {(long) incidentEnergies.size()},
+                            interpolants = {2};
+          ContinuumEnergyAngle continuumChunk( lep, std::move( boundaries ),
+                                      std::move( interpolants ),
+                                      std::move( chunks ) );
+  
+          std::vector<ReactionProduct> products {ReactionProduct(
+            // multiplicity
+            { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }},
+            // distribution
+             continuumChunk )};
+  
+          int jp = 0, lct = 1;
+          return section::Type<6> (mtref, za, awr, jp, lct, std::move(products));
        }
        else {
          // E mu E' 
        }
-    }
+     }
 
 
 
