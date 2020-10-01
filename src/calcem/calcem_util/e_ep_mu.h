@@ -23,12 +23,12 @@ auto e_ep_mu( Range eVec, const double& tev, const double& tol, const int lat,
     if (temp > 3000.0){ eNow = highTempApprox(temp,eNow,eVec[0],eVec[eVec.size()-1]); }
     eNow = sigfig(eNow,8,0);
     eVec[iEnergy] = eNow;
-    std::cout << "  ENOW   " << eNow << std::endl;
 
     ePrime = 0.0;
     Range s(nbin,0.0);
     double pdf = sigl(0.0,eNow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,boundXsVec,
                      teff,s,true);
+
     y[0*imax+0] = pdf;
     for (int il = 1; il < nbin+1; ++il){y[il*imax+0] = s[il-1];}
 
@@ -39,9 +39,6 @@ auto e_ep_mu( Range eVec, const double& tev, const double& tol, const int lat,
     
     total_SCR[iEnergy]        = scr;
     total_OutputData[iEnergy] = out;
-
-    // REMOVE THIS
-    return std::make_tuple(eVec,total_SCR,total_OutputData);
 
   }
   return std::make_tuple(eVec,total_SCR,total_OutputData);

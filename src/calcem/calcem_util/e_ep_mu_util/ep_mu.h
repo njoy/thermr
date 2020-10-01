@@ -121,7 +121,7 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
   const Float& tol, const int lat, const int iinc, const int lasym, 
   const Range& alphas, const Range& betas, const Range& sab, const Float& az, 
   const Range& boundXsVec, const Float& teff, 
-  const int nbin, int& jbeta, Range& scr, Range& out, Range& lastVals ){
+  const int nbin, int& jbeta, Range& scr, Range& out, Range& lastVals, Float& jnz = 0.0 ){
   int imax = x.size();
 
   int i = 2; // 330 
@@ -153,6 +153,8 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
     }
  
     if ( j == 3 and out[0] < 5e-7 ){ j = 2; }
+
+    // 380 
     int jscr = (j-1)*(nbin+2)+1;
     if ( (unsigned) jscr+nbin+1 > scr.size() ){ scr.resize((jscr+nbin+1)*2); }
 
@@ -170,6 +172,8 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
    
     lastVals[0] = x[i-1]; lastVals[1] = y[0*imax+i-1];
     lastVals[2] = 0.0;    lastVals[3] = 0.0;    lastVals[4] = 0.0;
+
+    if (y[0*imax+i-1] != 0){ jnz = j;}
 
     addToMoments( y, lastVals, nbin, imax, i );
 
@@ -198,6 +202,7 @@ auto prepareEpMu( const Float& enow, int& j, const Float& tev, const Float& tol,
 
   Range x(20,0.0), out(4,0.0);
   int imax = x.size();
+  Float jnz = 0;
   Float ep;
 
   do {
@@ -213,7 +218,7 @@ auto prepareEpMu( const Float& enow, int& j, const Float& tev, const Float& tol,
     y[0*imax+0] = pdf;
     for ( int il = 1; il < nbin+1; ++il ){ y[il*imax+0] = s[il-1]; }
     do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,
-           teff,nbin,jbeta,scr,out,lastVals);
+           teff,nbin,jbeta,scr,out,lastVals,jnz);
   } while( jbeta <= int(betas.size()));
 
   for ( int il = 0; il < nbin+1; ++il ){
@@ -221,9 +226,16 @@ auto prepareEpMu( const Float& enow, int& j, const Float& tev, const Float& tol,
   }
 
 
-
-  scr[(j)*(nbin+2)] = ep;
-  scr.resize((j+1)*(nbin+2));
+  if (jnz < j){ 
+    j = jnz; 
+    //scr[(j)*(nbin+2)] = ep;
+    scr.resize((j+1)*(nbin+2));
+    ++j;
+  }
+  else {
+    scr[(j)*(nbin+2)] = ep;
+    scr.resize((j+1)*(nbin+2));
+  }
 
   Float sum = 0.0;
   int lengthRow = nbin+2;
@@ -252,60 +264,3 @@ auto prepareEpMu( const Float& enow, int& j, const Float& tev, const Float& tol,
 
   return out;
 }
-
-
-/*
-template <typename Range, typename Float>
-auto e_ep_mu_MAIN( Range eVec, const Float& tev, const Float& tol, 
-  const int lat, const int iinc, const int lasym, const Range& alphas, 
-  const Range& betas, const Range& sab, const Float& az, const Float& sigma_b, 
-  const Float& sigma_b2, const Float& teff, const int nbin, const Float& temp ){
-  std::cout.precision(15);
-
-  Range lastVals(5,0.0);
-  Float eNow, ePrime;
-  int imax = 20;
-  Range y(20*65,0.0);
-
-
-  std::vector<Range> total_SCR(eVec.size());
-  std::vector<Range> total_OutputData(eVec.size());
-
-
-  for ( size_t iEnergy = 0; iEnergy < eVec.size(); ++iEnergy ){
-    Range scr(y.size()*5,0.0);
-    eNow = eVec[iEnergy];
-    if (temp > 3000.0){ eNow = highTempApprox(temp,eNow,eVec[0],eVec[eVec.size()-1]); }
-    eNow = sigfig(eNow,8,0);
-    eVec[iEnergy] = eNow;
-
-    ePrime = 0.0;
-    Range s(nbin,0.0);
-    Float pdf = sigl(0.0,eNow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,sigma_b,
-                     sigma_b2,teff,s,true);
-    y[0*imax+0] = pdf;
-    for (int il = 1; il < nbin+1; ++il){y[il*imax+0] = s[il-1];}
-
-    int j = 0, jbeta = -int(betas.size());
-
-    auto out = do_330_extra( eNow, j, tev, tol, lat, iinc, lasym, 
-    alphas, betas, sab, az, sigma_b, sigma_b2, teff, nbin, jbeta, scr, lastVals, y);
-
-    total_SCR[iEnergy]        = scr;
-    total_OutputData[iEnergy] = out;
-
-  }
-  return std::make_tuple(eVec,total_SCR,total_OutputData);
-
-
-
-}
-
-
-
-
-*/
-
-
-
-

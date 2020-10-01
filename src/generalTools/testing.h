@@ -1,9 +1,16 @@
 #include <range/v3/all.hpp>
 
+
 template <typename V>
-void checkVec( V y1, V y2, float tol=1e-6 ){
-  REQUIRE( y1.size() == y2.size() );
-  for (size_t i = 0; i < y1.size(); ++i){
+void checkVec( V y1, V y2, bool checkAll=true, float tol=1e-6 ){
+  size_t size_to_check = y1.size();
+  if (checkAll){
+    REQUIRE( y1.size() == y2.size() );
+  }
+  else {
+    size_to_check = y1.size() < y2.size() ? y1.size() : y2.size();
+  }
+  for (size_t i = 0; i < size_to_check; ++i){
     REQUIRE( y2[i] == Approx(y1[i]).epsilon(tol) );
   }
 }

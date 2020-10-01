@@ -20,7 +20,7 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
       0.0 
     : 0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5);
     //: std::min(0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5), 0.99);
-  if (muVec[1] > 0.999){ muVec[1] = 0.99; }
+  if (abs(muVec[1]) > 0.999){ muVec[1] = 0.99; }
   muVec[0] =  1.0; 
 
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,boundXsVec,

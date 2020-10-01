@@ -131,9 +131,11 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
   //  extrapolate using a beta^2/alpha law.
   // ........................................................................//
   
-  Float cliq = (sab[0]>sab[betas.size()]) ? 
-               (sab[0] - sab[betas.size()])*alphas[0]/(betas[1]*betas[1])
-             : 0.0;
+  Float cliq = 0.0;
+  if (sab[0] > sab[betas.size()]){
+    cliq = (sab[0] - sab[1])*alphas[0]/(betas[1]*betas[1]);
+  }
+
   if (cliq != 0.0 and alphaScaled < alphas[0] and lasym != 1 and abs(betaScaled) < test1){
     Float s = sab[0] + log(alphas[0]/alphaScaled)*0.5 - cliq*pow(betaScaled,2)/alphaScaled;
     return cutoff( sigc * sigma_b * exp(s-beta*0.5) );
