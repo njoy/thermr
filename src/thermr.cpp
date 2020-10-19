@@ -1,6 +1,7 @@
 #include "ENDFtk.hpp"
+//#include "ENDFtk/section/6.hpp"
 #include <range/v3/all.hpp>
-//#include "calcem/calcem_util/e_mu_ep.h"
+#include "calcem/calcem_util/e_mu_ep.h"
 #include "calcem/calcem_util/e_ep_mu.h"
 #include "calcem/calcem.h"
 #include "coh/coh.h"
@@ -17,6 +18,8 @@ using ContinuumEnergyAngle  = section::Type<6>::ContinuumEnergyAngle;
 using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
 using Variant = section::Type< 6 >::ContinuumEnergyAngle::Variant;
 using ReactionProduct = section::Type< 6 >::ReactionProduct;
+using CoherentElastic = section::Type<7,2>::CoherentElastic;
+using Unknown = section::Type<6>::Unknown;
 
 std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    1.e-4, 1.26e-4, 1.6e-4, 2.0e-4, 0.000253, 0.000297, 0.000350, 0.00042, 
@@ -35,15 +38,19 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
 
 
 template <typename Range, typename Float>
-std::optional<section::Type<6>>  
+//std::optional<section::Type<6>>  
+auto  
   thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
-  int natom, int mtref, Range temps, Float tol, Float emax,
+  int natom, const int mtref, Range temps, Float tol, Float emax,
   MF7 leapr_MF7 ){
+
+
 
   double kb = 8.6173303e-5;
   std::cout.precision(15);
 
   njoy::ENDFtk::section::Type<7,4> leapr_MT4 = leapr_MF7.MT(4_c);
+
   auto za  = leapr_MT4.ZA();
   auto awr = leapr_MT4.AWR();
   auto lat = leapr_MT4.LAT();
@@ -81,7 +88,13 @@ std::optional<section::Type<6>>
     }
   }
 
+
+
+  std::vector<file::Type<6>> MF6_vec {};
+
   for (size_t itemp = 0; itemp < temps.size(); ++itemp){
+
+    std::vector<ReactionProduct> reactionProducts;
 
     std::vector<double> sab (alphas.size()*betas.size());
  
@@ -95,80 +108,131 @@ std::optional<section::Type<6>>
     auto temp = temps[itemp];
     auto tev  = temp*kb;
     auto teff = eftemp[itemp];
-
     
     // compute incoherent inelastic cross sections
     if (iinc != 0){
-        std::cout << "IINC" << std::endl;
 
-       if (iform == 0){
-         std::cout << "IFORM" << std::endl;
-         // E E' mu
-         auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
-         teff = effectiveTemp.effectiveTemperatures()[0]*kb;
+      if (iform == 0){
+        // E E' mu
+        auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
+        teff = effectiveTemp.effectiveTemperatures()[0]*kb;
 
-         auto out = e_ep_mu( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
-                             sab, awr, boundCrossSections, teff, nbin, temp );
-
+        auto out = e_ep_mu( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
+                            sab, awr, boundCrossSections, teff, nbin, temp );
+ 
         //std::cout << "A" << std::endl;
-         auto incidentEnergies = std::get<0>(out);
-         auto totalSCR     = std::get<1>(out);
-         auto totalOutput  = std::get<2>(out);
-         int n2 = nbin+2;
+        auto incidentEnergies = std::get<0>(out);
+        auto totalSCR     = std::get<1>(out);
+        auto totalOutput  = std::get<2>(out);
+        int n2 = nbin+2;
+ 
+        // Resize the energies and the scattering out to abide by emax
+        for (size_t i = 0; i < incidentEnergies.size(); ++i){
+          if (incidentEnergies[i] >= emax){
+            incidentEnergies.resize(i+2);
+            totalSCR.resize(i+2);
+            break;
+          }
+        }
 
-         for (size_t i = 0; i < incidentEnergies.size(); ++i){
-           if (incidentEnergies[i] >= emax){
-             incidentEnergies.resize(i+2);
-             totalSCR.resize(i+2);
-             break;
-           }
-         }
 
+        auto firstSCR = totalSCR[0];
+        ThermalScatteringData chunk( incidentEnergies[0], n2, std::move(firstSCR) );
+        std::vector<Variant> chunks {chunk};
+        for ( size_t j = 1; j < incidentEnergies.size(); ++j){
+          auto scratch = totalSCR[j];
+          ThermalScatteringData chunk( incidentEnergies[j], n2, std::move(scratch) );
+          chunks.push_back(chunk);
+        }
 
-         auto firstSCR = totalSCR[0];
-         ThermalScatteringData chunk( incidentEnergies[0], n2, std::move(firstSCR) );
-         std::vector<Variant> chunks {chunk};
-         for ( size_t j = 1; j < incidentEnergies.size(); ++j){
-           auto scratch = totalSCR[j];
-           ThermalScatteringData chunk( incidentEnergies[j], n2, std::move(scratch) );
-           chunks.push_back(chunk);
-         }
-
-          long lep = 1;
-          std::vector<long>   boundaries = {(long) incidentEnergies.size()},
-                            interpolants = {2};
-          ContinuumEnergyAngle continuumChunk( lep, std::move( boundaries ),
-                                      std::move( interpolants ),
-                                      std::move( chunks ) );
+        long lep = 1;
+        std::vector<long>  boundaries = {(long) incidentEnergies.size()},
+                           interpolants = {2};
+        ContinuumEnergyAngle continuumChunk( lep, std::move( boundaries ),
+                                    std::move( interpolants ),
+                                    std::move( chunks ) );
   
-          std::vector<ReactionProduct> products {ReactionProduct(
-            // multiplicity
-            { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }},
-            // distribution
-             continuumChunk )};
+        reactionProducts.push_back(ReactionProduct(
+            // multiplicity                                      // distribution
+          { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, continuumChunk ));
+
+        /*
+        std::vector<ReactionProduct> products {ReactionProduct(
+            // multiplicity                                      // distribution
+          { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, continuumChunk )};
   
-          int jp = 0, lct = 1;
-          return section::Type<6> (mtref, za, awr, jp, lct, std::move(products));
-       }
-       else {
-         // E mu E' 
-       }
-     }
+        int jp = 0, lct = 1;
+        //return section::Type<6> (mtref, za, awr, jp, lct, std::move(products));
+        MF6_vec.push_back(section::Type<6> (mtref, za, awr, jp, lct, std::move(products)));
+        */
+      }
+      else {
+        // E mu E' 
+        auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
+        teff = effectiveTemp.effectiveTemperatures()[0]*kb;
+
+        auto out = e_mu_ep( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
+                            sab, awr, boundCrossSections, teff );
+ 
+      }
+    }
 
 
 
     if (icoh > 0 and icoh <= 10){
       std::cout << "COH" << std::endl;
-      coh( temp, lat, emax, natom, egrid, tol);
+      if (leapr_MF7.hasMT(2)){
+        njoy::ENDFtk::section::Type<7,2> leapr_MT2 = leapr_MF7.MT(2_c);
+        auto MT2_law = std::get<CoherentElastic>(leapr_MT2.scatteringLaw());
+        int nbragg = MT2_law.numberBraggEdges();
+ 
+        //int jp = 0, lct = 1;
+        reactionProducts.push_back(ReactionProduct(
+            // multiplicity                                      // distribution
+          { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() ));
+
+        /*
+        std::vector<ReactionProduct> products {ReactionProduct(
+            // multiplicity                                      // distribution
+          { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() )};
+ 
+        MF6_vec.push_back(section::Type<6>(mtref, za, awr, jp, lct, 
+                                           std::move(products))
+                         );
+                         */
+        //section::Type<6> test(mtref, za, awr, jp, lct, std::move(products));
+        //std::string buffer;
+        //auto output = std::back_inserter(buffer);
+        //test.print(output,425,6);
+        //std::cout << buffer << std::endl;
+        //std::cout << std::endl;
+        //std::cout << std::endl;
+
+      }
+      //coh( temp, lat, emax, natom, egrid, tol);
     }
     else if (icoh > 10){
       std::cout << "INCOH" << std::endl;
     }
+    int jp = 0, lct = 1;
+
+    std::vector<ReactionProduct> inelasticReaction {reactionProducts[0]};
+    std::vector<ReactionProduct>   elasticReaction {reactionProducts[1]};
+    //auto elasticReaction = reactionProducts[1];
+    //section::Type<6,mtref> inelastic_MF6(mtref, za, awr, jp, lct, std::move(inelasticReaction));
+    //section::Type<6,mtref+1> elastic_MF6(mtref, za, awr, jp, lct, std::move(  elasticReaction));
+    //MF6_vec.push_back(section::Type<6>(std::move(inelastic_MF6),std::move(elastic_MF6));
+    MF6_vec.push_back(section::Type<6>(mtref, za, awr, jp, lct, 
+                                       std::move(inelasticReaction)));
+    MF6_vec.push_back(section::Type<6>(mtref+1, za, awr, jp, lct, 
+                                       std::move(elasticReaction)));
+
+
 
   }
 
   
-  return {};
+  return MF6_vec;
   std::cout << za << awr << lat << lasym << std::endl;
   std::cout << matde+matdp+nbin+iinc+icoh+iform+natom+mtref<< std::endl;
   std::cout << tol + emax + temps[0] << std::endl;

@@ -78,7 +78,6 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Ran
   using std::abs;
   std::vector<Float> vec1 (50,0.0), vec2 (50,0.0);
   Float scon  = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
-
   Float recon = (hbar*hbar)/(ev*8*(massNeutron))*1e4; 
   auto enext = vec1[0]*recon;
 
