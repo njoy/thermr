@@ -1,5 +1,15 @@
 #include <range/v3/all.hpp>
 
+template <typename V>
+void checkVec( V y1, V y2, float tol){
+  size_t size_to_check = y1.size();
+  REQUIRE( y1.size() == y2.size() );
+  for (size_t i = 0; i < size_to_check; ++i){
+    REQUIRE( y2[i] == Approx(y1[i]).epsilon(tol) );
+  }
+}
+
+
 
 template <typename V>
 void checkVec( V y1, V y2, bool checkAll=true, float tol=1e-6 ){

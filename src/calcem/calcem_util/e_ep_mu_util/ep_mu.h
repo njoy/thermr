@@ -121,7 +121,7 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
   const Float& tol, const int lat, const int iinc, const int lasym, 
   const Range& alphas, const Range& betas, const Range& sab, const Float& az, 
   const Range& boundXsVec, const Float& teff, 
-  const int nbin, int& jbeta, Range& scr, Range& out, Range& lastVals, Float& jnz = 0.0 ){
+  const int nbin, int& jbeta, Range& scr, Range& out, Range& lastVals, Float& jnz ){
   int imax = x.size();
 
   int i = 2; // 330 

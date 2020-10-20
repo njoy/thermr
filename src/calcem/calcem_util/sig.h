@@ -115,6 +115,7 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
   Float alphaScaled = ( lat == 1 ) ? alpha*tev/tevz : alpha;
   Float  betaScaled = ( lat == 1 ) ? beta*tev/tevz  : beta;
 
+
   // ........................................................................//
   // Check to see if requested alpha or beta values are outside the grids    //
   // provided. If so, just do the SCT approximation.                         //
@@ -132,7 +133,7 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
   // ........................................................................//
   
   Float cliq = 0.0;
-  if (sab[0] > sab[betas.size()]){
+  if (sab[0] > sab[betas.size()] and iinc != 1){
     cliq = (sab[0] - sab[1])*alphas[0]/(betas[1]*betas[1]);
   }
 

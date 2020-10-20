@@ -12,12 +12,10 @@ inline auto initializeEpXS( int& jbeta, const int& lat, Range& epVec, Range& xsV
   const int lasym, const Float& teff, const Range& boundXsVec,  
   const int& iinc){
 
-  std::cout.precision(15);
   do { // 113
     if (jbeta == 0) jbeta = 1;
     epVec[0] = ( lat == 0 ) ? e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tev 
                             : e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tevz; 
-    std::cout << "  ---   " << epVec[0] <<"    " << beta[abs(jbeta)-1]*tevz << "   " << e << std::endl;
     if ( jbeta <= 0 ){
       epVec[0] = (jbeta < 0 and epVec[0] == e) ? sigfig(epVec[0],8,-1) 
                                                : sigfig(epVec[0],8,0);
@@ -25,10 +23,10 @@ inline auto initializeEpXS( int& jbeta, const int& lat, Range& epVec, Range& xsV
     ++jbeta;
   } while(epVec[0] <= epVec[1]);
   --jbeta;
-  std::cout << (epVec|ranges::view::all) << std::endl;
    
   // 116
   Float root1_sq = pow((u*sqrt(e)+sqrt(u*u*e+(az-1)*(az+1)*e))/(az+1),2);
+
   if (u < 0 and 1.01*epVec[1] < root1_sq and root1_sq < epVec[0]) {
     epVec[0] = root1_sq;
   }
@@ -122,7 +120,10 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
         yl = xsVec[i];
 
         if (( j >= int(0.5*s3.size())-1 ) or ( jbeta > 0 and betas[jbeta-1] > 20.0 )){ 
-          s3[0] = sum; s3[1] = j; return s3; // 170
+          s3[0] = sum; 
+          s3[1] = j; 
+          s3.resize(2*j+2);
+          return s3; // 170
         } 
         --i;
         if ( i > 0 ){ break; }
@@ -132,6 +133,7 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
     } while(i > 0);
 
   } while( jbeta <= int(betas.size()));
+  s3.resize(2*j+2);
   s3[0] = sum; s3[1] = j; return s3; // 170
 }
 #endif

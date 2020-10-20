@@ -263,8 +263,8 @@ TEST_CASE( "thermr" ){
     std::vector<double> temps {296.0};
     double  tol = 0.5, emax = 0.625; 
 
-    auto out = thermr(matde, matdp, nbin, iinc, icoh, iform, natom, mtref, temps,
-           tol, emax, MF7);
+    //auto out = thermr(matde, matdp, nbin, iinc, icoh, iform, natom, mtref, temps,
+    //       tol, emax, MF7);
    
     //auto my_section = out[0].MT(mtref); // Because I'm currently returning an optional from thermr
     //checkInelastic(good_inelastic, my_section);

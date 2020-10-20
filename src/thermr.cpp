@@ -168,12 +168,12 @@ auto
       }
       else {
         // E mu E' 
-        auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
-        teff = effectiveTemp.effectiveTemperatures()[0]*kb;
+ //       auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
+ //       teff = effectiveTemp.effectiveTemperatures()[0]*kb;
 
-        auto out = e_mu_ep( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
-                            sab, awr, boundCrossSections, teff );
- 
+        //auto out = e_mu_ep( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
+        //                    sab, awr, boundCrossSections, teff );
+// 
       }
     }
 

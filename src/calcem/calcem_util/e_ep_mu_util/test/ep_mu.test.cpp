@@ -64,6 +64,7 @@ TEST_CASE( "do 330" ){
   for (size_t i = 0; i < initialY.size(); ++i){ y[i*x.size()+0] = initialY[i]; }
 
   int lat = 0, iinc = 2, lasym = 0;
+  double jnz = 0.0;
   double tev = 2.5507297688e-2, tol = 5.0E-2;
   double enow;
   std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
@@ -92,7 +93,7 @@ TEST_CASE( "do 330" ){
     enow = 1e-5;
 
     THEN( "Returned x values, y vector, and moment values are correct" ){
-      do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff,nbin,jbeta,scr,xsi,lastVals);
+      do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff,nbin,jbeta,scr,xsi,lastVals,jnz);
 
       correctX = { 2.560729E-3, 1.920547E-3, 1.280364E-3, 3.200912E-4, 1.600456E-4, 
       8.002281E-5, 4.001140E-5, 2.000570E-5, 1.000285E-5, 5.001426E-6, 2.500713E-6, 
@@ -165,7 +166,7 @@ TEST_CASE( "do 330" ){
 
     THEN( "Returned x values, y vector, and moment values are correct" ){
 
-      do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff,nbin,jbeta,scr,xsi,lastVals);
+      do_330(enow,x,y,j,tev,tol,lat,iinc,lasym,alphas,betas,sab,az,boundXsVec,teff,nbin,jbeta,scr,xsi,lastVals,jnz);
 
       correctX = { 2.5607298E-3, 2.5607297E-3, 2.5607295E-3, 6.4018245E-4, 
       1.6004562E-4, 8.0022810E-5, 4.0011405E-5, 2.0005703E-5, 1.0002852E-5, 

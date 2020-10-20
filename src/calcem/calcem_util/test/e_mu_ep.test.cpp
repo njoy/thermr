@@ -4,6 +4,7 @@
 #include "generalTools/testing.h"
 #include <range/v3/all.hpp>
 
+/*
 
 TEST_CASE( "main E mu E' function" ){
   int imax = 20, lat = 0, iinc = 2, lasym = 0;
@@ -29,7 +30,7 @@ TEST_CASE( "main E mu E' function" ){
 } // TEST CASE 
 
 
-
+*/
 
 
 
