@@ -12,6 +12,7 @@
 using namespace njoy::ENDFtk;
 using Tabulated = section::Type<7,4>::Tabulated;
 using ContinuumEnergyAngle = section::Type< 6 >::ContinuumEnergyAngle;
+using LaboratoryAngleEnergy = section::Type< 6 >::LaboratoryAngleEnergy;
 using ThermalScatteringData = section::Type< 6 >::ContinuumEnergyAngle::ThermalScatteringData;
 
 template <typename Section>
@@ -269,6 +270,36 @@ TEST_CASE( "thermr" ){
     //auto my_section = out[0].MT(mtref); // Because I'm currently returning an optional from thermr
     //checkInelastic(good_inelastic, my_section);
 
+    std::cout << good_inelastic.AWR() << std::endl;
+    std::cout << good_inelastic.MT() << std::endl;
+     
+    auto good_products = good_inelastic.products();
+    std::cout << typeid(good_products[0].distribution()).name() << std::endl;
+    std::cout << good_products[0].distribution().index() << std::endl;
+    auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
+
+    std::cout << good_law.LAW() << std::endl;
+    std::cout << good_law.NE() << std::endl;
+    std::cout << good_law.NR() << std::endl;
+    std::cout << (good_law.interpolants()|ranges::view::all) << std::endl;
+    std::cout << (good_law.boundaries()|ranges::view::all) << std::endl;
+
+    auto energies = good_law.angularDistributions();
+    std::cout << energies[0].energy() << std::endl;
+
+    std::cout << energies[0].NMU() << std::endl;
+    std::cout << energies[0].NRM() << std::endl;
+    std::cout << (energies[0].interpolants()|ranges::view::all) << std::endl;
+    std::cout << (energies[0].boundaries()|ranges::view::all) << std::endl;
+
+    auto cosines = energies[0].energyDistributions();
+    std::cout << cosines[0].cosine() << std::endl;
+    std::cout << cosines[0].NRP() << std::endl;
+    std::cout << cosines[0].NEP() << std::endl;
+    std::cout << (cosines[0].interpolants()|ranges::view::all) << std::endl;
+    std::cout << (cosines[0].boundaries()|ranges::view::all) << std::endl;
+    std::cout << (cosines[0].energies()|ranges::view::all) << std::endl;
+    std::cout << (cosines[0].probabilities()|ranges::view::all) << std::endl;
 
 
   } // GIVEN
