@@ -4,9 +4,17 @@
 
 
 
-using Variant               = njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle::Variant;
-using ContinuumEnergyAngle  = njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle;
-using ThermalScatteringData = njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
+using namespace njoy::ENDFtk;
+//using Variant               = njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle::Variant;
+//using ContinuumEnergyAngle  = njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle;
+//using ThermalScatteringData = njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
+using LaboratoryAngleEnergy =
+section::Type< 6 >::LaboratoryAngleEnergy;
+using AngularDistribution =
+section::Type< 6 >::LaboratoryAngleEnergy::AngularDistribution;
+using EnergyDistribution =
+section::Type< 6 >::LaboratoryAngleEnergy::EnergyDistribution;
+
 
 
 template <typename A, typename F>
@@ -15,7 +23,7 @@ auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
   // 575 continue
   //std::cout << 575 << std::endl;
   ++i;
-  std::cout << "i      " << i << std::endl;
+  //std::cout << "i      " << i << std::endl;
   x[i-1] = x[i-2];
   x[i-2] = xm;
   yy[i-1]= yy[i-2];
@@ -47,10 +55,13 @@ auto adaptiveReconstruction( const Range& alphas, const Range& betas, const Rang
     }
   }
 
-  Range esi(nne+1,0.0);
-  Range xsi(nne+1,0.0);
+  Range esi(nne,0.0);
+  Range xsi(nne,0.0);
   Float bk = 8.6173303E-5;
   Float tev = temp * bk; 
+
+
+  std::vector<AngularDistribution> angularDistVec;
 
   for (size_t ie = 0; ie < esi.size(); ++ ie){
     Float enow = egrid[ie];
@@ -124,106 +135,123 @@ auto adaptiveReconstruction( const Range& alphas, const Range& betas, const Rang
       //std::cout << j << "   " << uj[0] << "  " << uj[1] << "   " << uj[2] << std::endl;
       //std::cout << i << "   " << sj[0] << "  " << sj[1] << "   " << sj[2] << std::endl;
       //std::cout <<"         " << xl << "   " << yl << "     " << sum << std::endl;
-      if (i >= 2){
-        std::cout << "go to 530" << std::endl; 
-        continue;
+      //if (i >= 2){
+      //  //std::cout << "go to 530" << std::endl; 
+      //  //continue;
+      //}
+      //else {
+      //  break;
+      //}
+      if ( i < 2 ){
+        break;
       }
+    }
 
 
-
-      std::cout << std::endl; 
-      std::cout << "580" << std::endl; 
-      ++j;
-      uj[j-1] = x[0];
-      sj[j-1] = yy[0];
-      int nmu = j;
-      ubar[ie] = 0.0;
-      sum = sum + 0.5*(yy[0]+yl)*(x[0]-xl);
-      xsi[ie-1] = sum*0.5;
-      for (int i = 2; i <= nmu; ++i){
-        ubar[ie] = ubar[ie] + 0.5*(uj[i-1]-uj[i-2])*(sj[i-1]+sj[i-2])*(uj[i-1]+uj[i-2]);
-        //std::cout << i << "    " <<  ubar[ie] << std::endl;
-      }
-      ubar[ie] = 0.5*ubar[ie]/sum;
-      std::cout << ubar[ie] << std::endl;
-
-      //std::cout << "sum   " << sum << std::endl;
-      std::cout << std::endl;
-      std::cout << std::endl;
-      std::cout << std::endl;
-      std::cout << std::endl;
-      std::cout << std::endl;
-      std::cout << std::endl;
+   // std::cout << std::endl; 
+   // std::cout << "580" << std::endl; 
+    ++j;
+    uj[j-1] = x[0];
+    sj[j-1] = yy[0];
+    int nmu = j;
+    ubar[ie] = 0.0;
+    sum = sum + 0.5*(yy[0]+yl)*(x[0]-xl);
+    xsi[ie-1] = sum*0.5;
+    for (int i = 2; i <= nmu; ++i){
+      ubar[ie] = ubar[ie] + 0.5*(uj[i-1]-uj[i-2])*(sj[i-1]+sj[i-2])*(uj[i-1]+uj[i-2]);
+      //std::cout << i << "    " <<  ubar[ie] << std::endl;
+    }
+    ubar[ie] = 0.5*ubar[ie]/sum;
+   // std::cout << ubar[ie] << std::endl;
 
 
+    std::vector<EnergyDistribution> energyDistributionsVec {
+        EnergyDistribution( 1.0, { 4 }, { 2 }, { 1e-5, 1.1e+7, 1.147e+7, 3e+7 },
+                                                { 0., 2., 4., 6. } ) };
 
-
-
-      std::vector<Variant> chunks;
-
-      for (int il = 0; il < nmu; ++il ){
-        std::vector<double> scr(1000,0.0);
-        u = uj[il];
-        //std::cout << "u      " << u << std::endl;
-        sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,yu);
-        int nep = int(yu[1]);
-        j = 0;
-        for (int i = 1; i <= nep; ++i){
-          j = nep-i;
-          if (yu[2*(nep-i)+4-1]/sum > 2e-7){
-            break;
-          }
+    for (int il = 0; il < nmu; ++il ){
+      std::vector<double> scr(1000,0.0);
+      u = uj[il];
+      //std::cout << "u      " << u << std::endl;
+      sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,yu);
+      int nep = int(yu[1]);
+      j = 0;
+      for (int i = 1; i <= nep; ++i){
+        j = nep-i;
+        if (yu[2*(nep-i)+4-1]/sum > 2e-7){
+          break;
         }
-        nep = j;
+      }
+      nep = j;
 
-        int istart = 1;
-        int k = 8;
-         
-        // 595
-        //std::cout << " -------  595 " << std::endl; 
-        int iend = nep;
-        if (iend-istart >= 153){ iend = istart + 153 - 1; }
-        j = k - 1;
-        int ib = istart - 1;
-
-        // 596
-        do { 
-          //std::cout << " -----------------  596 " << std::endl; 
-          j  += 2;
-          ib += 1;
-          scr[j-1] = yu[  2*ib];
-          scr[j]   = yu[1+2*ib]*2/sum;
-          //std::cout << " -----------------  596     " << scr[j-1] << "     " << scr[j] << std::endl; 
-        } while (ib < iend);
-
-        scr.resize(j+1);
-
-        int n2 = j+3;
-        ThermalScatteringData chunk( u, n2, std::move(scr) );
-        chunks.push_back(chunk);
+      int istart = 1;
+      int k = 8;
+       
+      // 595
+      //std::cout << " -------  595 " << std::endl; 
+      int iend = nep;
+      if (iend-istart >= 153){ iend = istart + 153 - 1; }
+      j = k - 1;
+      int ib = istart - 1;
 
 
+      std::vector<double>   EpVec(iend-ib);
+      std::vector<double> ProbVec(iend-ib);
+      // 596
+      do { 
+        //std::cout << " -----------------  596 " << std::endl; 
+        j  += 2;
+        ib += 1;
+        scr[j-1] = yu[  2*ib];
+        scr[j]   = yu[1+2*ib]*2/sum;
+        EpVec[ib-1]   = yu[  2*ib];
+        ProbVec[ib-1] = yu[1+2*ib]*2/sum;
+        //std::cout << " -----------------  596     " << scr[j-1] << "     " << 
+        //                                               scr[j] << std::endl; 
+      } while (ib < iend);
+
+      scr.resize(j+1);
+
+      int n2 = j+3;
 
 
+      std::vector<long> interpolants = {(long) EpVec.size()},
+                        boundaries = {2};
+
+      //if (ie==0 and il == 0){std::cout << (EpVec|ranges::view::all) << std::endl;}
+      if ( il == 0 ){
+        energyDistributionsVec[0] = EnergyDistribution ( u, 
+          std::move(interpolants), std::move(boundaries), std::move(EpVec), 
+          std::move(ProbVec) );
+      }
+      else {
+        energyDistributionsVec.push_back(EnergyDistribution ( u, 
+          std::move(interpolants), std::move(boundaries), std::move(EpVec), 
+          std::move(ProbVec) ));
       }
 
-      int lep = 2;
-      std::vector<long> boundaries = {(long) nmu},
-                          interpolants = {2};
-      ContinuumEnergyAngle continuumChunk( lep, std::move(boundaries),
-                                           std::move(interpolants),
-                                           std::move(chunks) );
+    }
 
 
-      break;
+    
+    std::vector<long> interpolants {2};
+    std::vector<long> boundaries   {(long) energyDistributionsVec.size()};
+    angularDistVec.push_back(AngularDistribution( enow, std::move(boundaries),
+                std::move(interpolants), std::move(energyDistributionsVec) ) );
 
-    } // do 530
-
-
-    break;
+    //break;
 
   }
 
+  std::vector< long > boundaries = { (long) esi.size() };
+  std::vector< long > interpolants = { 1 };
+
+  LaboratoryAngleEnergy laboratoryAngleEnergy( 
+    std::move( boundaries ),
+    std::move( interpolants ),
+    std::move( angularDistVec) );
+
+  return laboratoryAngleEnergy;
 
 } 
 
