@@ -101,7 +101,7 @@ TEST_CASE( "adaptive reconstruction" ){
 
     } // WHEN
 
-    WHEN( "Low Max Energy" ){
+    WHEN( "High Max Energy" ){
       emax = 6.0;
       AND_WHEN( "Low Tolerance" ){
         tol = 0.05;      
@@ -121,9 +121,27 @@ TEST_CASE( "adaptive reconstruction" ){
 
     } // WHEN
 
+    WHEN( "Max energy above 10 eV" ){
+      emax = 11.0;
+      AND_WHEN( "Low Tolerance" ){
+        tol = 0.01;      
+        auto my_law = adaptiveReconstruction( alphas, betas, sab, iinc, egrid, temp, 
+                                nbin, emax, tol, lat, lasym, az, boundXsVec, teff );
+  
+        std::string endfFile = njoy::utility::slurpFileToMemory("test4_tape25");
+        njoy::ENDFtk::syntaxTree::Tape<std::string> tape(endfFile);
+        njoy::ENDFtk::file::Type<6> MF6 = 
+            tape.materialNumber(1301).front().fileNumber(6).parse<6>();
+        auto good_law = std::get<LaboratoryAngleEnergy>(
+                                 MF6.MT(222).products()[0].distribution());
+ 
+        check_E_mu_Ep( good_law, my_law );
+
+      } // AND WHEN
+
+    } // WHEN
 
   } // GIVEN
-
 
 } // TEST CASE
 

@@ -1,34 +1,21 @@
 #include "general_util/sigfig.h"
+#include "generalTools/constants.h"
 #include "calcem/calcem_util/e_mu_ep_util/sigu.h"
 #include "ENDFtk.hpp"
 
-
-
 using namespace njoy::ENDFtk;
-//using Variant               = njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle::Variant;
-//using ContinuumEnergyAngle  = njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle;
-//using ThermalScatteringData = njoy::ENDFtk::section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
-using LaboratoryAngleEnergy =
-section::Type< 6 >::LaboratoryAngleEnergy;
-using AngularDistribution =
-section::Type< 6 >::LaboratoryAngleEnergy::AngularDistribution;
-using EnergyDistribution =
-section::Type< 6 >::LaboratoryAngleEnergy::EnergyDistribution;
-
-
+using LaboratoryAngleEnergy = section::Type<6>::LaboratoryAngleEnergy;
+using AngularDistribution   = section::Type<6>::LaboratoryAngleEnergy::AngularDistribution;
+using EnergyDistribution    = section::Type<6>::LaboratoryAngleEnergy::EnergyDistribution;
 
 template <typename A, typename F>
-auto do575(int& i, A& x, A& yy, const A& yu, const F& xm ){
-  // test fails. add to stack and continue
-  // 575 continue
-  //std::cout << 575 << std::endl;
+auto addToStack(int& i, A& x, A& yy, const A& yu, const F& xm ){
+  // test fails. add to stack and continue (575)
   ++i;
-  //std::cout << "i      " << i << std::endl;
-  x[i-1] = x[i-2];
-  x[i-2] = xm;
-  yy[i-1]= yy[i-2];
-  yy[i-2]= yu[0];
-
+  x[i-1]  = x[i-2];
+  x[i-2]  = xm;
+  yy[i-1] = yy[i-2];
+  yy[i-2] = yu[0];
 }
 
 
@@ -39,15 +26,13 @@ auto adaptiveReconstruction( const Range& alphas, const Range& betas, const Rang
   const Float& tol, int lat, int lasym, const Float& az, const Range& boundXsVec,
   const Float& teff ){
 
-  std::cout.precision(15);
-  Range x(20,0.0), y(20,0.0), yu(100,0.0), yy(20,0.0),
-        uj(300,0.0), sj(300,0.0), ubar(egrid.size(),0.0);// scr(500000);
-  Float xm, ym, tolmin = 5e-7;
-  
-  int i = 2, j = 0;
-  Float sum = 0, u = -1;
+  Range x(20,0), y(20,0), yu(100,0), yy(20,0), uj(300,0), sj(300,0), 
+        ubar(egrid.size(),0);
 
-  int nne = 0;
+  Float xm, ym, tolmin = 5e-7, sum = 0, u = -1, tev = temp*kb; 
+  
+  int i = 2, j = 0, nne = egrid.size();
+
   for (size_t i = 0; i < egrid.size(); ++i){
     if (egrid[i] > emax){
       nne = i + 1;
@@ -55,11 +40,7 @@ auto adaptiveReconstruction( const Range& alphas, const Range& betas, const Rang
     }
   }
 
-  Range esi(nne,0.0);
-  Range xsi(nne,0.0);
-  Float bk = 8.6173303E-5;
-  Float tev = temp * bk; 
-
+  Range esi(nne,0.0), xsi(nne,0.0);
 
   std::vector<AngularDistribution> angularDistVec;
 
@@ -73,7 +54,6 @@ auto adaptiveReconstruction( const Range& alphas, const Range& betas, const Rang
     j = 0;
     sum = 0; 
 
-
     // adaptive reconstruction of angular cross section
     u = -1;
     
@@ -81,48 +61,31 @@ auto adaptiveReconstruction( const Range& alphas, const Range& betas, const Rang
     sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,yu);
     yy[1] = yu[0];
 
-    Float xl =  x[1];
-    Float yl = yy[1];
+    Float xl =  x[1],
+          yl = yy[1];
 
     u = 1.0;
     x[0] = u;
     sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,yu);
     yy[0] = yu[0];
 
-
     i = 2;
 
+    while (i > 1){ // 530 
 
-    bool do_530 = true;
-    while (do_530){
-      // 530 
-      //if ( i == 20 ){ std::cout << "go to 560" << std::endl; }
       xm = 0.5*(x[i-2]+x[i-1]);
       xm = sigfig(xm,7,0);
-      //if (xm <= x[i-1] or xm >= x[i-2]){ std::cout << " go to 560 " << std::endl; }
+
       if (i < 20 and xm > x[i-1] and xm < x[i-2]){ 
         sigu(enow,xm,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,yu);
   
-        if (x[i-2]-x[i-1] > 0.25){ 
-          //std::cout << "go to 575" << std::endl; 
-          do575(i, x, yy, yu, xm );
-          continue;
-        }
-
-  
         ym = yy[i-1]+(xm-x[i-1])*(yy[i-2]-yy[i-1])/(x[i-2]-x[i-1]);
-        if (abs(yu[0]-ym) > 2.0*tol*ym + tolmin){ 
-          //std::cout << "go to 575" << std::endl; 
-          do575(i, x, yy, yu, xm );
+        if (x[i-2]-x[i-1] > 0.25 or abs(yu[0]-ym) > 2.0*tol*ym + tolmin){
+          addToStack(i, x, yy, yu, xm );
           continue;
         }
       } 
-
-
       // 560
-  
-      //std::cout << "560" << std::endl;
-
       j++;
       uj[j-1] = x[i-1];
       sj[j-1] = yy[i-1];
@@ -132,47 +95,27 @@ auto adaptiveReconstruction( const Range& alphas, const Range& betas, const Rang
         yl = yy[i-1];
       }
       --i;
-      //std::cout << j << "   " << uj[0] << "  " << uj[1] << "   " << uj[2] << std::endl;
-      //std::cout << i << "   " << sj[0] << "  " << sj[1] << "   " << sj[2] << std::endl;
-      //std::cout <<"         " << xl << "   " << yl << "     " << sum << std::endl;
-      //if (i >= 2){
-      //  //std::cout << "go to 530" << std::endl; 
-      //  //continue;
-      //}
-      //else {
-      //  break;
-      //}
-      if ( i < 2 ){
-        break;
-      }
-    }
+    } // while i > 1
 
-
-   // std::cout << std::endl; 
-   // std::cout << "580" << std::endl; 
+    // 580
     ++j;
     uj[j-1] = x[0];
     sj[j-1] = yy[0];
-    int nmu = j;
-    ubar[ie] = 0.0;
-    sum = sum + 0.5*(yy[0]+yl)*(x[0]-xl);
+    int numMus= j;
+    sum += 0.5*(yy[0]+yl)*(x[0]-xl);
     xsi[ie-1] = sum*0.5;
-    for (int i = 2; i <= nmu; ++i){
-      ubar[ie] = ubar[ie] + 0.5*(uj[i-1]-uj[i-2])*(sj[i-1]+sj[i-2])*(uj[i-1]+uj[i-2]);
-      //std::cout << i << "    " <<  ubar[ie] << std::endl;
+
+    for (int i = 2; i <= numMus; ++i){
+      ubar[ie] += 0.5*(uj[i-1]-uj[i-2])*(sj[i-1]+sj[i-2])*(uj[i-1]+uj[i-2]);
     }
     ubar[ie] = 0.5*ubar[ie]/sum;
-   // std::cout << ubar[ie] << std::endl;
 
-
+    // Add in a dummy energy distribution to initialize the vector
     std::vector<EnergyDistribution> energyDistributionsVec {
         EnergyDistribution( 1.0, { 4 }, { 2 }, { 1e-5, 1.1e+7, 1.147e+7, 3e+7 },
                                                 { 0., 2., 4., 6. } ) };
-
-    for (int il = 0; il < nmu; ++il ){
-      std::vector<double> scr(1000,0.0);
+    for (int il = 0; il < numMus; ++il ){
       u = uj[il];
-      //std::cout << "u      " << u << std::endl;
       sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,yu);
       int nep = int(yu[1]);
       j = 0;
@@ -184,41 +127,20 @@ auto adaptiveReconstruction( const Range& alphas, const Range& betas, const Rang
       }
       nep = j;
 
-      int istart = 1;
-      int k = 8;
-       
       // 595
-      //std::cout << " -------  595 " << std::endl; 
-      int iend = nep;
-      if (iend-istart >= 153){ iend = istart + 153 - 1; }
-      j = k - 1;
-      int ib = istart - 1;
+      
+      if (nep > 153){ nep = 153; }
+      Range EpVec(nep), ProbVec(nep);
 
-
-      std::vector<double>   EpVec(iend-ib);
-      std::vector<double> ProbVec(iend-ib);
       // 596
-      do { 
-        //std::cout << " -----------------  596 " << std::endl; 
-        j  += 2;
-        ib += 1;
-        scr[j-1] = yu[  2*ib];
-        scr[j]   = yu[1+2*ib]*2/sum;
+      
+      for (size_t ib = 1; ib < nep+1; ++ib){
         EpVec[ib-1]   = yu[  2*ib];
         ProbVec[ib-1] = yu[1+2*ib]*2/sum;
-        //std::cout << " -----------------  596     " << scr[j-1] << "     " << 
-        //                                               scr[j] << std::endl; 
-      } while (ib < iend);
+      }
 
-      scr.resize(j+1);
+      std::vector<long> interpolants {(long) EpVec.size()}, boundaries {2};
 
-      int n2 = j+3;
-
-
-      std::vector<long> interpolants = {(long) EpVec.size()},
-                        boundaries = {2};
-
-      //if (ie==0 and il == 0){std::cout << (EpVec|ranges::view::all) << std::endl;}
       if ( il == 0 ){
         energyDistributionsVec[0] = EnergyDistribution ( u, 
           std::move(interpolants), std::move(boundaries), std::move(EpVec), 
@@ -232,14 +154,10 @@ auto adaptiveReconstruction( const Range& alphas, const Range& betas, const Rang
 
     }
 
-
-    
     std::vector<long> interpolants {2};
     std::vector<long> boundaries   {(long) energyDistributionsVec.size()};
     angularDistVec.push_back(AngularDistribution( enow, std::move(boundaries),
                 std::move(interpolants), std::move(energyDistributionsVec) ) );
-
-    //break;
 
   }
 
