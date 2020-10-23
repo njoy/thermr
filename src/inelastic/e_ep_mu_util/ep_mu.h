@@ -1,7 +1,7 @@
 #include <iostream>
 #include "general_util/sigfig.h"
 #include "inelastic/e_ep_mu_util/sigl.h"
-#include "coh/coh_util/sigcoh_util/legndr.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/legndr.h"
 
 template <typename Float>
 Float highTempApprox( const Float& T, const Float& enow, const Float& egrid_first, const Float& egrid_last ){

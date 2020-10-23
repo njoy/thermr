@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "iel/incoherentElastic.h"
+#include "incoherentElastic/incoherentElastic.h"
 #include <range/v3/all.hpp>
 #include "generalTools/testing.h"
 

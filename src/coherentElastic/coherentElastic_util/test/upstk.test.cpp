@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "coh/coh_util/upstk.h"
+#include "coherentElastic/coherentElastic_util/upstk.h"
 #include "generalTools/testing.h"
 #include <range/v3/all.hpp>
 

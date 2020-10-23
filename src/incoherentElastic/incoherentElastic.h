@@ -1,5 +1,5 @@
 #include <iostream>
-#include "coh/coh_util/sigcoh_util/terp.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
 
 template <typename Float, typename Range>
 auto getIncohElasticDataSingleEnergy( const Float& E, const Float& dwf,

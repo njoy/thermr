@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "coh/coh_util/sigcoh.h"
+#include "coherentElastic/coherentElastic_util/sigcoh.h"
 #include "generalTools/testing.h"
 #include <algorithm>
 

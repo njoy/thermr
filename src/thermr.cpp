@@ -4,7 +4,7 @@
 //#include "calcem/e_mu_ep/e_mu_ep.h"
 #include "inelastic/e_ep_mu.h"
 //#include "inelastic/calcem.h"
-#include "coh/coh.h"
+#include "coherentElastic/coherentElastic.h"
 
 using namespace njoy::ENDFtk;
 using ScatteringLaw = section::Type< 7, 4 >::ScatteringLaw;

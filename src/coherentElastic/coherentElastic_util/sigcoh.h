@@ -1,6 +1,6 @@
-#include "coh/coh_util/sigcoh_util/form.h"
-#include "coh/coh_util/sigcoh_util/terp.h"
-#include "coh/coh_util/sigcoh_util/legndr.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/form.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/legndr.h"
 #include "general_util/sigfig.h"
 #include "generalTools/constants.h"
 #include <iostream>

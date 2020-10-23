@@ -1,5 +1,5 @@
-#include "coh/coh_util/upstk.h"
-#include "coh/coh_util/sigcoh.h"
+#include "coherentElastic/coherentElastic_util/upstk.h"
+#include "coherentElastic/coherentElastic_util/sigcoh.h"
 #include <vector>
 #include <range/v3/all.hpp>
 #include "general_util/sigfig.h"

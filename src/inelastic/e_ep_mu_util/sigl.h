@@ -1,5 +1,5 @@
 #include "inelastic/sig.h"
-#include "coh/coh_util/sigcoh_util/legndr.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/legndr.h"
 #include <range/v3/all.hpp>
 #include <cmath>
 #include <tuple>

@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "coh/coh_util/sigcoh_util/terp.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
 
 
 TEST_CASE( "do260" ){

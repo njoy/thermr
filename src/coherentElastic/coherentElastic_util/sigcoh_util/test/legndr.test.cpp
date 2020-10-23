@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "coh/coh_util/sigcoh_util/legndr.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/legndr.h"
 
 
 TEST_CASE( "legndr" ){

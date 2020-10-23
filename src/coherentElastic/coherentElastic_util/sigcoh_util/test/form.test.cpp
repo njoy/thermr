@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "coh/coh_util/sigcoh_util/form.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/form.h"
 
 
 TEST_CASE( "form" ){
