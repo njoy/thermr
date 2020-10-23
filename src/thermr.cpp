@@ -1,9 +1,9 @@
 #include "ENDFtk.hpp"
 //#include "ENDFtk/section/6.hpp"
 #include <range/v3/all.hpp>
-#include "calcem/calcem_util/e_mu_ep.h"
+//#include "calcem/e_mu_ep/e_mu_ep.h"
 #include "calcem/calcem_util/e_ep_mu.h"
-#include "calcem/calcem.h"
+//#include "inelastic/calcem.h"
 #include "coh/coh.h"
 
 using namespace njoy::ENDFtk;
