@@ -2,11 +2,11 @@
 #include "catch.hpp"
 #include "thermr.cpp"
 #include <range/v3/all.hpp>
-#include "correct_h2o_info/tape24.h"
+//#include "correct_h2o_info/tape24.h"
 #include "generalTools/testing.h"
-#include "correct_h2o_info/correct_6222_altered_egrid.h"
-#include "correct_be_info/correct_6222.h"
-#include "correct_be_info/tape24.h"
+//#include "correct_h2o_info/correct_6222_altered_egrid.h"
+//#include "correct_be_info/correct_6222.h"
+//#include "correct_be_info/tape24.h"
 #include <typeinfo>
 
 using namespace njoy::ENDFtk;
