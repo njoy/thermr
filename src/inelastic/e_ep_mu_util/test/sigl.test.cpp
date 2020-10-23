@@ -17,7 +17,6 @@ auto populate_SAB( int a_size, int b_size ){
 
 
 
-/*
 
 
 
@@ -35,20 +34,24 @@ TEST_CASE( "adaptively refine between two points in muVec grid" ){
     double e = 1e-5, ep = 1e-4;
 
     WHEN( "initial mu vector is populated only with extreme cosines" ){
-      std::vector<double> muVec(20,0.0), xsVec(20,0.0), correct_muVec(20), correct_xsVec(20);
+      std::vector<double> muVec(20,0.0), xsVec(20,0.0), correct_muVec(20), 
+                                                        correct_xsVec(20);
       muVec[0] =  1.0; muVec[2] = -1.0;
       xsVec[0] =  2.5; xsVec[2] =  4.0;
       int i = 3;
 
       THEN( "the cosine vector (and corresponding xs vector) are adaptively refined" ){
         double xsMax = maxOf4Vals( xsVec[0], xsVec[1], xsVec[2], 0.001 );
-        addMidpointsRight(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,boundXsVec,teff,iinc,tol,xsMax);
-        correct_muVec = { 1, 0, -0.5, -0.75, -0.875, -0.9375, -0.96875, -0.984375, 
-        -0.9921875, -0.9960937, -0.9980468, -0.9990234, -0.9995117, -0.9997558, 
-        -0.9998779, -0.9999389, -0.9999694, -0.9999847, -0.9999923, -1.0};
-        correct_xsVec = { 2.5, 0.0, 143662.3, 136248.8, 132948.0, 131385.1, 130624.0, 
-        130248.4, 130061.8, 129968.8, 129922.4, 129899.2, 129887.6, 129881.8, 
-        129878.9, 129877.5, 129876.8, 129876.4, 129876.2, 4.0};
+        addMidpointsRight(i,muVec,xsVec,e,ep,tev,alphas,betas,sab,az,lasym,lat,
+                          boundXsVec,teff,iinc,tol,xsMax);
+        correct_muVec = { 1.0, 0.0, -0.5, -0.75, -0.875, -0.93750, -0.96875, 
+          -0.98437500, -0.99218750, -0.99609375, -0.99804687, -0.99902343, 
+          -0.99951171, -0.99975585, -0.99987792, -0.99993896, -0.99996948, 
+          -0.99998474, -0.99999237,  -1.0 };
+        correct_xsVec = { 2.5, 0.0, 9690.6394250, 9692.1192405, 9692.8043549, 
+           9693.1347393, 9693.2970539, 9693.3775111, 9693.4175671, 9693.4375521, 
+           9693.4475340, 9693.4525222, 9693.4550157, 9693.4562623, 9693.4568855, 
+           9693.4571971, 9693.4573529, 9693.4574309, 9693.4574698, 4.0 };
         REQUIRE(ranges::equal(correct_muVec, muVec, equal));
         REQUIRE(ranges::equal(correct_xsVec, xsVec, equal));
       } // THEN 
@@ -58,43 +61,7 @@ TEST_CASE( "adaptively refine between two points in muVec grid" ){
 
 
 
-   
-
-//TEST_CASE( "Get pdf value" ){
-//  GIVEN( "material constants and energies (E->E')" ){
-//    double e, tev = 0.025, tolin = 5e-2*0.5, az = 0.99917, sigma_b = 4.0, 
-//           sigma_b2 = 0.0, teff = 0.12;
-//    int lat = 1, iinc = 2, lasym = 0;
-//    bool equiprobableBins = true;
-//    std::vector<double> alphas { 1.1, 2.2, 3.3, 4.5, 5.8 },
-//                         betas { 0.1, 0.2, 1.3, 1.4, 2.5, 2.6, 3.7 };
-//  
-//    auto sab = populate_SAB( alphas.size(), betas.size() );
-  
-//    WHEN( "provide various E and E' values" ){
-//      std::vector<double> eVec {1e-2,1e-1,1e0};
-//      std::vector<std::vector<double>> 
-//        epVecs  { { 1e-1, 1e-2, 1e-3, 1e-4, 1e-5 },
-//                  { 1e-2, 1e-3, 1e-4, 1e-5       },
-//                  { 1e-2, 0.1, 0.8, 1.0, 2.0     } },
-//        pdfVecs { { 71.84429, 220.1616, 61.17360, 19.66197, 6.227846 },
-//                  { 262.937411, 1.02706201, 0.32551817, 0.10296110   },
-//                  { 0.316342, 0.8001197, 1.0023345, 3.0989839, 0.0   } };
-  
-//      THEN( "integrate the incoherent inelastic scattering xs over all mu" ){
-//        for ( size_t i = 0; i < eVec.size(); ++i ){
-//          for ( size_t j = 0; j < epVecs[i].size(); ++j ){
-//            REQUIRE( getPDF(epVecs[i][j],eVec[i],tev,tolin,lat,iinc,alphas,
-//                            betas,sab,az,lasym,sigma_b,sigma_b2,teff) == 
-//                     Approx(pdfVecs[i][j]).epsilon(1e-6) );
-//          }
-//        }
-//      } // THEN
-//    } // WHEN
-//  } // GIVEN
-//} // TEST CASE
-
-
+ 
 
 
 
@@ -107,7 +74,7 @@ TEST_CASE( "sigl" ){
   auto sab = populate_SAB( alphas.size(), betas.size() );
 
   std::vector<double> boundXsVec {sigma_b, sigma_b2};
-  std::vector<double> epVec, s;
+  std::vector<double> epVec, s, correctPDFs;
   std::vector<std::vector<double>> correctMu;
   double pdfVal;
 
@@ -123,22 +90,27 @@ TEST_CASE( "sigl" ){
         e = 1e-2;
         epVec = { 1e0, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5 };
         correctMu = { { 0.0000000, 0.0000000 }, {-0.1877993, 0.6040790 },
-                      { 0.2550645, 0.8945141 }, {-0.5002791, 0.4996727 },
+                      { 0.0000000, 0.0000000 }, {-0.5002791, 0.4996727 },
                       {-0.5000937, 0.4999014 }, {-0.5000301, 0.4999693 } };
-        for ( size_t i = 0; i < correctMu.size(); ++i ){
+        correctPDFs = { 0.0, 71.84429, 0.0, 61.173606,  19.661973, 6.2278467 };
+
+        for ( size_t i = 0; i < correctPDFs.size(); ++i ){
           pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
                    boundXsVec,teff,s,equiprobableBins);
           REQUIRE(ranges::equal(correctMu[i], s, equal));
+          REQUIRE( pdfVal == Approx(correctPDFs[i]) );
         }
 
         e = 1.0;
         epVec = { 1e-2, 1e-1, 5e-1, 1.0, 2.0 };
         correctMu = { {-0.458477, 0.527666}, {-0.289542, 0.581023}, 
-                      { 0.300582, 0.783071}, { 0.914921, 0.999029}, { 0, 0 } };
+                      { 0.300582, 0.783071}, { 0.626336, 0.879973}, { 0, 0 } };
+        correctPDFs = { 0.3163424, 0.8001197, 0.9932267, 0.437514, 0.0 };
         for ( size_t i = 0; i < correctMu.size(); ++i ){
           pdfVal =  sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
                          boundXsVec,teff,s,equiprobableBins);
           REQUIRE(ranges::equal(correctMu[i], s, equal));
+          REQUIRE( pdfVal == Approx(correctPDFs[i]) );
         }
       } // THEN
     } // WHEN
@@ -216,37 +188,50 @@ TEST_CASE( "sigl" ){
 
         e = 1e-2;
         correctMu= {
-          {-4.86476,-2.85778,-0.88254, 1.09342,3.07043,5.04771,7.02703,9.01768},
-          {-1.44795, 1.65989, 4.00513, 5.98550,7.56077,8.74638,9.54019,9.93320},
-          {-8.75034,-6.25260,-3.75352,-1.25469,1.24476,3.74511,6.24475,8.75226},
-          {-8.75008,-6.25091,-3.75119,-1.25156,1.24832,3.74848,6.24852,8.75073},
-          {-8.75002,-6.25029,-3.75038,-1.25050,1.24946,3.74952,6.24954,8.75023} };
-        for ( auto& x : correctMu ){ for (auto& y : x){ y *= 0.1; } }
+        { -0.48647654, -0.28577865, -8.82549593E-2, 0.10934278, 0.30704325, 
+           0.50477104,  0.70270321,  0.90176859},
+        {  0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0},
+        { -0.875034246, -0.62526004, -0.37535265, -0.125469544, 0.124476845, 
+           0.374511893,  0.62447532,  0.87522679},
+        { -0.875008004, -0.62509139, -0.37511937, -0.125156114, 0.124832101, 
+           0.374848178,  0.62485204,  0.87507351 },
+        { -0.875002118, -0.62502992, -0.37503857, -0.125050067, 0.124946798, 
+           0.374952310,  0.62495468,  0.87502358 } };
+        correctPDFs = { 71.844290, 0.0, 61.1736062, 19.6619735, 6.22784676 };
     
         for ( size_t i = 0; i < correctMu.size(); ++i ){
           pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
                         boundXsVec,teff,s,equiprobableBins);
           REQUIRE(ranges::equal(correctMu[i], s, equal));
+          REQUIRE( pdfVal == Approx(correctPDFs[i]) );
         }
 
         e = 1e-1;
         correctMu = {
-          { 1.64498, 8.43460, 8.91257, 9.28531,9.57995,9.78053,9.91724,9.98927},
-          {-4.86476,-2.85778,-0.88255, 1.09342,3.07043,5.04771,7.02703,9.01768},
-          {-8.62936,-5.93610,-3.31200,-0.75487,1.73851,4.17021,6.54333,8.85978},
-          {-8.71318,-6.15340,-3.61387,-1.09464,1.40475,3.88454,6.34476,8.78524},
-          {-8.73847,-6.21967,-3.70717,-1.20097,1.29896,3.79267,6.28014,8.76137} };
-        for ( auto& x : correctMu ){ for (auto& y : x){ y *= 0.1; } }
+          { -0.874774735, -0.651125119, -0.456915386, -0.287144697, 
+            -0.137871601, -5.6328329E-3, 0.112095602,  0.217506519 },
+          { -0.486476543, -0.285778657, -8.825495934E-2, 0.109342786, 
+             0.307043251,  0.504771042,  0.702703213,  0.901768590 } ,
+          { -0.862935950, -0.593610548, -0.331200729, -7.54874931E-2, 
+             0.173851635,  0.417021713,  0.654333678,  0.885978062 },
+          { -0.87131822,  -0.61534055,  -0.36138752,  -0.10946478, 
+             0.14047594,   0.38845396,   0.63447693,   0.878524053 },
+          { -0.87384791, -0.62196710, -0.37071696, -0.12009711, 0.12989681, 
+             0.37926704, 0.62801413, 0.876137228 } };
+        correctPDFs = { 2.39519541, 262.9374112,  1.0270620, 0.32551817, 0.1029611 };
+
         for ( size_t i = 0; i < correctMu.size(); ++i ){
           pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
                         boundXsVec,teff,s,equiprobableBins);
           REQUIRE(ranges::equal(correctMu[i], s, equal));
+          REQUIRE( pdfVal == Approx(correctPDFs[i]) );
         }
 
       } // THEN
     } // WHEN
   } // GIVEN
 
+  /*
   GIVEN( "legendre expansion is requested" ){
     bool equiprobableBins = false;
 
@@ -271,7 +256,7 @@ TEST_CASE( "sigl" ){
       for ( size_t i = 0; i < correctMu.size(); ++i ){
         pdfVal = sigl(epVec[i],e,tev,tolin,lat,iinc,alphas,betas,sab,az,lasym,
                       boundXsVec,teff,s,equiprobableBins);
-        REQUIRE(ranges::equal(correctMu[i], s, equal));
+        //REQUIRE(ranges::equal(correctMu[i], s, equal));
       }
     } // WHEN 
 
@@ -309,6 +294,6 @@ TEST_CASE( "sigl" ){
       } // THEN 
     } // WHEN 
   } // GIVEN 
+*/
 } // TEST CASE
 
-*/
