@@ -3,7 +3,7 @@
 #include <range/v3/all.hpp>
 //#include "calcem/e_mu_ep/e_mu_ep.h"
 #include "inelastic/e_ep_mu.h"
-//#include "inelastic/calcem.h"
+#include "inelastic/e_mu_ep.h"
 #include "coherentElastic/coherentElastic.h"
 
 using namespace njoy::ENDFtk;
@@ -15,6 +15,7 @@ using ScatteringFunction = section::Type< 7, 4 >::Tabulated::ScatteringFunction;
 using EffectiveTemperature = section::Type< 7, 4 >::EffectiveTemperature;
 using MF7 = njoy::ENDFtk::file::Type<7>;
 using ContinuumEnergyAngle  = section::Type<6>::ContinuumEnergyAngle;
+using LaboratoryAngleEnergy = section::Type<6>::LaboratoryAngleEnergy;
 using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
 using Variant = section::Type< 6 >::ContinuumEnergyAngle::Variant;
 using ReactionProduct = section::Type< 6 >::ReactionProduct;
@@ -94,7 +95,7 @@ auto
 
   for (size_t itemp = 0; itemp < temps.size(); ++itemp){
 
-    std::vector<ReactionProduct> reactionProducts;
+    //std::vector<ReactionProduct> reactionProducts;
 
     std::vector<double> sab (alphas.size()*betas.size());
  
@@ -120,7 +121,6 @@ auto
         auto out = e_ep_mu( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
                             sab, awr, boundCrossSections, teff, nbin, temp );
  
-        //std::cout << "A" << std::endl;
         auto incidentEnergies = std::get<0>(out);
         auto totalSCR     = std::get<1>(out);
         auto totalOutput  = std::get<2>(out);
@@ -152,27 +152,29 @@ auto
                                     std::move( interpolants ),
                                     std::move( chunks ) );
   
-        reactionProducts.push_back(ReactionProduct(
-            // multiplicity                                      // distribution
-          { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, continuumChunk ));
+        //reactionProducts.push_back(ReactionProduct(
+        //    // multiplicity                                      // distribution
+        //  { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, continuumChunk ));
 
-        /*
-        std::vector<ReactionProduct> products {ReactionProduct(
-            // multiplicity                                      // distribution
-          { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, continuumChunk )};
-  
         int jp = 0, lct = 1;
-        //return section::Type<6> (mtref, za, awr, jp, lct, std::move(products));
-        MF6_vec.push_back(section::Type<6> (mtref, za, awr, jp, lct, std::move(products)));
-        */
+        std::vector<ReactionProduct> products = 
+          {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, continuumChunk )};
+        MF6_vec.push_back(section::Type<6>(mtref, za, awr, jp, lct, 
+                                           std::move(products)));
+
       }
       else {
         // E mu E' 
  //       auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
  //       teff = effectiveTemp.effectiveTemperatures()[0]*kb;
 
-        //auto out = e_mu_ep( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
-        //                    sab, awr, boundCrossSections, teff );
+        //LaboratoryAngleEnergy labAngleEnergy = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, emax,
+        //  tol, lat, lasym, za, boundCrossSections, teff );
+        //reactionProducts.push_back(ReactionProduct(
+        //    // multiplicity                                      // distribution
+        //  { 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, labAngleEnergy ));
+
+
 // 
       }
     }
@@ -186,19 +188,19 @@ auto
         auto MT2_law = std::get<CoherentElastic>(leapr_MT2.scatteringLaw());
         int nbragg = MT2_law.numberBraggEdges();
  
-        //int jp = 0, lct = 1;
-        reactionProducts.push_back(ReactionProduct(
-            // multiplicity                                      // distribution
-          { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() ));
+        int jp = 0, lct = 1;
+        //reactionProducts.push_back(ReactionProduct(
+        //    // multiplicity                                      // distribution
+        //  { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() ));
 
-        /*
         std::vector<ReactionProduct> products {ReactionProduct(
             // multiplicity                                      // distribution
           { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() )};
  
-        MF6_vec.push_back(section::Type<6>(mtref, za, awr, jp, lct, 
+        MF6_vec.push_back(section::Type<6>(mtref+1, za, awr, jp, lct, 
                                            std::move(products))
                          );
+        /*
                          */
         //section::Type<6> test(mtref, za, awr, jp, lct, std::move(products));
         //std::string buffer;
@@ -214,20 +216,27 @@ auto
     else if (icoh > 10){
       std::cout << "INCOH" << std::endl;
     }
+    /*
     int jp = 0, lct = 1;
 
+        std::cout << "A" << std::endl;
     std::vector<ReactionProduct> inelasticReaction {reactionProducts[0]};
+        std::cout << "B" << std::endl;
     std::vector<ReactionProduct>   elasticReaction {reactionProducts[1]};
+        std::cout << "C" << std::endl;
     //auto elasticReaction = reactionProducts[1];
     //section::Type<6,mtref> inelastic_MF6(mtref, za, awr, jp, lct, std::move(inelasticReaction));
     //section::Type<6,mtref+1> elastic_MF6(mtref, za, awr, jp, lct, std::move(  elasticReaction));
     //MF6_vec.push_back(section::Type<6>(std::move(inelastic_MF6),std::move(elastic_MF6));
     MF6_vec.push_back(section::Type<6>(mtref, za, awr, jp, lct, 
                                        std::move(inelasticReaction)));
+        std::cout << "D" << std::endl;
     MF6_vec.push_back(section::Type<6>(mtref+1, za, awr, jp, lct, 
                                        std::move(elasticReaction)));
+        std::cout << "E" << std::endl;
 
 
+        */
 
   }
 

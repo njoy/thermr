@@ -61,7 +61,7 @@ TEST_CASE( "E mu Eprime" ){
       } 
     } 
 
-    int iinc = 2, nbin = 4, lat = 1, lasym = 0;
+    int iinc = 2, lat = 1, lasym = 0;
     double temp = 296.0, az = 0.99917, sb = 163.727922, sb2 = 0, 
            teff = 0.12044192, tol, emax;
     std::vector<double> boundXsVec {sb,sb2};
@@ -72,7 +72,7 @@ TEST_CASE( "E mu Eprime" ){
       AND_WHEN( "High Tolerance" ){
         tol = 0.5;      
         auto my_law = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
-                                nbin, emax, tol, lat, lasym, az, boundXsVec, teff );
+                                emax, tol, lat, lasym, az, boundXsVec, teff );
         std::string endfFile = njoy::utility::slurpFileToMemory("test1_tape25");
         njoy::ENDFtk::syntaxTree::Tape<std::string> tape(endfFile);
         njoy::ENDFtk::file::Type<6> MF6 = 
@@ -87,7 +87,7 @@ TEST_CASE( "E mu Eprime" ){
       AND_WHEN( "Low Tolerance" ){
         tol = 0.05;
         auto my_law = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
-                                nbin, emax, tol, lat, lasym, az, boundXsVec, teff );
+                                emax, tol, lat, lasym, az, boundXsVec, teff );
 
         std::string endfFile = njoy::utility::slurpFileToMemory("test2_tape25");
         njoy::ENDFtk::syntaxTree::Tape<std::string> tape(endfFile);
@@ -106,7 +106,7 @@ TEST_CASE( "E mu Eprime" ){
       AND_WHEN( "Low Tolerance" ){
         tol = 0.05;      
         auto my_law = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
-                                nbin, emax, tol, lat, lasym, az, boundXsVec, teff );
+                                emax, tol, lat, lasym, az, boundXsVec, teff );
   
         std::string endfFile = njoy::utility::slurpFileToMemory("test3_tape25");
         njoy::ENDFtk::syntaxTree::Tape<std::string> tape(endfFile);
@@ -126,7 +126,7 @@ TEST_CASE( "E mu Eprime" ){
       AND_WHEN( "Low Tolerance" ){
         tol = 0.01;      
         auto my_law = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
-                                nbin, emax, tol, lat, lasym, az, boundXsVec, teff );
+                                emax, tol, lat, lasym, az, boundXsVec, teff );
   
         std::string endfFile = njoy::utility::slurpFileToMemory("test4_tape25");
         njoy::ENDFtk::syntaxTree::Tape<std::string> tape(endfFile);

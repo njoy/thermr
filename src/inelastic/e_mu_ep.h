@@ -22,7 +22,7 @@ auto addToStack(int& i, A& x, A& yy, const A& yu, const F& xm ){
 
 template <typename Float, typename Range>
 auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
-  int iinc, const Range& egrid, const Float& temp, int nbin, const double& emax,
+  int iinc, const Range& egrid, const Float& temp, const double& emax,
   const Float& tol, int lat, int lasym, const Float& az, const Range& boundXsVec,
   const Float& teff ){
 
@@ -134,7 +134,7 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
 
       // 596
       
-      for (size_t ib = 1; ib < nep+1; ++ib){
+      for (int ib = 1; ib < nep+1; ++ib){
         EpVec[ib-1]   = yu[  2*ib];
         ProbVec[ib-1] = yu[1+2*ib]*2/sum;
       }
