@@ -24,6 +24,60 @@ void checkCohElastic(Section good_elastic, Section my_elastic){
 }
 
 
+void checkCohElastic( section::Type<6> my_elastic_section, 
+                      section::Type<6> good_elastic_section ){
+  //REQUIRE( my_elastic_section.ZA() == good_elastic_section.ZA() );
+  REQUIRE( my_elastic_section.AWR() == good_elastic_section.AWR() );
+  REQUIRE( my_elastic_section.MT() == good_elastic_section.MT() );
+
+  auto good_products = good_elastic_section.products();
+  auto good_law      = std::get<Unknown>(good_products[0].distribution());
+  auto my_products = my_elastic_section.products();
+  auto my_law = std::get<Unknown>(my_products[0].distribution() );
+  REQUIRE( my_law.LAW() == good_law.LAW() );
+  auto good_multiplicity = good_products[0].multiplicity();
+  auto   my_multiplicity =   my_products[0].multiplicity();
+
+  checkVec(good_multiplicity.energies(),my_multiplicity.energies());
+  checkVec(good_multiplicity.multiplicities(), my_multiplicity.multiplicities() );
+  checkVec(good_multiplicity.boundaries(), my_multiplicity.boundaries() );
+  checkVec(good_multiplicity.interpolants(), my_multiplicity.interpolants() );
+}
+
+
+
+
+void check_E_mu_Ep( LaboratoryAngleEnergy good_law, LaboratoryAngleEnergy my_law ){
+    auto good_energies = good_law.angularDistributions();
+    auto   my_energies =   my_law.angularDistributions();
+
+    REQUIRE( good_energies[0].energy() == Approx(my_energies[0].energy()) );
+    auto   my_cosines = my_energies[0].energyDistributions();
+    auto good_cosines = good_energies[0].energyDistributions();
+
+    REQUIRE( good_energies.size() == my_energies.size() );
+
+    for (size_t ienergy = 0; ienergy < good_energies.size(); ++ienergy) {
+
+      checkVec( good_energies[0].interpolants(), my_energies[0].interpolants() );
+      checkVec( good_energies[0].boundaries(), my_energies[0].boundaries() );
+
+      REQUIRE( good_cosines.size() == my_cosines.size() );
+      for (size_t icos = 0; icos < good_cosines.size(); ++icos){
+        REQUIRE( good_cosines[icos].cosine() == Approx(my_cosines[icos].cosine()) );
+        checkVec( good_cosines[icos].energies(),       my_cosines[icos].energies() );
+        checkVec( good_cosines[icos].probabilities(),  my_cosines[icos].probabilities() );
+        checkVec( good_cosines[icos].interpolants(),   my_cosines[icos].interpolants() );
+        checkVec( good_cosines[icos].boundaries(),     my_cosines[icos].boundaries() );
+      }
+    }
+}
+
+
+
+
+
+
 
 template <typename Section>
 void checkInelastic(Section good_inelastic, Section my_section){
@@ -122,30 +176,6 @@ TEST_CASE( "thermr" ){
     njoy::ENDFtk::file::Type<7> MF7 = 
       leaprTape.materialNumber(26).front().fileNumber(7).parse<7>();
 
-    /*
-
-    std::cout << good_elastic.ZA() << std::endl;
-    std::cout << good_elastic.AWR() << std::endl;
-    std::cout << good_elastic.JP() << std::endl;
-    std::cout << good_elastic.LCT() << std::endl;
-    std::cout << good_elastic.NK() << std::endl;
-    std::cout << good_elastic.MT() << std::endl;
-    std::cout << std::endl;
-    auto products = good_elastic_section.products();
-    //std::cout << products.size() << std::endl;
-    std::cout << products[0].ZAP() << std::endl;
-    std::cout << products[0].AWP() << std::endl;
-    std::cout << products[0].LIP() << std::endl;
-    std::cout << products[0].LAW() << std::endl;
-    auto multiplicity = products[0].multiplicity();
-    std::cout << std::endl;
-    std::cout << (multiplicity.energies()|ranges::view::all) << std::endl;
-    //std::cout << (multiplicity.boundaries()|ranges::view::all) << std::endl;
-    std::cout << (multiplicity.multiplicities()|ranges::view::all) << std::endl;
-    //std::cout << (multiplicity.interpolants()|ranges::view::all) << std::endl;
-
-    */
-
     int matde = 26, matdp = 425, nbin  = 4, iinc  = 2, icoh  = 2, 
         iform = 0,   natom = 1,  mtref = 222;
  
@@ -159,26 +189,7 @@ TEST_CASE( "thermr" ){
 
     auto my_elastic_section   = out[1].MT(mtref+1); 
 
-  //REQUIRE( my_elastic_section.ZA() == good_elastic_section.ZA() );
-  REQUIRE( my_elastic_section.AWR() == good_elastic_section.AWR() );
-  REQUIRE( my_elastic_section.MT() == good_elastic_section.MT() );
-
-  auto good_products = good_elastic_section.products();
-  auto good_law      = std::get<Unknown>(good_products[0].distribution());
-  auto my_products = my_elastic_section.products();
-  auto my_law = std::get<Unknown>(my_products[0].distribution() );
-  REQUIRE( my_law.LAW() == good_law.LAW() );
-  //REQUIRE( my_law.LEP() == good_law.LEP() );
-  //REQUIRE( my_law.NE() == good_law.NE() ); // number inc. E points on egrid
-  //REQUIRE( my_law.NR() == good_law.NR() );
-  auto good_multiplicity = good_products[0].multiplicity();
-  auto   my_multiplicity =   my_products[0].multiplicity();
-
-  std::cout << (good_multiplicity.energies()|ranges::view::all) << std::endl;
-  std::cout << (my_multiplicity.energies()|ranges::view::all) << std::endl;
-    /*
-
-  */
+    checkCohElastic( my_elastic_section, good_elastic_section );
 
 
   } // GIVEN
@@ -267,43 +278,22 @@ TEST_CASE( "thermr" ){
     std::vector<double> temps {296.0};
     double  tol = 0.5, emax = 0.625; 
 
-   // auto out = thermr(matde, matdp, nbin, iinc, icoh, iform, natom, mtref, temps,
-   //        tol, emax, MF7);
+    auto out = thermr(matde, matdp, nbin, iinc, icoh, iform, natom, mtref, temps,
+           tol, emax, MF7);
    
-   // auto my_section = out[0].MT(mtref); // Because I'm currently returning an optional from thermr
-    //checkInelastic(good_inelastic, my_section);
+    auto my_section = out[0].MT(mtref); // Because I'm currently returning an optional from thermr
 
-    //std::cout << good_inelastic.AWR() << std::endl;
-    //std::cout << good_inelastic.MT() << std::endl;
-     
-    //auto good_products = good_inelastic.products();
-    //std::cout << typeid(good_products[0].distribution()).name() << std::endl;
-    //std::cout << good_products[0].distribution().index() << std::endl;
-    //auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
+  auto good_products = good_inelastic.products();
+  auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
 
-    //std::cout << good_law.LAW() << std::endl;
-    //std::cout << good_law.NE() << std::endl;
-    //std::cout << good_law.NR() << std::endl;
-    //std::cout << (good_law.interpolants()|ranges::view::all) << std::endl;
-    //std::cout << (good_law.boundaries()|ranges::view::all) << std::endl;
+  auto my_products = my_section.products();
+  auto my_law = std::get<LaboratoryAngleEnergy>(my_products[0].distribution() );
 
-    //auto energies = good_law.angularDistributions();
-    //std::cout << energies[0].energy() << std::endl;
+  REQUIRE( my_section.AWR() == good_inelastic.AWR() );
+  REQUIRE( my_section.MT() == good_inelastic.MT() );
 
-    //std::cout << energies[0].NMU() << std::endl;
-    //std::cout << energies[0].NRM() << std::endl;
-    //std::cout << (energies[0].interpolants()|ranges::view::all) << std::endl;
-    //std::cout << (energies[0].boundaries()|ranges::view::all) << std::endl;
 
-    //auto cosines = energies[0].energyDistributions();
-    //std::cout << cosines[0].cosine() << std::endl;
-    //std::cout << cosines[0].NRP() << std::endl;
-    //std::cout << cosines[0].NEP() << std::endl;
-    //std::cout << (cosines[0].interpolants()|ranges::view::all) << std::endl;
-    //std::cout << (cosines[0].boundaries()|ranges::view::all) << std::endl;
-    //std::cout << (cosines[0].energies()|ranges::view::all) << std::endl;
-    //std::cout << (cosines[0].probabilities()|ranges::view::all) << std::endl;
-
+  check_E_mu_Ep( good_law, my_law );
 
   } // GIVEN
 
