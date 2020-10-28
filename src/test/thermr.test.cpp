@@ -14,7 +14,7 @@ using ThermalScatteringData = section::Type< 6 >::ContinuumEnergyAngle::ThermalS
 
 void checkCohElastic( section::Type<6> my_elastic_section, 
                       section::Type<6> good_elastic_section ){
-  //REQUIRE( my_elastic_section.ZA() == good_elastic_section.ZA() );
+  REQUIRE( my_elastic_section.ZA() == good_elastic_section.ZA() );
   REQUIRE( my_elastic_section.AWR() == good_elastic_section.AWR() );
   REQUIRE( my_elastic_section.MT() == good_elastic_section.MT() );
 
@@ -72,7 +72,7 @@ void checkInelastic(Section good_inelastic, Section my_section){
   auto good_products = good_inelastic.products();
   auto good_law      = std::get<ContinuumEnergyAngle>(good_products[0].distribution());
 
-  //REQUIRE( my_section.ZA() == good_inelastic.ZA() );
+  REQUIRE( my_section.ZA() == good_inelastic.ZA() );
   REQUIRE( my_section.AWR() == good_inelastic.AWR() );
   REQUIRE( my_section.MT() == good_inelastic.MT() );
 
@@ -126,23 +126,26 @@ void checkInelastic(Section good_inelastic, Section my_section){
 
 TEST_CASE( "thermr" ){
   GIVEN( "NJOY Test 9 - H in H2O Example" ){
+
+    njoy::ENDFtk::syntaxTree::Tape<std::string> 
+      pendfTape(njoy::utility::slurpFileToMemory("h2o_tape23"));
+
     std::string endfFile = njoy::utility::slurpFileToMemory("h2o_tape25");
     njoy::ENDFtk::syntaxTree::Tape<std::string > tape(endfFile);
 
-
-    njoy::ENDFtk::file::Type<6> MF6 = tape.materialNumber(1301).front().fileNumber(6).parse<6>();
+    njoy::ENDFtk::file::Type<6> MF6 = tape.materialNumber(125).front().fileNumber(6).parse<6>();
     auto good_inelastic  = MF6.MT(222);
     std::string leaprOut = njoy::utility::slurpFileToMemory("h2o_tape24");
     njoy::ENDFtk::syntaxTree::Tape<std::string > leaprTape(leaprOut);
 
-    int matde = 101, matdp = 1301, nbin  = 4, iinc  = 2, icoh  = 0, 
+    int matde = 101, matdp = 125, nbin  = 4, iinc  = 2, icoh  = 0, 
         iform = 0,   natom = 1,    mtref = 222;
  
     std::vector<double> temps {296.0};
     double  tol = 0.5, emax = 0.625; 
 
     auto out = thermr(matde, matdp, nbin, iinc, icoh, iform, natom, mtref, temps,
-           tol, emax, leaprTape);
+           tol, emax, leaprTape, pendfTape);
    
     auto my_section = out[0].MT(mtref); 
     checkInelastic(good_inelastic, my_section);
@@ -150,11 +153,15 @@ TEST_CASE( "thermr" ){
   } // GIVEN
 
   GIVEN( "ENDF-B/VIII.0 Be" ){
+
+    njoy::ENDFtk::syntaxTree::Tape<std::string> 
+      pendfTape(njoy::utility::slurpFileToMemory("be_tape23"));
+
     std::string endfFile = njoy::utility::slurpFileToMemory("be_tape25");
     njoy::ENDFtk::syntaxTree::Tape<std::string > tape(endfFile);
 
-
     njoy::ENDFtk::file::Type<6> MF6 = tape.materialNumber(425).front().fileNumber(6).parse<6>();
+
     auto good_inelastic_section = MF6.MT(222);
     auto good_elastic_section   = MF6.MT(223);
     std::string leaprOut = njoy::utility::slurpFileToMemory("be_tape24");
@@ -167,7 +174,7 @@ TEST_CASE( "thermr" ){
     double  tol = 0.5, emax = 0.2; 
 
     auto out = thermr(matde, matdp, nbin, iinc, icoh, iform, natom, mtref, temps,
-           tol, emax, leaprTape);
+           tol, emax, leaprTape, pendfTape);
     auto my_inelastic_section = out[0].MT(mtref); 
     checkInelastic(good_inelastic_section, my_inelastic_section);
 
@@ -179,39 +186,9 @@ TEST_CASE( "thermr" ){
   } // GIVEN
 
 
-  GIVEN( "NJOY Test 9 - H in H2O Example (500 K)" ){
-
-    std::string leaprOut = njoy::utility::slurpFileToMemory("h2o500K_tape24");
-    njoy::ENDFtk::syntaxTree::Tape<std::string > leaprTape(leaprOut);
-
-    std::string endfFile = njoy::utility::slurpFileToMemory("h2o500K_tape25");
-    njoy::ENDFtk::syntaxTree::Tape<std::string > tape(endfFile);
-
-    std::vector<njoy::ENDFtk::file::Type<6>> MF6_variousTemps;
-    for (auto& material : tape.materialNumber(1301)){
-      MF6_variousTemps.push_back(material.fileNumber(6).parse<6>());
-    }
-
-    int matde = 101, matdp = 1301, nbin  = 4, iinc  = 2, icoh  = 0, 
-        iform = 0,   natom = 1,    mtref = 222;
- 
-    std::vector<double> temps {500.0};
-    double  tol = 0.5, emax = 0.05; 
-
-    auto out = thermr(matde, matdp, nbin, iinc, icoh, iform, natom, mtref, temps,
-           tol, emax, leaprTape);
-   
-    auto   my_inelastic_section = out[0].MT(mtref); 
-    auto good_inelastic_section = MF6_variousTemps[0].MT(mtref);
-    checkInelastic(good_inelastic_section, my_inelastic_section);
-
-  } // GIVEN
-
-
-
-
-
   GIVEN( "NJOY Test 9 - H in H2O Example (Multiple Temps)" ){
+    njoy::ENDFtk::syntaxTree::Tape<std::string> 
+      pendfTape(njoy::utility::slurpFileToMemory("h2oMultT_tape23"));
 
     std::string leaprOut = njoy::utility::slurpFileToMemory("h2oMultT_tape24");
     njoy::ENDFtk::syntaxTree::Tape<std::string > leaprTape(leaprOut);
@@ -220,18 +197,18 @@ TEST_CASE( "thermr" ){
     njoy::ENDFtk::syntaxTree::Tape<std::string > tape(endfFile);
 
     std::vector<njoy::ENDFtk::file::Type<6>> MF6_variousTemps;
-    for (auto& material : tape.materialNumber(1301)){
+    for (auto& material : tape.materialNumber(125)){
       MF6_variousTemps.push_back(material.fileNumber(6).parse<6>());
     }
 
-    int matde = 101, matdp = 1301, nbin  = 4, iinc  = 2, icoh  = 0, 
+    int matde = 101, matdp = 125, nbin  = 4, iinc  = 2, icoh  = 0, 
         iform = 0,   natom = 1,    mtref = 222;
  
     std::vector<double> temps {296.0,500.0};
     double  tol = 0.5, emax = 0.05; 
 
     auto out = thermr(matde, matdp, nbin, iinc, icoh, iform, natom, mtref, temps,
-           tol, emax, leaprTape);
+           tol, emax, leaprTape, pendfTape);
    
     for (size_t t = 0; t < temps.size(); ++t){
       auto   my_inelastic_section = out[t].MT(mtref); 
@@ -241,22 +218,26 @@ TEST_CASE( "thermr" ){
   } // GIVEN
 
   GIVEN( "NJOY Test 9 - H in H2O Example (E mu E')" ){
+    njoy::ENDFtk::syntaxTree::Tape<std::string> 
+      pendfTape(njoy::utility::slurpFileToMemory("h2oEmuEp_tape23"));
+
+
     std::string endfFile = njoy::utility::slurpFileToMemory("h2oEmuEp_tape25");
     njoy::ENDFtk::syntaxTree::Tape<std::string > tape(endfFile);
 
 
-    njoy::ENDFtk::file::Type<6> MF6 = tape.materialNumber(1301).front().fileNumber(6).parse<6>();
+    njoy::ENDFtk::file::Type<6> MF6 = tape.materialNumber(125).front().fileNumber(6).parse<6>();
     auto good_inelastic  = MF6.MT(222);
     std::string leaprOut = njoy::utility::slurpFileToMemory("h2oEmuEp_tape24");
     njoy::ENDFtk::syntaxTree::Tape<std::string > leaprTape(leaprOut);
-    int matde = 101, matdp = 1301, nbin  = 4, iinc  = 2, icoh  = 0, 
+    int matde = 101, matdp = 125, nbin  = 4, iinc  = 2, icoh  = 0, 
         iform = 1,   natom = 1,    mtref = 222;
  
     std::vector<double> temps {296.0};
     double  tol = 0.5, emax = 0.625; 
 
     auto out = thermr(matde, matdp, nbin, iinc, icoh, iform, natom, mtref, temps,
-           tol, emax, leaprTape);
+           tol, emax, leaprTape, pendfTape);
    
     auto my_section = out[0].MT(mtref); 
 
@@ -273,7 +254,6 @@ TEST_CASE( "thermr" ){
     check_E_mu_Ep( good_law, my_law );
 
   } // GIVEN
-
 
 } // TEST CASE 
 

@@ -35,15 +35,17 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
 template <typename Range, typename Float>
 auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
   int natom, const int mtref, Range temps, Float tol, Float emax,
-  njoy::ENDFtk::syntaxTree::Tape<std::string> leaprTape ){
-
+  njoy::ENDFtk::syntaxTree::Tape<std::string> leaprTape,
+  njoy::ENDFtk::syntaxTree::Tape<std::string> pendfTape ){
 
   njoy::ENDFtk::file::Type<7> leapr_MF7 = 
               leaprTape.materialNumber(matde).front().fileNumber(7).parse<7>();
+  njoy::ENDFtk::file::Type<1> pendfFile = 
+    pendfTape.materialNumber(matdp).front().fileNumber(1).parse<1>();
 
   njoy::ENDFtk::section::Type<7,4> leapr_MT4 = leapr_MF7.MT(4_c);
 
-  auto za        = leapr_MT4.ZA();
+  auto za        = pendfFile.section( 451_c ).ZA();
   auto awr       = leapr_MT4.AWR();
   auto lat       = leapr_MT4.LAT();
   auto lasym     = leapr_MT4.LASYM();
@@ -89,9 +91,7 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
         // E E' mu
         auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
         auto teff = effectiveTemp.effectiveTemperatures()[itemp]*kb;
-
         auto tev  = temp*kb;
-
         std::vector<double> initialEnergies;
         for (size_t i = 0; i < egrid.size(); ++i){
           initialEnergies.push_back(egrid[i]);
@@ -123,17 +123,18 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
                                     std::move( chunks ) );
   
         int jp = 0, lct = 1;
+        auto pendf_awr       = pendfFile.section( 451_c ).AWR();
         std::vector<ReactionProduct> products = 
           {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
                            { 1., 1. }}, continuumChunk )};
-        MF6_vec.push_back(section::Type<6>(mtref, za, awr, jp, lct, 
+        MF6_vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
                                            std::move(products)));
 
       }
       else {
         // E mu E' 
         auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
-        auto teff = effectiveTemp.effectiveTemperatures()[0]*kb;
+        auto teff = effectiveTemp.effectiveTemperatures()[itemp]*kb;
 
         LaboratoryAngleEnergy labAngleEnergy = e_mu_ep( alphas, betas, sab, iinc, 
             egrid, temp, emax, tol, lat, lasym, awr, boundCrossSections, teff );
@@ -144,7 +145,8 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
           {ReactionProduct({ 1., 1, -1, 7, {2}, {2}, { 1.e-5, emax }, 
                            { 1., 1. }}, std::move(labAngleEnergy))};
 
-        MF6_vec.push_back(section::Type<6>(mtref, za, awr, jp, lct, 
+        auto pendf_awr       = pendfFile.section( 451_c ).AWR();
+        MF6_vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
                                            std::move(products)));
 
       }
@@ -163,7 +165,8 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
             // multiplicity                                      // distribution
           { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() )};
  
-        MF6_vec.push_back(section::Type<6>(mtref+1, za, awr, jp, lct, 
+        auto pendf_awr       = pendfFile.section( 451_c ).AWR();
+        MF6_vec.push_back(section::Type<6>(mtref+1, za, pendf_awr, jp, lct, 
                                            std::move(products)) );
 
       }

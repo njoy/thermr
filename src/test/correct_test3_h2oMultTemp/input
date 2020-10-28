@@ -1,7 +1,7 @@
 reconr
  20 22/
  'pendf tape for h-1 from endf/b tape 511'/
- 1301 3/
+ 125 3/
  .005/
  '1-h-1 from tape 511'/
  'processed by the njoy nuclear data processing system'/
@@ -9,7 +9,7 @@ reconr
  0/
 broadr
  20 22 23/
- 1301 2/
+ 125 2/
  .005/
  296. 500.0/
  0/
@@ -67,7 +67,7 @@ leapr
  /
 thermr
  24 23 25/
- 101 1301 4 2 2 0 0 1 222 2/
+ 101 125 4 2 2 0 0 1 222 2/
  296. 500.0/
- .5 .625/
+ 0.5 .05/
 stop
