@@ -4,15 +4,10 @@
 #include "inelastic/e_ep_mu.h"
 #include "inelastic/e_mu_ep.h"
 #include "coherentElastic/coherentElastic.h"
+#include "generalTools/constants.h"
 
 using namespace njoy::ENDFtk;
-using ScatteringLaw = section::Type< 7, 4 >::ScatteringLaw;
-using ScatteringLawConstants = section::Type< 7, 4 >::ScatteringLawConstants;
-using AnalyticalFunctions = section::Type< 7, 4 >::AnalyticalFunctions;
 using Tabulated = section::Type< 7, 4 >::Tabulated;
-using ScatteringFunction = section::Type< 7, 4 >::Tabulated::ScatteringFunction;
-using EffectiveTemperature = section::Type< 7, 4 >::EffectiveTemperature;
-using MF7 = njoy::ENDFtk::file::Type<7>;
 using ContinuumEnergyAngle  = section::Type<6>::ContinuumEnergyAngle;
 using LaboratoryAngleEnergy = section::Type<6>::LaboratoryAngleEnergy;
 using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
@@ -40,24 +35,23 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
 template <typename Range, typename Float>
 auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
   int natom, const int mtref, Range temps, Float tol, Float emax,
-  MF7 leapr_MF7 ){
+  njoy::ENDFtk::syntaxTree::Tape<std::string> leaprTape ){
 
-  double kb = 8.6173303e-5;
-  std::cout.precision(15);
+
+  njoy::ENDFtk::file::Type<7> leapr_MF7 = 
+              leaprTape.materialNumber(matde).front().fileNumber(7).parse<7>();
 
   njoy::ENDFtk::section::Type<7,4> leapr_MT4 = leapr_MF7.MT(4_c);
 
-  auto za  = leapr_MT4.ZA();
-  auto awr = leapr_MT4.AWR();
-  auto lat = leapr_MT4.LAT();
-  auto lasym = leapr_MT4.LASYM();
-
+  auto za        = leapr_MT4.ZA();
+  auto awr       = leapr_MT4.AWR();
+  auto lat       = leapr_MT4.LAT();
+  auto lasym     = leapr_MT4.LASYM();
   auto constants = leapr_MT4.constants();
-  auto table = std::get<Tabulated>(leapr_MT4.scatteringLaw());
+  auto table     = std::get<Tabulated>(leapr_MT4.scatteringLaw());
 
   std::vector<double> alphas = table.betas()[0].alphas(),
                       betas(table.numberBetas() );
-
 
   for (int ibeta = 0; ibeta < table.numberBetas(); ++ibeta){ 
       auto value = table.betas()[ibeta];
@@ -75,23 +69,10 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
     }
   }
     
-
-  std::vector<double> eftemp(temps.size(),0.0), eftmp2(temps.size(),0.0);
-
-  if (matde == 0){
-    for (size_t itemp = 0; itemp < temps.size(); ++itemp){
-      eftemp[itemp] = temps[itemp];
-    }
-  }
-
-
-
   std::vector<file::Type<6>> MF6_vec {};
 
   for (size_t itemp = 0; itemp < temps.size(); ++itemp){
-
     std::vector<double> sab (alphas.size()*betas.size());
- 
     for (size_t ibeta = 0; ibeta < betas.size(); ++ibeta){
       for (size_t ialpha = 0; ialpha < alphas.size(); ++ialpha){
         sab[ialpha*betas.size()+ibeta] = 
@@ -100,8 +81,6 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
     }
 
     auto temp = temps[itemp];
-    auto tev  = temp*kb;
-    auto teff = eftemp[itemp];
     
     // compute incoherent inelastic cross sections
     if (iinc != 0){
@@ -109,25 +88,23 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
       if (iform == 0){
         // E E' mu
         auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
-        teff = effectiveTemp.effectiveTemperatures()[0]*kb;
+        auto teff = effectiveTemp.effectiveTemperatures()[itemp]*kb;
 
-        auto out = e_ep_mu( egrid, tev, tol, lat,  iinc, lasym, alphas, betas, 
+        auto tev  = temp*kb;
+
+        std::vector<double> initialEnergies;
+        for (size_t i = 0; i < egrid.size(); ++i){
+          initialEnergies.push_back(egrid[i]);
+          if (egrid[i] > emax){ break; }
+        }
+
+        auto out = e_ep_mu( initialEnergies, tev, tol, lat,  iinc, lasym, alphas, betas, 
                             sab, awr, boundCrossSections, teff, nbin, temp );
  
         auto incidentEnergies = std::get<0>(out);
         auto totalSCR     = std::get<1>(out);
         auto totalOutput  = std::get<2>(out);
         int n2 = nbin+2;
- 
-        // Resize the energies and the scattering out to abide by emax
-        for (size_t i = 0; i < incidentEnergies.size(); ++i){
-          if (incidentEnergies[i] >= emax){
-            incidentEnergies.resize(i+2);
-            totalSCR.resize(i+2);
-            break;
-          }
-        }
-
 
         auto firstSCR = totalSCR[0];
         ThermalScatteringData chunk( incidentEnergies[0], n2, std::move(firstSCR) );
@@ -155,6 +132,9 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
       }
       else {
         // E mu E' 
+        auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
+        auto teff = effectiveTemp.effectiveTemperatures()[0]*kb;
+
         LaboratoryAngleEnergy labAngleEnergy = e_mu_ep( alphas, betas, sab, iinc, 
             egrid, temp, emax, tol, lat, lasym, awr, boundCrossSections, teff );
 
