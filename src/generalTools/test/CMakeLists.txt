@@ -1,6 +1,6 @@
 
-add_executable( approximations.freeGas.test freeGas.test.cpp )
-target_compile_options( approximations.freeGas.test PRIVATE ${${PREFIX}_common_flags}
+add_executable( generalTools.test sigfig.test.cpp )
+target_compile_options( generalTools.test PRIVATE ${${PREFIX}_common_flags}
 $<$<BOOL:${strict}>:${${PREFIX}_strict_flags}>$<$<CONFIG:DEBUG>:
 ${${PREFIX}_DEBUG_flags}
 $<$<BOOL:${coverage}>:${${PREFIX}_coverage_flags}>>
@@ -10,5 +10,5 @@ $<$<BOOL:${link_time_optimization}>:${${PREFIX}_link_time_optimization_flags}>
 $<$<BOOL:${nonportable_optimization}>:${${PREFIX}_nonportable_optimization_flags}>>
 
 ${CXX_appended_flags} ${thermr_appended_flags} )
-target_link_libraries( approximations.freeGas.test PUBLIC thermr ) 
-add_test( NAME approximations.freeGas COMMAND approximations.freeGas.test )
+target_link_libraries( generalTools.test PUBLIC thermr ) 
+add_test( NAME generalTools COMMAND generalTools.test )

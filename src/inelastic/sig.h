@@ -2,7 +2,7 @@
 #define THERMR_SIG
 
 #include "inelastic/sig_util/terpq.h"
-#include "general_util/sigfig.h"
+#include "generalTools/sigfig.h"
 #include <cmath>
 
 template <typename Range>

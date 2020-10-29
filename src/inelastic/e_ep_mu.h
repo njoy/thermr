@@ -1,7 +1,5 @@
 #include "inelastic/e_ep_mu_util/ep_mu.h"
 
-
-
 template <typename Range>
 auto e_ep_mu( Range eVec, const double& tev, const double& tol, const int lat, 
   const int iinc, const int lasym, const Range& alphas, const Range& betas, 

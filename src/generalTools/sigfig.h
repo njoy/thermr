@@ -25,7 +25,6 @@ inline auto sigfig(double x, int ndig, int idig){
          ii=ii/10;
          ipwr=ipwr-1;
       }
-      //std::cout << ii  << "   " << ipwr << "   " << idig << std::endl;
       ii=ii+idig;
       xx=ii*pow(10,(-ipwr));
    }

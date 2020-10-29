@@ -1,5 +1,5 @@
 #include <iostream>
-#include "general_util/sigfig.h"
+#include "generalTools/sigfig.h"
 #include "inelastic/e_mu_ep_util/sigu.h"
 
 template <typename Range, typename Float>

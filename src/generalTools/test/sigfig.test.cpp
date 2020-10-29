@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "general_util/sigfig.h"
+#include "generalTools/sigfig.h"
 
 
 TEST_CASE( "sigfig" ){

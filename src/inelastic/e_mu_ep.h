@@ -1,4 +1,4 @@
-#include "general_util/sigfig.h"
+#include "generalTools/sigfig.h"
 #include "generalTools/constants.h"
 #include "inelastic/e_mu_ep_util/sigu.h"
 #include "ENDFtk.hpp"

@@ -1,4 +1,3 @@
-#include <iostream>
 #include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
 
 template <typename Float, typename Range>

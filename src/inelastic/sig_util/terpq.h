@@ -1,9 +1,5 @@
-#include <iostream>
 #include <vector>
-//#include "iel/iel_util/terp1.h"
 #include "inelastic/sig_util/terp1.h"
-//auto terpq( double x1, double y1, double x2, double y2, double x3, double y3,
-//  double x, double y ){
 
 template <typename F>
 auto terpq( F x1, F x2, F x3, F x, F y1, F y2, F y3 ){
@@ -13,8 +9,7 @@ auto terpq( F x1, F x2, F x3, F x, F y1, F y2, F y3 ){
    * and use lin-lin if the function takes big steps (corners).
    *-------------------------------------------------------------------
    */
-  //return x1 + x2 + x3 + x + y1 + y2 + y3;
-  double b, c, sabflg = -225, step = 2, y;
+  double b, c, step = 2;
 
   // If desired value x is below known range (x1,x2,x3), then log-lin 
   // interpolation is used. 
@@ -43,6 +38,5 @@ auto terpq( F x1, F x2, F x3, F x, F y1, F y2, F y3 ){
 
    return y1 + b * (x-x1) + c * (x-x1) * (x-x1);
 
-   if (y < sabflg) { std::cout << "here" << std::endl; y = sabflg; }
 }
 

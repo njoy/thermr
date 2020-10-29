@@ -1,5 +1,5 @@
 #include <iostream>
-#include "general_util/sigfig.h"
+#include "generalTools/sigfig.h"
 #include "inelastic/e_ep_mu_util/sigl.h"
 #include "coherentElastic/coherentElastic_util/sigcoh_util/legndr.h"
 

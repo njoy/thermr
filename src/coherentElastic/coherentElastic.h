@@ -2,7 +2,7 @@
 #include "coherentElastic/coherentElastic_util/sigcoh.h"
 #include <vector>
 #include <range/v3/all.hpp>
-#include "general_util/sigfig.h"
+#include "generalTools/sigfig.h"
 #include "generalTools/constants.h"
 
 template <typename Float, typename Range>

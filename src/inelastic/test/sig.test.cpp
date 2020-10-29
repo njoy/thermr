@@ -132,7 +132,6 @@ TEST_CASE( "sig - bound scattering (iinc != 1)" ){
 
 
   GIVEN ("alpha, beta values not scaled by 0.0253 (lat = 0)"){
-      std::cout.precision(15);
     std::vector<double> uVals(4), eVals(4), epVals(4), xsVals(4), temps(4);
     lat = 0;
 
