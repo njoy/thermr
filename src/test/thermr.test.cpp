@@ -178,7 +178,7 @@ TEST_CASE( "thermr" ){
     auto my_inelastic_section = out[0].MT(mtref); 
     checkInelastic(good_inelastic_section, my_inelastic_section);
 
-    auto my_elastic_section   = out[1].MT(mtref+1); 
+    auto my_elastic_section   = out[0].MT(mtref+1); 
 
     checkCohElastic( my_elastic_section, good_elastic_section );
 

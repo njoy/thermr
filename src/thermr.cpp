@@ -74,6 +74,9 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
   std::vector<file::Type<6>> MF6_vec {};
 
   for (size_t itemp = 0; itemp < temps.size(); ++itemp){
+
+    std::vector<section::Type<6>> section6Vec {};
+
     std::vector<double> sab (alphas.size()*betas.size());
     for (size_t ibeta = 0; ibeta < betas.size(); ++ibeta){
       for (size_t ialpha = 0; ialpha < alphas.size(); ++ialpha){
@@ -116,10 +119,13 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
         }
 
         long lep = 1;
-        std::vector<long>  boundaries = {(long) incidentEnergies.size()},
-                           interpolants = {2};
-        ContinuumEnergyAngle continuumChunk( lep, std::move( boundaries ),
-                                    std::move( interpolants ),
+        //std::vector<long>  boundaries = {(long) incidentEnergies.size()},
+        //                   interpolants = {2};
+        ContinuumEnergyAngle continuumChunk( lep, 
+                                    {(long) incidentEnergies.size()},
+                                    {2},
+                                    //std::move( boundaries ),
+                                    //std::move( interpolants ),
                                     std::move( chunks ) );
   
         int jp = 0, lct = 1;
@@ -127,7 +133,7 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
         std::vector<ReactionProduct> products = 
           {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
                            { 1., 1. }}, continuumChunk )};
-        MF6_vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
+        section6Vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
                                            std::move(products)));
 
       }
@@ -146,7 +152,7 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
                            { 1., 1. }}, std::move(labAngleEnergy))};
 
         auto pendf_awr       = pendfFile.section( 451_c ).AWR();
-        MF6_vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
+        section6Vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
                                            std::move(products)));
 
       }
@@ -166,7 +172,7 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
           { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() )};
  
         auto pendf_awr       = pendfFile.section( 451_c ).AWR();
-        MF6_vec.push_back(section::Type<6>(mtref+1, za, pendf_awr, jp, lct, 
+        section6Vec.push_back(section::Type<6>(mtref+1, za, pendf_awr, jp, lct, 
                                            std::move(products)) );
 
       }
@@ -176,6 +182,8 @@ auto  thermr( int matde, int matdp, int nbin, int iinc, int icoh, int iform,
       std::cout << "INCOH" << std::endl;
     }
 
+
+    MF6_vec.emplace_back(std::move(section6Vec));
 
   }
 
