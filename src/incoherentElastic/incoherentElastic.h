@@ -1,4 +1,4 @@
-#include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
+//#include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
 
 template <typename Float, typename Range>
 auto getIncohElasticDataSingleEnergy( const Float& E, const Float& dwf,
@@ -20,7 +20,7 @@ auto getIncohElasticDataSingleEnergy( const Float& E, const Float& dwf,
     lastCosine = thisCosine;
   }
 }
-
+/*
 
 template <typename Float>
 Float getIncohElasticXS( const Float& sigma_b, const Float& dwf, 
@@ -30,7 +30,8 @@ Float getIncohElasticXS( const Float& sigma_b, const Float& dwf,
 
 
 template <typename Range>
-auto getOnRightGrid( const Range& currentX, const Range& currentY, const Range& desiredX ){
+auto getOnRightGrid( const Range& currentX, const Range& currentY, 
+                     const Range& desiredX ){
   Range desiredY(desiredX.size(),0.0);
   for (size_t i = 0; i < desiredX.size()-1; ++i){
     desiredY[i] = terp(currentX,currentY,desiredX[i],3);
@@ -41,8 +42,9 @@ auto getOnRightGrid( const Range& currentX, const Range& currentY, const Range& 
 
 
 template <typename Range, typename Float>
-auto getIncohElasticXSGrid_withInterpolation( const Float& sigma_b, const Float& debyeWaller, 
-  int numAtoms, const Range& currentX, const Range& desiredX ){
+auto getIncohElasticXSGrid_withInterpolation( const Float& sigma_b, 
+  const Float& debyeWaller, int numAtoms, const Range& currentX, 
+  const Range& desiredX ){
   Range currentY(currentX.size(),0.0);
   for ( size_t i = 0; i < currentX.size(); ++i ){
     currentY[i] = getIncohElasticXS( sigma_b, debyeWaller, currentX[i], numAtoms );
@@ -50,3 +52,4 @@ auto getIncohElasticXSGrid_withInterpolation( const Float& sigma_b, const Float&
   return getOnRightGrid(currentX,currentY,desiredX);
 }  
 
+*/

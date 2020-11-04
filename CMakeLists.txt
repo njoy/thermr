@@ -60,6 +60,7 @@ target_link_libraries( thermr
     PUBLIC ENDFtk
     PUBLIC catch-adapter
     PUBLIC range-v3-adapter
+    PUBLIC lipservice
     )
 target_compile_options( thermr PRIVATE
     ${common_flags}

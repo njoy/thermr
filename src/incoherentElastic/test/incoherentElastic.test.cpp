@@ -186,7 +186,8 @@ TEST_CASE( "convert some X, Y grid to be on a new X grid" ){
   WHEN( "generate the inputs on our own" ){
     double sigma_b = 162.88, debyeWaller = 34.957;
     int numAtoms = 1;
-    desiredY = getIncohElasticXSGrid_withInterpolation( sigma_b, debyeWaller, numAtoms, currentX, desiredX );
+    desiredY = getIncohElasticXSGrid_withInterpolation( sigma_b, debyeWaller, 
+                                                numAtoms, currentX, desiredX );
     REQUIRE( ranges::equal(desiredY, correctY, equal) );
   } // WHEN 
 
