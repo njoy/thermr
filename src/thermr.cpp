@@ -36,30 +36,6 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
 
 
-template <typename Range>
-auto search( Range xRange, double x, int i, int left, int right ){
-  if ( xRange[i] <= x and x <= xRange[i+1] ){ return i; }
-  if ( x > xRange[i] ){ left  = i; }
-  else                { right = i; }
-  i = (left + right)*0.5;
-  return search(xRange,x,i,left,right);
-}
-
-
-
-double interpolate( std::vector<double> xVec, std::vector<double> yVec, 
-                    const double& x ){
-  int len = xVec.size();
-  if (xVec.size() == 1 ){ return yVec[0];     }
-  if ( x <= xVec[0]     ){ return yVec[0];     } 
-  if ( x >= xVec[len-1] ){ return yVec[len-1]; }
-  int index = search(xVec, x, int(len*0.5), 0, len);
-  double b = yVec[index];
-  double m = (yVec[index+1]-yVec[index])/(xVec[index+1]-xVec[index]);
-  return m*(x-xVec[index])+b;
-}
-
-
 
 
 
@@ -154,7 +130,7 @@ auto finalTHERMR( nlohmann::json jsonInput,
         std::vector<Variant> chunks {chunk};
         for ( size_t j = 1; j < incidentEnergies.size(); ++j){
           auto scratch = totalSCR[j];
-          ThermalScatteringData chunk( incidentEnergies[j], n2, std::move(scratch) );
+          ThermalScatteringData chunk(incidentEnergies[j], n2, std::move(scratch));
           chunks.push_back(chunk);
         }
 
@@ -211,51 +187,41 @@ auto finalTHERMR( nlohmann::json jsonInput,
     }
     // Incoherent Elastic
     else if (icoh > 10){
-      std::cout << "INCOH" << std::endl;
 
       njoy::ENDFtk::section::Type<7,2> leapr_MT2 = leapr_MF7.MT(2_c);
       auto incoh_law = std::get<IncoherentElastic>(leapr_MT2.scatteringLaw());
-
-      double dwf = 0.0;
-
-      if (incoh_law.NP() == 1){
-        //std::cout << "first option" << std::endl;
-      }
-      else {
-        //std::cout << "second option" << std::endl;
-        std::vector<double> temperatures = incoh_law.temperatures();
-        std::vector<double> debyeWaller  = incoh_law.debyeWallerValues();
-        
-        if ( temp < 0.9*temperatures[0] or 
-             temp > 1.1*temperatures[temperatures.size()-1] ){
-          std::cout << "oh no put an error here" << std::endl;
-        }
-        else {
-          dwf = interpolate(temperatures, debyeWaller, temp);
-        }
-      }
-
       auto chunk = section6Vec[0];
 
-      auto products = section6Vec[0].products();
-      auto law = std::get<ContinuumEnergyAngle>(products[0].distribution());
-      auto subsections = law.subsections();
+      double debyeWallerFactor = 0.0;
 
+      std::vector<double> temperatures = incoh_law.temperatures(),
+                          debyeWaller  = incoh_law.debyeWallerValues();
+        
+      if ( temp < 0.9*temperatures[0] or 
+           temp > 1.1*temperatures[temperatures.size()-1] ){
+        std::cout << "oh no put an error here" << std::endl;
+      }
+      else {
+        debyeWallerFactor = interpolate(temperatures, debyeWaller, temp);
+      }
+
+      auto law = std::get<ContinuumEnergyAngle>(chunk.products()[0].distribution());
+
+      auto chunks = incoherentElastic( law, nbin, debyeWallerFactor );
+    /*
       std::vector<double> esi;
-      for (const auto& subsection : subsections){
+      for (const auto& subsection : law.subsections()){
         esi.push_back(std::get<ThermalScatteringData>(subsection).energy());
       }
+
       std::vector<std::vector<double>> equiProbCosinesVec;
-      std::vector<double> equiprobCosines(nbin);
+      std::vector<double> equiprobCosines(nbin+2,1.0);
 
       for ( const double& E : esi ){
-        equiprobCosines.resize(nbin);
-        getIncohElasticDataSingleEnergy( E, dwf, equiprobCosines );
-        equiprobCosines.insert(equiprobCosines.begin(), 1);
-        equiprobCosines.insert(equiprobCosines.begin(), E);
+        getIncohElasticDataSingleEnergy( E, debyeWallerFactor, equiprobCosines );
         equiProbCosinesVec.push_back(equiprobCosines);
       }
-
+      //return equiProbCosinesVec;
       int n2 = nbin+2;
       auto firstSCR = equiProbCosinesVec[0];
       ThermalScatteringData chunky( esi[0], n2, std::move(firstSCR) );
@@ -265,23 +231,28 @@ auto finalTHERMR( nlohmann::json jsonInput,
         ThermalScatteringData chunky( esi[j], n2, std::move(scratch) );
         chunks.push_back(chunky);
       }
+      */
 
       long lep = 1;
       ContinuumEnergyAngle continuumChunk( lep, 
-        {(long) esi.size()}, {2}, std::move(chunks) );
+        {(long) chunks.size()}, {2}, std::move(chunks) );
 
-      int jp = 0, lct = 1;
       auto pendf_awr       = pendfFile.section( 451_c ).AWR();
       std::vector<ReactionProduct> iel_products = 
         {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
                          { 1., 1. }}, continuumChunk )};
+      /*
+                         */
+      int jp = 0, lct = 1;
+      //auto iel_products = incoherentElastic( incoh_law, temp, emax, nbin, section6Vec[0] );
+      //auto pendf_awr       = pendfFile.section( 451_c ).AWR();
       section6Vec.push_back(section::Type<6>(mtref+1, za, pendf_awr, jp, lct, 
                                          std::move(iel_products)));
-
 
     }
   
     MF6_vec.emplace_back(std::move(section6Vec));
+
 
   }
 

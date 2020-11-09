@@ -169,7 +169,6 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
       if (scr[il+jscr] <-1.0){ y[il*imax+i-1] =-1.0; }
     }
 
-   
     lastVals[0] = x[i-1]; lastVals[1] = y[0*imax+i-1];
     lastVals[2] = 0.0;    lastVals[3] = 0.0;    lastVals[4] = 0.0;
 
