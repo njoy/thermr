@@ -1,12 +1,12 @@
 #include "ENDFtk.hpp"
 //#include "ENDFtk/section/6.hpp"
+using namespace njoy;
 #include <range/v3/all.hpp>
 #include "inelastic/e_ep_mu.h"
 #include "inelastic/e_mu_ep.h"
 #include "coherentElastic/coherentElastic.h"
 #include "incoherentElastic/incoherentElastic.h"
 #include "generalTools/constants.h"
-using namespace njoy;
 #include "lipservice.hpp"
 
 using namespace njoy::ENDFtk;

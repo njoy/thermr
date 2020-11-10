@@ -1,5 +1,5 @@
-
-
+#include "ENDFtk.hpp"
+using namespace njoy::ENDFtk;
 using ContinuumEnergyAngle  = section::Type<6>::ContinuumEnergyAngle;
 using IncoherentElastic = section::Type<7,2>::IncoherentElastic;
 using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
