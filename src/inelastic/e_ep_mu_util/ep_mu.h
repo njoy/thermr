@@ -28,13 +28,13 @@ bool needMidpoint(const Range& x, const Range& y, const Float& xm, const int i,
 
       if ( k > 0 ){ uu  += s[k-1]; uum += ym;  }
 
-      Float test2       = ( k  > 0 ) ? tol : tol*abs(pdf),
+      Float test2       = ( k  > 0 ) ? tol : tol*std::fabs(pdf),
             valueToTest = ( k == 0 ) ? pdf : s[k-1];
-      if ( abs(valueToTest-ym) > test2 ){ return true; }
+      if ( std::fabs(valueToTest-ym) > test2 ){ return true; }
 
     }
 
-    if (abs(uu-uum) > 2*tol*abs(uu)+0.00001){ return true; } // 350
+    if (std::fabs(uu-uum) > 2*tol*std::fabs(uu)+0.00001){ return true; } // 350
   }
   return false; // do not need to go to 410
 }
@@ -52,13 +52,12 @@ auto findFirstEprime( const int& lat, int& jbeta, const Float& E, //Float& Ep,
   //
   // Basically, we're trying to figure out the Ep the index of the lowest beta
   // value that can be invoked, and the corresponding E' value.
-  using std::abs;
   int sign; Float Ep; // 313
   do { 
     if ( jbeta == 0 ){ jbeta = 1; }
-    sign = abs(jbeta) / jbeta;
-    Ep = ( lat == 1 ) ? E + sign*betas[abs(jbeta)-1]*0.0253 
-                      : E + sign*betas[abs(jbeta)-1]*tev ;
+    sign = std::abs(jbeta) / jbeta;
+    Ep = ( lat == 1 ) ? E + sign*betas[std::abs(jbeta)-1]*0.0253 
+                      : E + sign*betas[std::abs(jbeta)-1]*tev ;
     if (Ep == E and jbeta <= 0){ 
         Ep = sigfig(Ep,8,-1);
     }

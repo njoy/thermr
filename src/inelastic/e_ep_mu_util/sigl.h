@@ -12,15 +12,14 @@ auto initialize_XS_MU_vecs( Range& muVec, Range& xsVec, const Float& e,
   const Range& betas, const Range& sab, int lasym, int lat, 
   const Range& boundXsVec, const Float& teff, int iinc){
 
-  Float beta = std::abs((ep-e)/tev);
+  Float beta = std::fabs((ep-e)/tev);
   if ( lat == 1 and iinc == 2 ){ beta *= tev/0.0253; }
 
   muVec[2] = -1.0; 
   muVec[1] = (ep==0.0) ? 
       0.0 
-    : 0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5);
-    //: std::min(0.5 * (e+ep-(pow(1.+beta*beta,0.5)-1.)*az*tev) * pow(e*ep,-0.5), 0.99);
-  if (abs(muVec[1]) > 0.999){ muVec[1] = 0.99; }
+    : 0.5 * (e+ep-(std::pow(1.+beta*beta,0.5)-1.)*az*tev) * std::pow(e*ep,-0.5);
+  if (std::fabs(muVec[1]) > 0.999){ muVec[1] = 0.99; }
   muVec[0] =  1.0; 
 
   xsVec[0] = sig(e,ep,muVec[0],tev,alphas,betas,sab,az,0.0253,lasym,lat,boundXsVec,
@@ -68,14 +67,14 @@ auto getNextMuValue(Float& xs_per_bin, const Float& sum, Range& xsVec,
   Float mu, //std::cout << " --- 170 --- " << std::endl;
     test = (xs_per_bin-sum)*(xsVec[i-1]-xsLeft)/((muRight-muLeft)*xsLeft*xsLeft);
 
-  if ( xsLeft >= 1e-32 and abs(test) <= 1e-3 ){ // Could potentially do 180, 190
+  if ( xsLeft >= 1e-32 and std::fabs(test) <= 1e-3 ){ // Could potentially do 180, 190
       mu = muLeft + (xs_per_bin-sum)/xsLeft; //std::cout << " --- 180 --- " << std::endl;
       if      ( muRight <  mu ){ return muRight; } 
       else if ( muLeft  <= mu ){ return mu;      }
   }
   //std::cout << " --- 175 --- " << std::endl;
   Float f = (xsVec[i-1]-xsLeft)*invDeltaMu;
-  Float sqrt_disc = pow(pow((xsLeft/f),2)+2.0*(xs_per_bin-sum)/f,0.5);
+  Float sqrt_disc = std::pow(std::pow((xsLeft/f),2)+2.0*(xs_per_bin-sum)/f,0.5);
 
   mu = ( f > 0 ) ? muLeft - (xsLeft/f) + sqrt_disc 
                  : muLeft - (xsLeft/f) - sqrt_disc;
@@ -106,7 +105,6 @@ inline auto addMidpointsRight(int& i, Range& muVec, Range& xsVec, const Float& e
   const Range& sab, const Float& az, const int& lasym, const int& lat, 
   const Range& boundXsVec, const Float& teff, const int& iinc, 
   const Float& tol, const Float& xsMax ){
-  using std::abs;
 
   Float muMid, xs_guess, xs_true;
   while ( (unsigned) i < muVec.size() ){ //std::cout << " --- 110 --- " << std::endl;
@@ -114,8 +112,8 @@ inline auto addMidpointsRight(int& i, Range& muVec, Range& xsVec, const Float& e
     xs_guess = 0.5*( xsVec[i-2] + xsVec[i-1] );
     xs_true  = sig(e,ep,muMid,tev,alphas,betas,sab,az,0.0253,lasym,lat,boundXsVec,teff,iinc);
 
-    if ( ( abs(xs_guess-xs_true) <= tol*abs(xs_true)+tol*xsMax/50.0 and 
-           abs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+xsMax/100.0 and 
+    if ( ( std::fabs(xs_guess-xs_true) <= tol*std::fabs(xs_true)+tol*xsMax/50.0 and 
+           std::fabs(xsVec[i-2]-xsVec[i-1]) <= xs_guess+xsMax/100.0 and 
            (muVec[i-2]-muVec[i-1]) < 0.5 ) or
          ( muVec[i-2]-muVec[i-1] < 1e-5 ) ) { break; }
     shiftOver( i, muVec, xsVec, muMid, xs_true );
@@ -131,7 +129,6 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   // This computes integral -1 -> +1 of sigma(E->E',mu) d mu
   // through trapezoidal integration
 
-  using std::abs; using std::min; using std::pow;
   Float pdf = 0;
   Range muVec(20,0.0), xsVec(20,0.0);
   initialize_XS_MU_vecs(muVec,xsVec,e,ep,az,tev,alphas,betas,sab,lasym,lat,
@@ -169,7 +166,6 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   const Range& alphas, const Range& betas, const Range& sab, Float az,
   int lasym, const Range& boundXsVec, Float teff, Range& s, 
   bool equiprobableBins = true ){
-  using std::abs; using std::min; using std::pow;
 
   int nbin = s.size();
   for ( auto& sVal : s ){ sVal = 0.0; }

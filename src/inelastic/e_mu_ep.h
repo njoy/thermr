@@ -80,7 +80,7 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
         sigu(enow,xm,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,yu);
   
         ym = yy[i-1]+(xm-x[i-1])*(yy[i-2]-yy[i-1])/(x[i-2]-x[i-1]);
-        if (x[i-2]-x[i-1] > 0.25 or abs(yu[0]-ym) > 2.0*tol*ym + tolmin){
+        if (x[i-2]-x[i-1] > 0.25 or std::fabs(yu[0]-ym) > 2.0*tol*ym + tolmin){
           addToStack(i, x, yy, yu, xm );
           continue;
         }

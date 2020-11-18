@@ -12,6 +12,8 @@ inline auto initializeEpXS( int& jbeta, const int& lat, Range& epVec, Range& xsV
   const int lasym, const Float& teff, const Range& boundXsVec,  
   const int& iinc){
 
+  using std::abs;
+
   do { // 113
     if (jbeta == 0) jbeta = 1;
     epVec[0] = ( lat == 0 ) ? e + jbeta / abs(jbeta) * beta[abs(jbeta)-1]*tev 
@@ -25,7 +27,7 @@ inline auto initializeEpXS( int& jbeta, const int& lat, Range& epVec, Range& xsV
   --jbeta;
    
   // 116
-  Float root1_sq = pow((u*sqrt(e)+sqrt(u*u*e+(az-1)*(az+1)*e))/(az+1),2);
+  Float root1_sq = std::pow((u*sqrt(e)+sqrt(u*u*e+(az-1)*(az+1)*e))/(az+1),2);
 
   if (u < 0 and 1.01*epVec[1] < root1_sq and root1_sq < epVec[0]) {
     epVec[0] = root1_sq;
@@ -57,7 +59,7 @@ auto refineEpXS(int& i, Range& xsVec, Range& epVec, const Float& tol,
                          lasym, lat, boundXsVec, teff, iinc );
 
      // Point passes
-     if ( abs(xsTrue-xsGuess) <= tol*abs(xsTrue) ){ return; }
+     if ( std::fabs(xsTrue-xsGuess) <= tol*std::fabs(xsTrue) ){ return; }
 
      ++i; // We need to bisect again
      epVec[i] = epVec[i-1];
@@ -81,7 +83,6 @@ inline auto sigu( const Float& e, const Float& u, const Float& tev,
   * Uses linear reconstruction with the cross section from function sig.
   *-------------------------------------------------------------------
   */
-  using std::abs;
   Float sum = 0.0, epLeft=0.0, yl=0.0, tevz = 0.0253;
   Range epVec(20,0.0), xsVec(20,0.0);
   // xsVec[0] is the xs corresponding to E -> E'with scattering cosine u
