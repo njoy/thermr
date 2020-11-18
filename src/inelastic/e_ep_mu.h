@@ -7,7 +7,7 @@ auto e_ep_mu( Range eVec, const double& tev, const double& tol, const int lat,
   const double& teff, const int nbin, const double& temp ){
 
   Range lastVals(5,0.0);
-  double eNow, ePrime;
+  double eNow;
   int imax = 20;
   Range y(20*65,0.0);
 
@@ -22,7 +22,6 @@ auto e_ep_mu( Range eVec, const double& tev, const double& tol, const int lat,
     eNow = sigfig(eNow,8,0);
     eVec[iEnergy] = eNow;
 
-    ePrime = 0.0;
     Range s(nbin,0.0);
     double pdf = sigl(0.0,eNow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,boundXsVec,
                      teff,s,true);
