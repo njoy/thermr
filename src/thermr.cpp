@@ -4,7 +4,7 @@ using namespace njoy;
 #include <range/v3/all.hpp>
 #include "inelastic/e_ep_mu.h"
 #include "inelastic/e_mu_ep.h"
-#include "coherentElastic/coherentElastic.h"
+//#include "coherentElastic/coherentElastic.h"
 #include "incoherentElastic/incoherentElastic.h"
 #include "generalTools/constants.h"
 #include "lipservice.hpp"
@@ -36,10 +36,6 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
 
 
-
-
-
-
 auto finalTHERMR( nlohmann::json jsonInput, 
   njoy::ENDFtk::syntaxTree::Tape<std::string> leaprTape,
   njoy::ENDFtk::syntaxTree::Tape<std::string> pendfTape ){
@@ -53,10 +49,8 @@ auto finalTHERMR( nlohmann::json jsonInput,
   int nbin   = jsonInput["nbin"];
   int iinc   = jsonInput["iin"];
   int icoh   = jsonInput["icoh"];
-  int iform  = jsonInput["iform"];
   int natom  = jsonInput["natom"];
   int mtref  = jsonInput["mtref"];
-  std::vector<double> temps = jsonInput["tempr"];
   double tol    = jsonInput["tol"];
   double emax   = jsonInput["emax"];
   
@@ -66,13 +60,13 @@ auto finalTHERMR( nlohmann::json jsonInput,
   auto lasym     = leapr_MT4.LASYM();
   auto constants = leapr_MT4.constants();
   auto table     = std::get<Tabulated>(leapr_MT4.scatteringLaw());
+  auto pendf_awr = pendfFile.section( 451_c ).AWR();
 
   std::vector<double> alphas = table.betas()[0].alphas(),
                       betas(table.numberBetas() );
 
   for (int ibeta = 0; ibeta < table.numberBetas(); ++ibeta){ 
-      auto value = table.betas()[ibeta];
-      betas[ibeta] = value.beta();
+      betas[ibeta] = table.betas()[ibeta].beta();
   }
 
   auto freeCrossSections = constants.totalFreeCrossSections();
@@ -88,7 +82,7 @@ auto finalTHERMR( nlohmann::json jsonInput,
     
   std::vector<file::Type<6>> MF6_vec {};
 
-  for (size_t itemp = 0; itemp < temps.size(); ++itemp){
+  for (size_t itemp = 0; itemp < jsonInput["tempr"].size(); ++itemp){
 
     std::vector<section::Type<6>> section6Vec {};
 
@@ -100,12 +94,12 @@ auto finalTHERMR( nlohmann::json jsonInput,
       }
     }
 
-    auto temp = temps[itemp];
+    double temp = jsonInput["tempr"][itemp];
     
     // compute incoherent inelastic cross sections
     if (iinc != 0){
 
-      if (iform == 0){
+      if (jsonInput["iform"] == 0){
         // E E' mu
         auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
         auto teff = effectiveTemp.effectiveTemperatures()[itemp]*kb;
@@ -139,7 +133,6 @@ auto finalTHERMR( nlohmann::json jsonInput,
               {(long) incidentEnergies.size()}, {2}, std::move( chunks ) );
   
         int jp = 0, lct = 1;
-        auto pendf_awr       = pendfFile.section( 451_c ).AWR();
         std::vector<ReactionProduct> products = 
           {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
                            { 1., 1. }}, continuumChunk )};
@@ -161,7 +154,6 @@ auto finalTHERMR( nlohmann::json jsonInput,
           {ReactionProduct({ 1., 1, -1, 7, {2}, {2}, { 1.e-5, emax }, 
                            { 1., 1. }}, std::move(labAngleEnergy))};
 
-        auto pendf_awr       = pendfFile.section( 451_c ).AWR();
         section6Vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
                                            std::move(products)));
 
@@ -208,30 +200,6 @@ auto finalTHERMR( nlohmann::json jsonInput,
       auto law = std::get<ContinuumEnergyAngle>(chunk.products()[0].distribution());
 
       auto chunks = incoherentElastic( law, nbin, debyeWallerFactor );
-    /*
-      std::vector<double> esi;
-      for (const auto& subsection : law.subsections()){
-        esi.push_back(std::get<ThermalScatteringData>(subsection).energy());
-      }
-
-      std::vector<std::vector<double>> equiProbCosinesVec;
-      std::vector<double> equiprobCosines(nbin+2,1.0);
-
-      for ( const double& E : esi ){
-        getIncohElasticDataSingleEnergy( E, debyeWallerFactor, equiprobCosines );
-        equiProbCosinesVec.push_back(equiprobCosines);
-      }
-      //return equiProbCosinesVec;
-      int n2 = nbin+2;
-      auto firstSCR = equiProbCosinesVec[0];
-      ThermalScatteringData chunky( esi[0], n2, std::move(firstSCR) );
-      std::vector<Variant> chunks {chunky};
-      for ( size_t j = 1; j < esi.size(); ++j){
-        auto scratch = equiProbCosinesVec[j];
-        ThermalScatteringData chunky( esi[j], n2, std::move(scratch) );
-        chunks.push_back(chunky);
-      }
-      */
 
       long lep = 1;
       ContinuumEnergyAngle continuumChunk( lep, 
@@ -241,11 +209,9 @@ auto finalTHERMR( nlohmann::json jsonInput,
       std::vector<ReactionProduct> iel_products = 
         {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
                          { 1., 1. }}, continuumChunk )};
-      /*
-                         */
+
       int jp = 0, lct = 1;
-      //auto iel_products = incoherentElastic( incoh_law, temp, emax, nbin, section6Vec[0] );
-      //auto pendf_awr       = pendfFile.section( 451_c ).AWR();
+
       section6Vec.push_back(section::Type<6>(mtref+1, za, pendf_awr, jp, lct, 
                                          std::move(iel_products)));
 

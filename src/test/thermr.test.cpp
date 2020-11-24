@@ -124,8 +124,6 @@ void checkContinuumEnergyAngle(Section good_inelastic, Section my_section){
 
 
 TEST_CASE( "thermr" ){
-    /*
-  */
   GIVEN( "NJOY Test 9 - H in H2O Example" ){
     
     njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
@@ -169,17 +167,23 @@ TEST_CASE( "thermr" ){
       leaprTape(njoy::utility::slurpFileToMemory("be_tape24")),
       rightTape(njoy::utility::slurpFileToMemory("be_tape25"));
 
-
     auto out = finalTHERMR( jsonTHERMR, leaprTape, pendfTape);
-   
-    auto my_section = out[0].MT(int(jsonTHERMR["mtref"])); 
+    auto myMF6 = out[0];
+
+    REQUIRE( myMF6.hasMT(int(jsonTHERMR["mtref"])  ) ); 
+    REQUIRE( myMF6.hasMT(int(jsonTHERMR["mtref"])+1) ); 
+
+    auto my_inelastic_section = myMF6.MT(int(jsonTHERMR["mtref"])); 
+    auto my_elastic_section   = myMF6.MT(int(jsonTHERMR["mtref"])+1); 
 
     njoy::ENDFtk::file::Type<6> MF6 = 
         rightTape.materialNumber(425).front().fileNumber(6).parse<6>();
-    auto good_inelastic  = MF6.MT(222);
 
-    checkContinuumEnergyAngle(good_inelastic, my_section);
+    auto good_inelastic_section = MF6.MT(222);
+    auto good_elastic_section   = MF6.MT(223);
 
+    checkContinuumEnergyAngle(good_inelastic_section, my_inelastic_section);
+    checkCohElastic( my_elastic_section, good_elastic_section );
 
   } // GIVEN 
 
@@ -242,7 +246,6 @@ TEST_CASE( "thermr" ){
     auto good_inelastic  = MF6.MT(222);
 
 
-
     auto good_products = good_inelastic.products();
     auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
 
@@ -277,19 +280,24 @@ TEST_CASE( "thermr" ){
 
 
       auto out = finalTHERMR( jsonTHERMR, leaprTape, pendfTape);
+      auto myMF6 = out[0];
   
-      auto   my_elastic_section = out[0].MT(int(jsonTHERMR["mtref"])+1); 
-      auto   my_inelastic_section = out[0].MT(int(jsonTHERMR["mtref"])); 
+      REQUIRE( myMF6.hasMT(int(jsonTHERMR["mtref"])  ) ); 
+      REQUIRE( myMF6.hasMT(int(jsonTHERMR["mtref"])+1) ); 
+
+      auto   my_elastic_section   = myMF6.MT(int(jsonTHERMR["mtref"])+1); 
+      auto   my_inelastic_section = myMF6.MT(int(jsonTHERMR["mtref"])  ); 
   
       njoy::ENDFtk::file::Type<6> MF6 = 
           rightTape.materialNumber(int(jsonTHERMR["matdp"])).front().fileNumber(6).parse<6>();
-      auto good_elastic_section = MF6.MT(int(jsonTHERMR["mtref"])+1);
+
+      auto good_elastic_section   = MF6.MT(int(jsonTHERMR["mtref"])+1);
       auto good_inelastic_section = MF6.MT(int(jsonTHERMR["mtref"]));
   
-  
-      checkContinuumEnergyAngle(  good_elastic_section,   my_elastic_section);
-      checkContinuumEnergyAngle(good_inelastic_section, my_inelastic_section);
-  
+      THEN( "Both the incoherent elastic and inelastic sections match" ){
+        checkContinuumEnergyAngle(  good_elastic_section,   my_elastic_section);
+        checkContinuumEnergyAngle(good_inelastic_section, my_inelastic_section);
+      } // THEN
 
     } // WHEN
 

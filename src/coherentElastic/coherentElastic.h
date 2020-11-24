@@ -74,7 +74,8 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& finalXS,
 }
 
 template <typename Float, typename Range>
-auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, const Range& Egrid, const Float tol){
+auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, 
+          const Range& Egrid, const Float tol){
   using std::abs;
   std::vector<Float> vec1 (50,0.0), vec2 (50,0.0);
   Float scon  = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
