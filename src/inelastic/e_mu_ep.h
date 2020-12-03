@@ -110,10 +110,8 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
     }
     ubar[ie] = 0.5*ubar[ie]/sum;
 
-    // Add in a dummy energy distribution to initialize the vector
-    std::vector<EnergyDistribution> energyDistributionsVec {
-        EnergyDistribution( 1.0, { 4 }, { 2 }, { 1e-5, 1.1e+7, 1.147e+7, 3e+7 },
-                                                { 0., 2., 4., 6. } ) };
+    std::vector<EnergyDistribution> energyDistributionsVec;
+
     for (int il = 0; il < numMus; ++il ){
       u = uj[il];
       sigu(enow,u,tev,alphas,betas,sab,tol,az,iinc,lat,lasym,boundXsVec,teff,yu);
@@ -141,22 +139,15 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
 
       std::vector<long> interpolants {(long) EpVec.size()}, boundaries {2};
 
-      if ( il == 0 ){
-        energyDistributionsVec[0] = EnergyDistribution ( u, 
-          std::move(interpolants), std::move(boundaries), std::move(EpVec), 
-          std::move(ProbVec) );
-      }
-      else {
-        energyDistributionsVec.push_back(EnergyDistribution ( u, 
-          std::move(interpolants), std::move(boundaries), std::move(EpVec), 
-          std::move(ProbVec) ));
-      }
+      energyDistributionsVec.emplace_back(EnergyDistribution ( u, 
+        std::move(interpolants), std::move(boundaries), std::move(EpVec), 
+        std::move(ProbVec) ));
 
     }
 
     std::vector<long> interpolants {2};
     std::vector<long> boundaries   {(long) energyDistributionsVec.size()};
-    angularDistVec.push_back(AngularDistribution( enow, std::move(boundaries),
+    angularDistVec.emplace_back(AngularDistribution( enow, std::move(boundaries),
                 std::move(interpolants), std::move(energyDistributionsVec) ) );
 
   }
