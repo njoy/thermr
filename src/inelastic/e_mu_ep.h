@@ -111,6 +111,7 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
     ubar[ie] = 0.5*ubar[ie]/sum;
 
     std::vector<EnergyDistribution> energyDistributionsVec;
+    energyDistributionsVec.reserve(numMus);
 
     for (int il = 0; il < numMus; ++il ){
       u = uj[il];
@@ -128,7 +129,8 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
       // 595
       
       if (nep > 153){ nep = 153; }
-      Range EpVec(nep), ProbVec(nep);
+      Range EpVec(nep); 
+      Range ProbVec(nep);
 
       // 596
       
@@ -137,11 +139,21 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
         ProbVec[ib-1] = yu[1+2*ib]*2/sum;
       }
 
-      std::vector<long> interpolants {(long) EpVec.size()}, boundaries {2};
+      std::vector<long> interpolants {(long) EpVec.size()}; 
+      std::vector<long> boundaries {2};
 
-      energyDistributionsVec.emplace_back(EnergyDistribution ( u, 
-        std::move(interpolants), std::move(boundaries), std::move(EpVec), 
-        std::move(ProbVec) ));
+      std::cout << "hello" << std::endl;
+      EnergyDistribution energyDist(u,
+       std::move(interpolants), std::move(boundaries), std::move(EpVec), 
+       std::move(ProbVec) );
+      std::cout << "made energy distribution" << std::endl;
+
+      energyDistributionsVec.emplace_back(std::move(energyDist));
+
+      //energyDistributionsVec.emplace_back(EnergyDistribution ( u, 
+      //  std::move(interpolants), std::move(boundaries), std::move(EpVec), 
+      //  std::move(ProbVec) ));
+      std::cout << "goodbye" << std::endl;
 
     }
 
