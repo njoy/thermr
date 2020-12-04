@@ -64,8 +64,8 @@ auto getIncohElasticDataSingleEnergy( const double& E, const double& dwf,
 
 auto incoherentElastic( ContinuumEnergyAngle law, int nbin, double debyeWallerFactor ){
       std::vector<double> esi;
-      for (const auto& subsection : law.subsections()){
-        esi.push_back(std::get<ThermalScatteringData>(subsection).energy());
+      for (const auto& distribution : law.distributions()){
+        esi.push_back(std::get<ThermalScatteringData>(distribution).incidentEnergy());
       }
 
       std::vector<std::vector<double>> equiProbCosinesVec;

@@ -6,7 +6,7 @@
 #include <typeinfo>
 
 using namespace njoy::ENDFtk;
-using Tabulated = section::Type<7,4>::Tabulated;
+using Tabulated = section::Type<7,4>::TabulatedFunctions;
 using ContinuumEnergyAngle = section::Type< 6 >::ContinuumEnergyAngle;
 using LaboratoryAngleEnergy = section::Type< 6 >::LaboratoryAngleEnergy;
 using ThermalScatteringData = section::Type< 6 >::ContinuumEnergyAngle::ThermalScatteringData;
@@ -18,9 +18,9 @@ void checkCohElastic( section::Type<6> my_elastic_section,
   REQUIRE( my_elastic_section.AWR() == good_elastic_section.AWR() );
   REQUIRE( my_elastic_section.MT() == good_elastic_section.MT() );
 
-  auto good_products = good_elastic_section.products();
+  auto good_products = good_elastic_section.reactionProducts();
   auto good_law      = std::get<Unknown>(good_products[0].distribution());
-  auto my_products = my_elastic_section.products();
+  auto my_products = my_elastic_section.reactionProducts();
   auto my_law = std::get<Unknown>(my_products[0].distribution() );
   REQUIRE( my_law.LAW() == good_law.LAW() );
   auto good_multiplicity = good_products[0].multiplicity();
@@ -39,7 +39,7 @@ void check_E_mu_Ep( LaboratoryAngleEnergy good_law, LaboratoryAngleEnergy my_law
     auto good_energies = good_law.angularDistributions();
     auto   my_energies =   my_law.angularDistributions();
 
-    REQUIRE( good_energies[0].energy() == Approx(my_energies[0].energy()) );
+    REQUIRE( good_energies[0].incidentEnergy() == Approx(my_energies[0].incidentEnergy()) );
     auto   my_cosines = my_energies[0].energyDistributions();
     auto good_cosines = good_energies[0].energyDistributions();
 
@@ -69,14 +69,14 @@ void check_E_mu_Ep( LaboratoryAngleEnergy good_law, LaboratoryAngleEnergy my_law
 
 template <typename Section>
 void checkContinuumEnergyAngle(Section good_inelastic, Section my_section){
-  auto good_products = good_inelastic.products();
+  auto good_products = good_inelastic.reactionProducts();
   auto good_law      = std::get<ContinuumEnergyAngle>(good_products[0].distribution());
 
   REQUIRE( my_section.ZA() == good_inelastic.ZA() );
   REQUIRE( my_section.AWR() == good_inelastic.AWR() );
   REQUIRE( my_section.MT() == good_inelastic.MT() );
 
-  auto my_products = my_section.products();
+  auto my_products = my_section.reactionProducts();
   auto my_law = std::get< ContinuumEnergyAngle >(my_products[0].distribution() );
   REQUIRE( my_law.LAW() == good_law.LAW() );
   REQUIRE( my_law.LEP() == good_law.LEP() );
@@ -91,8 +91,8 @@ void checkContinuumEnergyAngle(Section good_inelastic, Section my_section){
   checkVec(good_multiplicity.boundaries(), my_multiplicity.boundaries() );
   checkVec(good_multiplicity.interpolants(), my_multiplicity.interpolants() );
 
-  auto good_energies = good_law.subsections();
-  auto   my_energies =   my_law.subsections();
+  auto good_energies = good_law.distributions();
+  auto   my_energies =   my_law.distributions();
   REQUIRE( good_energies.size() == my_energies.size() );
   
   for ( size_t i = 0; i < my_energies.size(); ++i ){ // Incoming energies
@@ -103,7 +103,7 @@ void checkContinuumEnergyAngle(Section good_inelastic, Section my_section){
 
     REQUIRE( good_subsection.LANG()   == my_subsection.LANG() );
     REQUIRE( good_subsection.LTT()    == my_subsection.LTT() );
-    REQUIRE( good_subsection.energy() == Approx(my_subsection.energy()).epsilon(1e-6) );
+    REQUIRE( good_subsection.incidentEnergy() == Approx(my_subsection.incidentEnergy()).epsilon(1e-6) );
     REQUIRE( good_subsection.NW()     == my_subsection.NW() );
     REQUIRE( good_subsection.N2()     == my_subsection.N2() );
 
@@ -134,7 +134,7 @@ TEST_CASE( "thermr" ){
     njoy::njoy21::lipservice::THERMR thermr(iss);
     nlohmann::json jsonTHERMR(thermr);
 
-    njoy::ENDFtk::syntaxTree::Tape<std::string> 
+    njoy::ENDFtk::tree::Tape<std::string> 
       pendfTape(njoy::utility::slurpFileToMemory("h2o_tape23")),
       leaprTape(njoy::utility::slurpFileToMemory("h2o_tape24")),
       rightTape(njoy::utility::slurpFileToMemory("h2o_tape25"));
@@ -145,7 +145,7 @@ TEST_CASE( "thermr" ){
     auto my_section = out[0].MT(int(jsonTHERMR["mtref"])); 
 
     njoy::ENDFtk::file::Type<6> MF6 = 
-        rightTape.materialNumber(125).front().fileNumber(6).parse<6>();
+        rightTape.material(125).front().file(6).parse<6>();
     auto good_inelastic  = MF6.MT(222);
 
     checkContinuumEnergyAngle(good_inelastic, my_section);
@@ -162,7 +162,7 @@ TEST_CASE( "thermr" ){
     njoy::njoy21::lipservice::THERMR thermr(iss);
     nlohmann::json jsonTHERMR(thermr);
 
-    njoy::ENDFtk::syntaxTree::Tape<std::string> 
+    njoy::ENDFtk::tree::Tape<std::string> 
       pendfTape(njoy::utility::slurpFileToMemory("be_tape23")),
       leaprTape(njoy::utility::slurpFileToMemory("be_tape24")),
       rightTape(njoy::utility::slurpFileToMemory("be_tape25"));
@@ -177,7 +177,7 @@ TEST_CASE( "thermr" ){
     auto my_elastic_section   = myMF6.MT(int(jsonTHERMR["mtref"])+1); 
 
     njoy::ENDFtk::file::Type<6> MF6 = 
-        rightTape.materialNumber(425).front().fileNumber(6).parse<6>();
+        rightTape.material(425).front().file(6).parse<6>();
 
     auto good_inelastic_section = MF6.MT(222);
     auto good_elastic_section   = MF6.MT(223);
@@ -198,7 +198,7 @@ TEST_CASE( "thermr" ){
     njoy::njoy21::lipservice::THERMR thermr(iss);
     nlohmann::json jsonTHERMR(thermr);
 
-    njoy::ENDFtk::syntaxTree::Tape<std::string> 
+    njoy::ENDFtk::tree::Tape<std::string> 
       pendfTape(njoy::utility::slurpFileToMemory("h2oMultT_tape23")),
       leaprTape(njoy::utility::slurpFileToMemory("h2oMultT_tape24")),
       rightTape(njoy::utility::slurpFileToMemory("h2oMultT_tape25"));
@@ -208,8 +208,8 @@ TEST_CASE( "thermr" ){
     auto my_section = out[0].MT(int(jsonTHERMR["mtref"])); 
 
     std::vector<njoy::ENDFtk::file::Type<6>> MF6_variousTemps;
-    for (auto& material : rightTape.materialNumber(125)){
-      MF6_variousTemps.push_back(material.fileNumber(6).parse<6>());
+    for (auto& material : rightTape.material(125)){
+      MF6_variousTemps.push_back(material.file(6).parse<6>());
     }
 
 
@@ -232,7 +232,7 @@ TEST_CASE( "thermr" ){
     njoy::njoy21::lipservice::THERMR thermr(iss);
     nlohmann::json jsonTHERMR(thermr);
 
-    njoy::ENDFtk::syntaxTree::Tape<std::string> 
+    njoy::ENDFtk::tree::Tape<std::string> 
       pendfTape(njoy::utility::slurpFileToMemory("h2oEmuEp_tape23")),
       leaprTape(njoy::utility::slurpFileToMemory("h2oEmuEp_tape24")),
       rightTape(njoy::utility::slurpFileToMemory("h2oEmuEp_tape25"));
@@ -242,14 +242,14 @@ TEST_CASE( "thermr" ){
     auto my_section = out[0].MT(int(jsonTHERMR["mtref"])); 
 
     njoy::ENDFtk::file::Type<6> MF6 = 
-        rightTape.materialNumber(125).front().fileNumber(6).parse<6>();
+        rightTape.material(125).front().file(6).parse<6>();
     auto good_inelastic  = MF6.MT(222);
 
 
-    auto good_products = good_inelastic.products();
+    auto good_products = good_inelastic.reactionProducts();
     auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
 
-    auto my_products = my_section.products();
+    auto my_products = my_section.reactionProducts();
     auto my_law = std::get<LaboratoryAngleEnergy>(my_products[0].distribution() );
 
     REQUIRE( my_section.AWR() == good_inelastic.AWR() );
@@ -273,7 +273,7 @@ TEST_CASE( "thermr" ){
       njoy::njoy21::lipservice::THERMR thermr(iss);
       nlohmann::json jsonTHERMR(thermr);
 
-      njoy::ENDFtk::syntaxTree::Tape<std::string> 
+      njoy::ENDFtk::tree::Tape<std::string> 
         pendfTape(njoy::utility::slurpFileToMemory("zrh_tape23")),
         leaprTape(njoy::utility::slurpFileToMemory("zrh_tape24")),
         rightTape(njoy::utility::slurpFileToMemory("zrh_tape25"));
@@ -289,7 +289,7 @@ TEST_CASE( "thermr" ){
       auto   my_inelastic_section = myMF6.MT(int(jsonTHERMR["mtref"])  ); 
   
       njoy::ENDFtk::file::Type<6> MF6 = 
-          rightTape.materialNumber(int(jsonTHERMR["matdp"])).front().fileNumber(6).parse<6>();
+          rightTape.material(int(jsonTHERMR["matdp"])).front().file(6).parse<6>();
 
       auto good_elastic_section   = MF6.MT(int(jsonTHERMR["mtref"])+1);
       auto good_inelastic_section = MF6.MT(int(jsonTHERMR["mtref"]));
@@ -311,7 +311,7 @@ TEST_CASE( "thermr" ){
       njoy::njoy21::lipservice::THERMR thermr(iss);
       nlohmann::json jsonTHERMR(thermr);
 
-      njoy::ENDFtk::syntaxTree::Tape<std::string> 
+      njoy::ENDFtk::tree::Tape<std::string> 
         pendfTape(njoy::utility::slurpFileToMemory("zrhMultT_tape23")),
         leaprTape(njoy::utility::slurpFileToMemory("zrhMultT_tape24")),
         rightTape(njoy::utility::slurpFileToMemory("zrhMultT_tape25"));
@@ -319,9 +319,9 @@ TEST_CASE( "thermr" ){
       auto out = finalTHERMR( jsonTHERMR, leaprTape, pendfTape);
 
       std::vector<njoy::ENDFtk::file::Type<6>> MF6_variousTemps;
-      for (auto& material : rightTape.materialNumber(int(jsonTHERMR["matdp"]))){
+      for (auto& material : rightTape.material(int(jsonTHERMR["matdp"]))){
         if (material.hasMF(6)){
-          MF6_variousTemps.push_back(material.fileNumber(6).parse<6>());
+          MF6_variousTemps.push_back(material.file(6).parse<6>());
         }
       }
 

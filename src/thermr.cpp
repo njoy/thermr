@@ -10,7 +10,7 @@ using namespace njoy;
 #include "lipservice.hpp"
 
 using namespace njoy::ENDFtk;
-using Tabulated = section::Type< 7, 4 >::Tabulated;
+using Tabulated = section::Type< 7, 4 >::TabulatedFunctions;
 using ContinuumEnergyAngle  = section::Type<6>::ContinuumEnergyAngle;
 using LaboratoryAngleEnergy = section::Type<6>::LaboratoryAngleEnergy;
 using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
@@ -37,13 +37,13 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
 
 
 auto finalTHERMR( nlohmann::json jsonInput, 
-  njoy::ENDFtk::syntaxTree::Tape<std::string> leaprTape,
-  njoy::ENDFtk::syntaxTree::Tape<std::string> pendfTape ){
+  njoy::ENDFtk::tree::Tape<std::string> leaprTape,
+  njoy::ENDFtk::tree::Tape<std::string> pendfTape ){
 
-  njoy::ENDFtk::file::Type<7> leapr_MF7 = leaprTape.materialNumber(
-                      int(jsonInput["matde"])).front().fileNumber(7).parse<7>();
-  njoy::ENDFtk::file::Type<1> pendfFile = pendfTape.materialNumber(
-                      int(jsonInput["matdp"])).front().fileNumber(1).parse<1>();
+  njoy::ENDFtk::file::Type<7> leapr_MF7 = leaprTape.material(
+                      int(jsonInput["matde"])).front().file(7).parse<7>();
+  njoy::ENDFtk::file::Type<1> pendfFile = pendfTape.material(
+                      int(jsonInput["matdp"])).front().file(1).parse<1>();
 
   njoy::ENDFtk::section::Type<7,4> leapr_MT4 = leapr_MF7.MT(4_c);
   int nbin   = jsonInput["nbin"];
@@ -62,12 +62,8 @@ auto finalTHERMR( nlohmann::json jsonInput,
   auto table     = std::get<Tabulated>(leapr_MT4.scatteringLaw());
   auto pendf_awr = pendfFile.section( 451_c ).AWR();
 
-  std::vector<double> alphas = table.betas()[0].alphas(),
-                      betas(table.numberBetas() );
-
-  for (int ibeta = 0; ibeta < table.numberBetas(); ++ibeta){ 
-      betas[ibeta] = table.betas()[ibeta].beta();
-  }
+  std::vector<double> alphas = table.scatteringFunctions()[0].alphas(),
+                      betas  = table.betas();
 
   auto freeCrossSections = constants.totalFreeCrossSections();
   std::vector<double> boundCrossSections(freeCrossSections.size(),0.0);
@@ -90,7 +86,7 @@ auto finalTHERMR( nlohmann::json jsonInput,
     for (size_t ibeta = 0; ibeta < betas.size(); ++ibeta){
       for (size_t ialpha = 0; ialpha < alphas.size(); ++ialpha){
         sab[ialpha*betas.size()+ibeta] = 
-            log(table.betas()[ibeta].thermalScatteringValues()[itemp][ialpha]);
+            log(table.scatteringFunctions()[ibeta].thermalScatteringValues()[itemp][ialpha]);
       }
     }
 
@@ -197,7 +193,7 @@ auto finalTHERMR( nlohmann::json jsonInput,
         debyeWallerFactor = interpolate(temperatures, debyeWaller, temp);
       }
 
-      auto law = std::get<ContinuumEnergyAngle>(chunk.products()[0].distribution());
+      auto law = std::get<ContinuumEnergyAngle>(chunk.reactionProducts()[0].distribution());
 
       auto chunks = incoherentElastic( law, nbin, debyeWallerFactor );
 

@@ -1,13 +1,14 @@
 #include "catch.hpp"
 #include "inelastic/e_mu_ep.h"
 #include "generalTools/testing.h"
+#include "header-utilities/slurpFileToMemory.hpp"
 
 
 void check_E_mu_Ep( LaboratoryAngleEnergy good_law, LaboratoryAngleEnergy my_law ){
     auto good_energies = good_law.angularDistributions();
     auto   my_energies =   my_law.angularDistributions();
 
-    REQUIRE( good_energies[0].energy() == Approx(my_energies[0].energy()) );
+    REQUIRE( good_energies[0].incidentEnergy() == Approx(my_energies[0].incidentEnergy()) );
     auto   my_cosines = my_energies[0].energyDistributions();
     auto good_cosines = good_energies[0].energyDistributions();
 
@@ -74,11 +75,11 @@ TEST_CASE( "E mu Eprime" ){
         auto my_law = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
                                 emax, tol, lat, lasym, az, boundXsVec, teff );
         std::string endfFile = njoy::utility::slurpFileToMemory("test1_tape25");
-        njoy::ENDFtk::syntaxTree::Tape<std::string> tape(endfFile);
+        njoy::ENDFtk::tree::Tape<std::string> tape(endfFile);
         njoy::ENDFtk::file::Type<6> MF6 = 
-            tape.materialNumber(1301).front().fileNumber(6).parse<6>();
+            tape.material(1301).front().file(6).parse<6>();
         auto good_law = std::get<LaboratoryAngleEnergy>(
-                                 MF6.MT(222).products()[0].distribution());
+                                 MF6.MT(222).reactionProducts()[0].distribution());
 
         check_E_mu_Ep( good_law, my_law );
 
@@ -90,11 +91,11 @@ TEST_CASE( "E mu Eprime" ){
                                 emax, tol, lat, lasym, az, boundXsVec, teff );
 
         std::string endfFile = njoy::utility::slurpFileToMemory("test2_tape25");
-        njoy::ENDFtk::syntaxTree::Tape<std::string> tape(endfFile);
+        njoy::ENDFtk::tree::Tape<std::string> tape(endfFile);
         njoy::ENDFtk::file::Type<6> MF6 = 
-            tape.materialNumber(1301).front().fileNumber(6).parse<6>();
+            tape.material(1301).front().file(6).parse<6>();
         auto good_law = std::get<LaboratoryAngleEnergy>(
-                                 MF6.MT(222).products()[0].distribution());
+                                 MF6.MT(222).reactionProducts()[0].distribution());
  
         check_E_mu_Ep( good_law, my_law );
       } // AND WHEN
@@ -109,11 +110,11 @@ TEST_CASE( "E mu Eprime" ){
                                 emax, tol, lat, lasym, az, boundXsVec, teff );
   
         std::string endfFile = njoy::utility::slurpFileToMemory("test3_tape25");
-        njoy::ENDFtk::syntaxTree::Tape<std::string> tape(endfFile);
+        njoy::ENDFtk::tree::Tape<std::string> tape(endfFile);
         njoy::ENDFtk::file::Type<6> MF6 = 
-            tape.materialNumber(1301).front().fileNumber(6).parse<6>();
+            tape.material(1301).front().file(6).parse<6>();
         auto good_law = std::get<LaboratoryAngleEnergy>(
-                                 MF6.MT(222).products()[0].distribution());
+                                 MF6.MT(222).reactionProducts()[0].distribution());
  
         check_E_mu_Ep( good_law, my_law );
 
@@ -129,11 +130,11 @@ TEST_CASE( "E mu Eprime" ){
                                 emax, tol, lat, lasym, az, boundXsVec, teff );
   
         std::string endfFile = njoy::utility::slurpFileToMemory("test4_tape25");
-        njoy::ENDFtk::syntaxTree::Tape<std::string> tape(endfFile);
+        njoy::ENDFtk::tree::Tape<std::string> tape(endfFile);
         njoy::ENDFtk::file::Type<6> MF6 = 
-            tape.materialNumber(1301).front().fileNumber(6).parse<6>();
+            tape.material(1301).front().file(6).parse<6>();
         auto good_law = std::get<LaboratoryAngleEnergy>(
-                                 MF6.MT(222).products()[0].distribution());
+                                 MF6.MT(222).reactionProducts()[0].distribution());
  
         check_E_mu_Ep( good_law, my_law );
 
