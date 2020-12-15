@@ -4,6 +4,7 @@ using namespace njoy;
 #include <range/v3/all.hpp>
 #include "inelastic/e_ep_mu.h"
 #include "inelastic/e_mu_ep.h"
+#include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
 //#include "coherentElastic/coherentElastic.h"
 #include "incoherentElastic/incoherentElastic.h"
 #include "generalTools/constants.h"
@@ -36,19 +37,25 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
 
 
-auto finalTHERMR( nlohmann::json jsonInput, 
-  njoy::ENDFtk::tree::Tape<std::string> leaprTape,
-  njoy::ENDFtk::tree::Tape<std::string> pendfTape ){
+auto finalTHERMR( const nlohmann::json jsonInput ){
+                  //std::ostream& ,//output,
+                  //std::ostream& ,//error,
+                  //const nlohmann::json&){
 
-  njoy::ENDFtk::file::Type<7> MF7 = leaprTape.material(
+  tree::Tape<std::string> leaprTape ( utility::slurpFileToMemory("tape" +
+                                      std::to_string(int(jsonInput["nendf"]))));
+  tree::Tape<std::string> pendfTape ( utility::slurpFileToMemory("tape" + 
+                                      std::to_string(int(jsonInput["nin"]))));
+
+  file::Type<7> MF7 = leaprTape.material(
                       int(jsonInput["matde"])).front().file(7).parse<7>();
-  njoy::ENDFtk::file::Type<1> MF1 = pendfTape.material(
+  file::Type<1> MF1 = pendfTape.material(
                       int(jsonInput["matdp"])).front().file(1).parse<1>();
-  njoy::ENDFtk::file::Type<3> MF3 = pendfTape.material(
+  file::Type<3> MF3 = pendfTape.material(
                       int(jsonInput["matdp"])).front().file(3).parse<3>();
   auto MF3_1 = MF3.MT(1_c);
 
-  njoy::ENDFtk::section::Type<7,4> leapr_MT4 = MF7.MT(4_c);
+  section::Type<7,4> leapr_MT4 = MF7.MT(4_c);
   int nbin   = jsonInput["nbin"];
   int iinc   = jsonInput["iin"];
   int icoh   = jsonInput["icoh"];
@@ -79,11 +86,13 @@ auto finalTHERMR( nlohmann::json jsonInput,
     }
   }
     
-  std::vector<file::Type<6>> MF6_vec {};
+  std::vector<Material>        materials {};
+  std::vector<DirectoryRecord> index     {};
 
   for (size_t itemp = 0; itemp < jsonInput["tempr"].size(); ++itemp){
 
     std::vector<section::Type<6>> section6Vec {};
+    std::vector<section::Type<3>> section3Vec {};
 
     std::vector<double> sab (alphas.size()*betas.size());
     for (size_t ibeta = 0; ibeta < betas.size(); ++ibeta){
@@ -92,6 +101,7 @@ auto finalTHERMR( nlohmann::json jsonInput,
             log(table.scatteringFunctions()[ibeta].thermalScatteringValues()[itemp][ialpha]);
       }
     }
+
 
     double temp = jsonInput["tempr"][itemp];
     
@@ -114,8 +124,8 @@ auto finalTHERMR( nlohmann::json jsonInput,
                             nbin, temp );
  
         auto incidentEnergies = std::get<0>(out);
-        auto totalSCR     = std::get<1>(out);
-        auto totalOutput  = std::get<2>(out);
+        auto totalSCR         = std::get<1>(out);
+        auto totalOutput      = std::get<2>(out);
         int n2 = nbin+2;
 
         auto firstSCR = totalSCR[0];
@@ -126,6 +136,7 @@ auto finalTHERMR( nlohmann::json jsonInput,
           ThermalScatteringData chunk(incidentEnergies[j], n2, std::move(scratch));
           chunks.push_back(chunk);
         }
+        std::cout << (incidentEnergies|ranges::view::all) << std::endl;
 
         long lep = 1;
         ContinuumEnergyAngle continuumChunk( lep, 
@@ -135,18 +146,17 @@ auto finalTHERMR( nlohmann::json jsonInput,
         std::vector<ReactionProduct> products = 
           {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
                            { 1., 1. }}, continuumChunk )};
-        section6Vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
-                                           std::move(products)));
+        section::Type<6> inelastic(mtref, za, pendf_awr, jp, lct, std::move(products));
+        index.emplace_back( 6, mtref, inelastic.NC(), 0 );
+        section6Vec.push_back( std::move(inelastic) );
 
+
+
+        // Do the MF3 stuff
         std::vector<double> xsi;
         for (const auto& entry : totalOutput){
             xsi.emplace_back(entry[0]);
         }
-        //std::cout << std::endl;
-        //std::cout << initialEnergies.size()<< std::endl;
-        //std::cout << std::endl;
-        //std::cout << xsi.size() << std::endl;
-        //std::cout << std::endl;
         std::vector<double> desiredEnergies; 
         std::vector<double> finalXS;
 
@@ -162,30 +172,28 @@ auto finalTHERMR( nlohmann::json jsonInput,
           desiredEnergies.emplace_back(energy);
         }
         for ( const auto& energy : desiredEnergies ){
-          finalXS.emplace_back(interpolate(initialEnergies,xsi,energy));
+          finalXS.emplace_back(terp(initialEnergies,xsi,energy,5));
         }
         desiredEnergies.emplace_back(2e7);
         finalXS.emplace_back(0.0);
-        
 
-  
-       int lr = 0;                // Look this up
-       double qm = 2.224648e+6;   // Look this up
-       double qi = 3.224648e+6;   // Look this up
+        if (desiredEnergies[desiredEnergies.size()-2] > emax){ 
+            finalXS[desiredEnergies.size()-2] = 0.0; }
+        
+       int lr = 0;        
+       double qm = temp;  
+       double qi = 0.0;  
 
        std::vector< long > interpolants = { 2 };
        std::vector< long > boundaries = { long(desiredEnergies.size()) };
 
-        section::Type< 3 > chunky( mtref, za, pendf_awr, qm, qi, lr,
+       section::Type< 3 > MF3( mtref, za, pendf_awr, qm, qi, lr,
                                   std::move( boundaries ),
                                   std::move( interpolants ),
                                   std::move( desiredEnergies ), 
                                   std::move( finalXS ) );
-        std::cout << chunky.energies() << std::endl;
-        //std::cout << (desiredEnergies|ranges::view::all) << std::endl;
-        //std::cout << std::endl;
-        //std::cout << (finalXS|ranges::view::all) << std::endl;
 
+        section3Vec.push_back( std::move(MF3) );
 
 
 
@@ -204,8 +212,9 @@ auto finalTHERMR( nlohmann::json jsonInput,
           {ReactionProduct({ 1., 1, -1, 7, {2}, {2}, { 1.e-5, emax }, 
                            { 1., 1. }}, std::move(labAngleEnergy))};
 
-        section6Vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
-                                           std::move(products)));
+        section::Type<6> inelastic(mtref, za, pendf_awr, jp, lct, std::move(products));
+        index.emplace_back( 6, mtref, inelastic.NC(), 0 );
+        section6Vec.push_back( std::move(inelastic) );
 
       }
     }
@@ -222,8 +231,9 @@ auto finalTHERMR( nlohmann::json jsonInput,
           { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() )};
  
         auto pendf_awr       = MF1.section( 451_c ).AWR();
-        section6Vec.push_back(section::Type<6>(mtref+1, za, pendf_awr, jp, lct, 
-                                           std::move(products)) );
+        section::Type<6> cohElastic(mtref+1, za, pendf_awr, jp, lct, std::move(products));
+        index.emplace_back( 6, mtref+1, cohElastic.NC(), 0 );
+        section6Vec.push_back( std::move(cohElastic) );
 
       }
     }
@@ -262,17 +272,30 @@ auto finalTHERMR( nlohmann::json jsonInput,
 
       int jp = 0, lct = 1;
 
-      section6Vec.push_back(section::Type<6>(mtref+1, za, pendf_awr, jp, lct, 
-                                         std::move(iel_products)));
+      section::Type<6> incElastic(mtref+1, za, pendf_awr, jp, lct, std::move(iel_products));
+      index.emplace_back( 6, mtref+1, incElastic.NC(), 0 );
+      section6Vec.push_back( std::move(incElastic) );
 
     }
+
+    file::Type<1> MF1_copy = MF1;
+    Material material( int(jsonInput["matdp"]), std::move(MF1_copy), 
+                       file::Type<3>(std::move(section3Vec)),
+                       file::Type<6>(std::move(section6Vec)) );
+    materials.emplace_back(std::move(material));
   
-    MF6_vec.emplace_back(std::move(section6Vec));
-
-
   }
 
-  return MF6_vec;
+  Tape tape( TapeIdentification(std::string(pendfTape.TPID().text()),1), 
+             std::move(materials) );
+  std::string buffer;
+  auto materialOutput = std::back_inserter( buffer );
+  tape.print( materialOutput );
+  std::string name = "tape"+std::to_string(int(jsonInput["nout"]));
+  std::ofstream out(name);
+  out << buffer;
+  out.close();
+
 }
 
 
