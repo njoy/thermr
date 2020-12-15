@@ -40,12 +40,15 @@ auto finalTHERMR( nlohmann::json jsonInput,
   njoy::ENDFtk::tree::Tape<std::string> leaprTape,
   njoy::ENDFtk::tree::Tape<std::string> pendfTape ){
 
-  njoy::ENDFtk::file::Type<7> leapr_MF7 = leaprTape.material(
+  njoy::ENDFtk::file::Type<7> MF7 = leaprTape.material(
                       int(jsonInput["matde"])).front().file(7).parse<7>();
-  njoy::ENDFtk::file::Type<1> pendfFile = pendfTape.material(
+  njoy::ENDFtk::file::Type<1> MF1 = pendfTape.material(
                       int(jsonInput["matdp"])).front().file(1).parse<1>();
+  njoy::ENDFtk::file::Type<3> MF3 = pendfTape.material(
+                      int(jsonInput["matdp"])).front().file(3).parse<3>();
+  auto MF3_1 = MF3.MT(1_c);
 
-  njoy::ENDFtk::section::Type<7,4> leapr_MT4 = leapr_MF7.MT(4_c);
+  njoy::ENDFtk::section::Type<7,4> leapr_MT4 = MF7.MT(4_c);
   int nbin   = jsonInput["nbin"];
   int iinc   = jsonInput["iin"];
   int icoh   = jsonInput["icoh"];
@@ -54,13 +57,13 @@ auto finalTHERMR( nlohmann::json jsonInput,
   double tol    = jsonInput["tol"];
   double emax   = jsonInput["emax"];
   
-  auto za        = pendfFile.section( 451_c ).ZA();
+  auto za        = MF1.section( 451_c ).ZA();
   auto awr       = leapr_MT4.AWR();
   auto lat       = leapr_MT4.LAT();
   auto lasym     = leapr_MT4.LASYM();
   auto constants = leapr_MT4.constants();
   auto table     = std::get<Tabulated>(leapr_MT4.scatteringLaw());
-  auto pendf_awr = pendfFile.section( 451_c ).AWR();
+  auto pendf_awr = MF1.section( 451_c ).AWR();
 
   std::vector<double> alphas = table.scatteringFunctions()[0].alphas(),
                       betas  = table.betas();
@@ -135,6 +138,57 @@ auto finalTHERMR( nlohmann::json jsonInput,
         section6Vec.push_back(section::Type<6>(mtref, za, pendf_awr, jp, lct, 
                                            std::move(products)));
 
+        std::vector<double> xsi;
+        for (const auto& entry : totalOutput){
+            xsi.emplace_back(entry[0]);
+        }
+        //std::cout << std::endl;
+        //std::cout << initialEnergies.size()<< std::endl;
+        //std::cout << std::endl;
+        //std::cout << xsi.size() << std::endl;
+        //std::cout << std::endl;
+        std::vector<double> desiredEnergies; 
+        std::vector<double> finalXS;
+
+        std::cout.precision(15);
+        for (const auto& energy : MF3_1.energies()){
+          if (energy >= emax){ 
+              desiredEnergies.emplace_back(energy); 
+              if (std::fabs(energy-emax) < 1e-10*emax){ 
+                desiredEnergies.emplace_back(1.00001*energy); 
+              }
+              break; 
+          }
+          desiredEnergies.emplace_back(energy);
+        }
+        for ( const auto& energy : desiredEnergies ){
+          finalXS.emplace_back(interpolate(initialEnergies,xsi,energy));
+        }
+        desiredEnergies.emplace_back(2e7);
+        finalXS.emplace_back(0.0);
+        
+
+  
+       int lr = 0;                // Look this up
+       double qm = 2.224648e+6;   // Look this up
+       double qi = 3.224648e+6;   // Look this up
+
+       std::vector< long > interpolants = { 2 };
+       std::vector< long > boundaries = { long(desiredEnergies.size()) };
+
+        section::Type< 3 > chunky( mtref, za, pendf_awr, qm, qi, lr,
+                                  std::move( boundaries ),
+                                  std::move( interpolants ),
+                                  std::move( desiredEnergies ), 
+                                  std::move( finalXS ) );
+        std::cout << chunky.energies() << std::endl;
+        //std::cout << (desiredEnergies|ranges::view::all) << std::endl;
+        //std::cout << std::endl;
+        //std::cout << (finalXS|ranges::view::all) << std::endl;
+
+
+
+
       }
       else {
         // E mu E' 
@@ -158,8 +212,8 @@ auto finalTHERMR( nlohmann::json jsonInput,
 
     // Coherent Elastic
     if (icoh > 0 and icoh <= 10){
-      if (leapr_MF7.hasMT(2)){
-        njoy::ENDFtk::section::Type<7,2> leapr_MT2 = leapr_MF7.MT(2_c);
+      if (MF7.hasMT(2)){
+        njoy::ENDFtk::section::Type<7,2> leapr_MT2 = MF7.MT(2_c);
         auto MT2_law = std::get<CoherentElastic>(leapr_MT2.scatteringLaw());
         int nbragg = MT2_law.numberBraggEdges();
         int jp = 0, lct = 1;
@@ -167,7 +221,7 @@ auto finalTHERMR( nlohmann::json jsonInput,
             // multiplicity                                      // distribution
           { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() )};
  
-        auto pendf_awr       = pendfFile.section( 451_c ).AWR();
+        auto pendf_awr       = MF1.section( 451_c ).AWR();
         section6Vec.push_back(section::Type<6>(mtref+1, za, pendf_awr, jp, lct, 
                                            std::move(products)) );
 
@@ -176,7 +230,7 @@ auto finalTHERMR( nlohmann::json jsonInput,
     // Incoherent Elastic
     else if (icoh > 10){
 
-      njoy::ENDFtk::section::Type<7,2> leapr_MT2 = leapr_MF7.MT(2_c);
+      njoy::ENDFtk::section::Type<7,2> leapr_MT2 = MF7.MT(2_c);
       auto incoh_law = std::get<IncoherentElastic>(leapr_MT2.scatteringLaw());
       auto chunk = section6Vec[0];
 
@@ -201,7 +255,7 @@ auto finalTHERMR( nlohmann::json jsonInput,
       ContinuumEnergyAngle continuumChunk( lep, 
         {(long) chunks.size()}, {2}, std::move(chunks) );
 
-      auto pendf_awr       = pendfFile.section( 451_c ).AWR();
+      auto pendf_awr       = MF1.section( 451_c ).AWR();
       std::vector<ReactionProduct> iel_products = 
         {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
                          { 1., 1. }}, continuumChunk )};

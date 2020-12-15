@@ -152,6 +152,8 @@ TEST_CASE( "thermr" ){
 
 
   } // GIVEN 
+
+  /*
   GIVEN( "ENDF-B/VIII.0 Be" ){
     
     njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
@@ -345,6 +347,7 @@ TEST_CASE( "thermr" ){
 
   } // GIVEN 
 
+  */
 
 } // TEST CASE
 

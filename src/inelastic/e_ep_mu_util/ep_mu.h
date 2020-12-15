@@ -250,10 +250,10 @@ auto prepareEpMu( const Float& enow, int& j, const Float& tev, const Float& tol,
 
   ++j; // 430
 
-  out[0] += (x[0]-lastVals[0])*(y[0*imax+1-1]+lastVals[1])*0.5;
-  out[1] += 0.5*(x[0]-lastVals[0])*(0.0+lastVals[2]); 
-  out[2] += 0.5*(x[0]-lastVals[0])*(0.0+lastVals[3]); 
-  out[3] += 0.5*(x[0]-lastVals[0])*(0.0+lastVals[4]); 
+  out[0] += (x[0]-lastVals[0])*(y[0*imax+1-1]+lastVals[1])*0.5; // xsi
+  out[1] += 0.5*(x[0]-lastVals[0])*(0.0+lastVals[2]);           // ubar
+  out[2] += 0.5*(x[0]-lastVals[0])*(0.0+lastVals[3]);           // p2
+  out[3] += 0.5*(x[0]-lastVals[0])*(0.0+lastVals[4]);           // p3
   Float invXS = 1.0/out[0];
   out[0] = sigfig(out[0],9,0);
   out[1] = sigfig(out[1]*invXS,5,0);

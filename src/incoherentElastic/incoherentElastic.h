@@ -17,7 +17,6 @@ auto search( Range xRange, double x, int i, int left, int right ){
 }
 
 
-
 double interpolate( std::vector<double> xVec, std::vector<double> yVec, 
                     const double& x ){
   int len = xVec.size();
@@ -29,12 +28,6 @@ double interpolate( std::vector<double> xVec, std::vector<double> yVec,
   double m = (yVec[index+1]-yVec[index])/(xVec[index+1]-xVec[index]);
   return m*(x-xVec[index])+b;
 }
-
-
-
-
-
-
 
 
 
@@ -93,67 +86,4 @@ auto incoherentElastic( ContinuumEnergyAngle law, int nbin, double debyeWallerFa
 
 
 
-
-
-/*
-auto incoherentElastic( section::Type<7,2>::IncoherentElastic incoh_law,
-  const double& temp, const double& emax, int nbin, section::Type<6> chunk ){
-      double dwf = 0.0;
-
-      std::vector<double> temperatures = incoh_law.temperatures();
-      std::vector<double> debyeWaller  = incoh_law.debyeWallerValues();
-        
-      if ( temp < 0.9*temperatures[0] or 
-           temp > 1.1*temperatures[temperatures.size()-1] ){
-        std::cout << "oh no put an error here" << std::endl;
-      }
-      else {
-        dwf = interpolate(temperatures, debyeWaller, temp);
-      }
-
-      //auto chunk = section6Vec[0];
-
-      auto products = chunk.products();
-      //auto products = section6Vec[0].products();
-      auto law = std::get<ContinuumEnergyAngle>(products[0].distribution());
-      auto subsections = law.subsections();
-
-      std::vector<double> esi;
-      for (const auto& subsection : subsections){
-        esi.push_back(std::get<ThermalScatteringData>(subsection).energy());
-      }
-      std::vector<std::vector<double>> equiProbCosinesVec;
-      std::vector<double> equiprobCosines(nbin);
-
-      for ( const double& E : esi ){
-        equiprobCosines.resize(nbin);
-        getIncohElasticDataSingleEnergy( E, dwf, equiprobCosines );
-        equiprobCosines.insert(equiprobCosines.begin(), 1);
-        equiprobCosines.insert(equiprobCosines.begin(), E);
-        equiProbCosinesVec.push_back(equiprobCosines);
-      }
-
-      int n2 = nbin+2;
-      auto firstSCR = equiProbCosinesVec[0];
-      ThermalScatteringData chunky( esi[0], n2, std::move(firstSCR) );
-      std::vector<Variant> chunks {chunky};
-      for ( size_t j = 1; j < esi.size(); ++j){
-        auto scratch = equiProbCosinesVec[j];
-        ThermalScatteringData chunky( esi[j], n2, std::move(scratch) );
-        chunks.push_back(chunky);
-      }
-
-      long lep = 1;
-      ContinuumEnergyAngle continuumChunk( lep, 
-        {(long) esi.size()}, {2}, std::move(chunks) );
-
-      //int jp = 0, lct = 1;
-      std::vector<ReactionProduct> iel_products = 
-        {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
-                         { 1., 1. }}, continuumChunk )};
-
-      return iel_products;
-}
-
-*/
 
