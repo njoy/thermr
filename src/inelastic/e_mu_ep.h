@@ -45,7 +45,6 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
   std::vector<AngularDistribution> angularDistVec;
 
   for (size_t ie = 0; ie < esi.size(); ++ ie){
-    std::cout << "   ------    " << ie << "   " << esi.size() << std::endl;
     Float enow = egrid[ie];
     if (ie > 0 and temp > 3000.0){ enow = enow*temp/3000.0; }
 
@@ -104,7 +103,7 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
     sj[j-1] = yy[0];
     int numMus= j;
     sum += 0.5*(yy[0]+yl)*(x[0]-xl);
-    xsi[ie-1] = sum*0.5;
+    xsi[ie] = sum*0.5;
 
     for (int i = 2; i <= numMus; ++i){
       ubar[ie] += 0.5*(uj[i-1]-uj[i-2])*(sj[i-1]+sj[i-2])*(uj[i-1]+uj[i-2]);
@@ -143,15 +142,13 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
       std::vector<long> interpolants {(long) EpVec.size()}; 
       std::vector<long> boundaries {2};
 
-      std::cout << "hello" << std::endl;
       EnergyDistribution energyDist(u,
        std::move(interpolants), std::move(boundaries), std::move(EpVec), 
        std::move(ProbVec) );
-      std::cout << "made energy distribution" << std::endl;
-      std::string mystring;
-      auto output = std::back_inserter(mystring);
-      energyDist.print(output,1,6,100);
-      std::cout << mystring << std::endl;
+      //std::string mystring;
+      //auto output = std::back_inserter(mystring);
+      //energyDist.print(output,1,6,100);
+      //std::cout << mystring << std::endl;
 
 
       energyDistributionsVec.push_back(energyDist);
@@ -159,7 +156,6 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
       //energyDistributionsVec.emplace_back(EnergyDistribution ( u, 
       //  std::move(interpolants), std::move(boundaries), std::move(EpVec), 
       //  std::move(ProbVec) ));
-      std::cout << "goodbye" << std::endl;
 
     }
 
@@ -167,22 +163,22 @@ auto e_mu_ep( const Range& alphas, const Range& betas, const Range& sab,
     std::vector<long> boundaries   {(long) energyDistributionsVec.size()};
     angularDistVec.emplace_back( enow, std::move(boundaries),
                 std::move(interpolants), std::move(energyDistributionsVec) );
-    std::cout << "finished adding" << std::endl;
 
   }
 
-  std::cout << "ami i here" << std::endl;
 
   std::vector< long > boundaries = { (long) esi.size() };
   std::vector< long > interpolants = { 1 };
 
-  std::cout << "adding to lab vec   "  << angularDistVec.size() << "     " << esi.size()<< std::endl;
   LaboratoryAngleEnergy laboratoryAngleEnergy( 
     std::move( boundaries ),
     std::move( interpolants ),
     std::move( angularDistVec ) );
 
-  return laboratoryAngleEnergy;
+  std::tuple<LaboratoryAngleEnergy,std::vector<double>,std::vector<double>>
+    EmuEp_output(laboratoryAngleEnergy,esi,xsi);
+  return EmuEp_output;
+  //return laboratoryAngleEnergy;
 
 } 
 

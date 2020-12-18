@@ -4,8 +4,8 @@ using namespace njoy;
 #include <range/v3/all.hpp>
 #include "inelastic/e_ep_mu.h"
 #include "inelastic/e_mu_ep.h"
-#include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
-//#include "coherentElastic/coherentElastic.h"
+//#include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
+#include "coherentElastic/coherentElastic.h"
 #include "incoherentElastic/incoherentElastic.h"
 #include "generalTools/constants.h"
 #include "lipservice.hpp"
@@ -37,10 +37,51 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
 
 
+void prepareMF3_inelastic( std::vector<double>& MF3_energies, 
+  std::vector<double>& MF3_XS, section::Type<3> MF3_1, double emax,
+  std::vector<double> initialEnergies, std::vector<double> xsi ) {
+
+  std::vector<double> desiredEnergies; 
+  std::vector<double> finalXS;
+
+  for (auto energy : MF3_1.energies()){
+    if (energy >= emax or std::fabs((energy-emax)/emax) < 1e-10){ 
+        if (energy > emax*(1+1e-10)){ 
+            energy = emax; 
+        }
+        desiredEnergies.emplace_back(energy); 
+        if (std::fabs(energy-emax) < 1e-10*emax){ 
+          desiredEnergies.emplace_back(1.00001*energy); 
+        }
+        break; 
+    }
+    desiredEnergies.emplace_back(energy);
+  }
+  for ( const auto& energy : desiredEnergies ){
+    finalXS.emplace_back(terp(initialEnergies,xsi,energy,5));
+  }
+  desiredEnergies.emplace_back(2e7);
+  finalXS.emplace_back(0.0);
+
+  if (desiredEnergies[desiredEnergies.size()-2] > emax){ 
+      finalXS[desiredEnergies.size()-2] = 0.0; }
+
+  MF3_energies = desiredEnergies;
+  MF3_XS       = finalXS;
+}
+
+
+
+
+
 auto finalTHERMR( const nlohmann::json jsonInput ){
                   //std::ostream& ,//output,
                   //std::ostream& ,//error,
                   //const nlohmann::json&){
+
+  std::cout << std::fixed << std::showpoint;
+  std::cout << std::setprecision(10);
+
 
   tree::Tape<std::string> leaprTape ( utility::slurpFileToMemory("tape" +
                                       std::to_string(int(jsonInput["nendf"]))));
@@ -53,7 +94,7 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
                       int(jsonInput["matdp"])).front().file(1).parse<1>();
   file::Type<3> MF3 = pendfTape.material(
                       int(jsonInput["matdp"])).front().file(3).parse<3>();
-  auto MF3_1 = MF3.MT(1_c);
+  section::Type<3> MF3_1 = MF3.MT(1_c);
 
   section::Type<7,4> leapr_MT4 = MF7.MT(4_c);
   int nbin   = jsonInput["nbin"];
@@ -94,6 +135,13 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
     std::vector<section::Type<6>> section6Vec {};
     std::vector<section::Type<3>> section3Vec {};
 
+    std::vector<double> MF3_energies;
+    std::vector<double> MF3_XS;
+
+    std::vector<double> section3CohElEnergies;
+    std::vector<double> section3CohElCrossSections;
+
+
     std::vector<double> sab (alphas.size()*betas.size());
     for (size_t ibeta = 0; ibeta < betas.size(); ++ibeta){
       for (size_t ialpha = 0; ialpha < alphas.size(); ++ialpha){
@@ -108,16 +156,17 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
     // compute incoherent inelastic cross sections
     if (iinc != 0){
 
+      std::vector<double> initialEnergies;
+      for (size_t i = 0; i < egrid.size(); ++i){
+        initialEnergies.push_back(egrid[i]);
+        if (egrid[i] > emax){ break; }
+      }
+
       if (jsonInput["iform"] == 0){
         // E E' mu
         auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
         auto teff = effectiveTemp.effectiveTemperatures()[itemp]*kb;
         auto tev  = temp*kb;
-        std::vector<double> initialEnergies;
-        for (size_t i = 0; i < egrid.size(); ++i){
-          initialEnergies.push_back(egrid[i]);
-          if (egrid[i] > emax){ break; }
-        }
 
         auto out = e_ep_mu( initialEnergies, tev, tol, lat,  iinc, lasym, 
                             alphas, betas, sab, awr, boundCrossSections, teff, 
@@ -136,7 +185,6 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
           ThermalScatteringData chunk(incidentEnergies[j], n2, std::move(scratch));
           chunks.push_back(chunk);
         }
-        std::cout << (incidentEnergies|ranges::view::all) << std::endl;
 
         long lep = 1;
         ContinuumEnergyAngle continuumChunk( lep, 
@@ -157,44 +205,8 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
         for (const auto& entry : totalOutput){
             xsi.emplace_back(entry[0]);
         }
-        std::vector<double> desiredEnergies; 
-        std::vector<double> finalXS;
 
-        std::cout.precision(15);
-        for (const auto& energy : MF3_1.energies()){
-          if (energy >= emax){ 
-              desiredEnergies.emplace_back(energy); 
-              if (std::fabs(energy-emax) < 1e-10*emax){ 
-                desiredEnergies.emplace_back(1.00001*energy); 
-              }
-              break; 
-          }
-          desiredEnergies.emplace_back(energy);
-        }
-        for ( const auto& energy : desiredEnergies ){
-          finalXS.emplace_back(terp(initialEnergies,xsi,energy,5));
-        }
-        desiredEnergies.emplace_back(2e7);
-        finalXS.emplace_back(0.0);
-
-        if (desiredEnergies[desiredEnergies.size()-2] > emax){ 
-            finalXS[desiredEnergies.size()-2] = 0.0; }
-        
-       int lr = 0;        
-       double qm = temp;  
-       double qi = 0.0;  
-
-       std::vector< long > interpolants = { 2 };
-       std::vector< long > boundaries = { long(desiredEnergies.size()) };
-
-       section::Type< 3 > MF3( mtref, za, pendf_awr, qm, qi, lr,
-                                  std::move( boundaries ),
-                                  std::move( interpolants ),
-                                  std::move( desiredEnergies ), 
-                                  std::move( finalXS ) );
-
-        section3Vec.push_back( std::move(MF3) );
-
+        prepareMF3_inelastic( MF3_energies, MF3_XS,  MF3_1, emax, initialEnergies, xsi );
 
 
       }
@@ -203,18 +215,22 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
         auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
         auto teff = effectiveTemp.effectiveTemperatures()[itemp]*kb;
 
-        LaboratoryAngleEnergy labAngleEnergy = e_mu_ep( alphas, betas, sab, iinc, 
+        auto output = e_mu_ep( alphas, betas, sab, iinc, 
             egrid, temp, emax, tol, lat, lasym, awr, boundCrossSections, teff );
+        LaboratoryAngleEnergy labAngleEnergy = std::get<0>(output);
+        std::vector<double> esi = std::get<1>(output),
+                            xsi = std::get<2>(output);
 
-        int jp = 0, lct = 1;
         std::vector<ReactionProduct> products = 
-          //               zap  awp lip law
           {ReactionProduct({ 1., 1, -1, 7, {2}, {2}, { 1.e-5, emax }, 
                            { 1., 1. }}, std::move(labAngleEnergy))};
 
-        section::Type<6> inelastic(mtref, za, pendf_awr, jp, lct, std::move(products));
+        section::Type<6> inelastic(mtref, za, pendf_awr, 0, 1, std::move(products));
         index.emplace_back( 6, mtref, inelastic.NC(), 0 );
         section6Vec.push_back( std::move(inelastic) );
+
+        prepareMF3_inelastic( MF3_energies, MF3_XS,  MF3_1, emax, initialEnergies, xsi );
+
 
       }
     }
@@ -225,15 +241,78 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
         njoy::ENDFtk::section::Type<7,2> leapr_MT2 = MF7.MT(2_c);
         auto MT2_law = std::get<CoherentElastic>(leapr_MT2.scatteringLaw());
         int nbragg = MT2_law.numberBraggEdges();
-        int jp = 0, lct = 1;
+
         std::vector<ReactionProduct> products {ReactionProduct(
-            // multiplicity                                      // distribution
-          { 1., 1, -nbragg, 0, {2}, {2}, { 1.e-5, emax }, { 1., 1. }}, Unknown() )};
+          { 1., 1, -nbragg, 0, {2}, {2}, {1.e-5, emax}, {1., 1.}}, Unknown() )};
  
         auto pendf_awr       = MF1.section( 451_c ).AWR();
-        section::Type<6> cohElastic(mtref+1, za, pendf_awr, jp, lct, std::move(products));
+        section::Type<6> cohElastic(mtref+1, za, pendf_awr, 0, 1, std::move(products));
         index.emplace_back( 6, mtref+1, cohElastic.NC(), 0 );
         section6Vec.push_back( std::move(cohElastic) );
+
+        std::vector<double> cohElasticEnergies = MT2_law.energies(),
+                            cohElastic1 = MT2_law.thermalScatteringValues()[0];
+        auto out = coh( temp, lat, emax, natom, MF3_energies, tol, 
+                        cohElasticEnergies, cohElastic1 );
+        std::vector<double> finalE  = std::get<0>(out),
+                            finalXS = std::get<1>(out);
+
+        section3CohElEnergies = finalE;
+        section3CohElCrossSections = finalXS;
+
+        std::vector<double> MF3_energies_New = section3CohElEnergies;
+        std::vector<double> MF3_XS_New;
+
+        std::vector<long> interpolants = {2},
+                            boundaries = {long(section3CohElEnergies.size())};
+
+        // Write out bragg peaks
+        section::Type< 3 > MF3_cohEl( mtref+1, za, pendf_awr, temp, 0.0, 0,
+                                std::move( boundaries ),
+                                std::move( interpolants ),
+                                std::move( section3CohElEnergies), 
+                                std::move( section3CohElCrossSections) );
+
+        section3Vec.emplace_back(std::move(MF3_cohEl));
+
+
+        // Write ensure that other cross sections are on same grid as bragg
+        int numSec3Energies = MF3_energies.size();
+
+        for (const auto& E : MF3_energies_New){
+          int begin = 0, end = 0;
+
+          for ( int j = 0; j < numSec3Energies; ++j){
+            if (MF3_energies[j] >= E){ 
+              begin = j-2;
+              end   = j+3;
+              if (j-3 < 0){
+                begin = 0;
+                end   = 5;
+              }
+
+              if (j+3 >= numSec3Energies ){
+                end = numSec3Energies - 1;
+                begin = end - 5;
+              }
+              break; 
+            }
+          }
+          int interpOrder = (begin == 0 or end == numSec3Energies - 1) ? 3 : 4;
+          int nl          = (begin == 0 or end == numSec3Energies - 1) ? 4 : 5;
+
+
+          std::vector<double> 
+            temporary1 (MF3_energies.begin()+begin,MF3_energies.begin()+end),
+            temporary2 (MF3_XS.begin()      +begin,MF3_XS.begin()      +end);
+
+          MF3_XS_New.push_back(terp(temporary1,temporary2,E,interpOrder,nl));
+        }
+        MF3_XS_New[MF3_XS_New.size()-2] = 0.0;
+        MF3_XS_New[MF3_XS_New.size()-1] = 0.0;
+
+        MF3_energies = MF3_energies_New;
+        MF3_XS = MF3_XS_New;
 
       }
     }
@@ -244,7 +323,6 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
       auto incoh_law = std::get<IncoherentElastic>(leapr_MT2.scatteringLaw());
       auto chunk = section6Vec[0];
 
-      double debyeWallerFactor = 0.0;
 
       std::vector<double> temperatures = incoh_law.temperatures(),
                           debyeWaller  = incoh_law.debyeWallerValues();
@@ -252,12 +330,13 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
       if ( temp < 0.9*temperatures[0] or 
            temp > 1.1*temperatures[temperatures.size()-1] ){
         std::cout << "oh no put an error here" << std::endl;
-      }
-      else {
-        debyeWallerFactor = interpolate(temperatures, debyeWaller, temp);
+        // cannot get dwf 
       }
 
-      auto law = std::get<ContinuumEnergyAngle>(chunk.reactionProducts()[0].distribution());
+      double debyeWallerFactor = interpolate(temperatures, debyeWaller, temp);
+
+      auto law = std::get<ContinuumEnergyAngle>( 
+                                   chunk.reactionProducts()[0].distribution());
 
       auto chunks = incoherentElastic( law, nbin, debyeWallerFactor );
 
@@ -272,11 +351,24 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
 
       int jp = 0, lct = 1;
 
-      section::Type<6> incElastic(mtref+1, za, pendf_awr, jp, lct, std::move(iel_products));
+      section::Type<6> incElastic(mtref+1, za, pendf_awr, jp, lct, 
+                                  std::move(iel_products));
       index.emplace_back( 6, mtref+1, incElastic.NC(), 0 );
       section6Vec.push_back( std::move(incElastic) );
 
     }
+
+    // Get MF3 ready to write
+    std::vector< long > interpolants = { 2 };
+    std::vector< long > boundaries = { long(MF3_energies.size()) };
+
+    section::Type< 3 > MF3( mtref, za, pendf_awr, temp, 0.0, 0,
+                            std::move( boundaries ),
+                            std::move( interpolants ),
+                            std::move( MF3_energies), 
+                            std::move( MF3_XS) );
+
+    section3Vec.emplace_back(std::move(MF3));
 
     file::Type<1> MF1_copy = MF1;
     Material material( int(jsonInput["matdp"]), std::move(MF1_copy), 

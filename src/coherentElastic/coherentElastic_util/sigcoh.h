@@ -236,6 +236,7 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
 
   for ( size_t i = 0; i < vec1.size(); ++i ){
     elim = vec1[i]*recon; // vec1 = tau squared
+    //if (e < 0.006){std::cout << "                                tsq   " << vec1[i] << "   " << vec1.size() << std::endl;}
     if (elim >= e) { break; }
     Float f = ( e > emax ) ? 0.0 : vec2[i],
           u = 1.0-2.0*elim/e;
@@ -246,11 +247,14 @@ auto computeCrossSections( Float e, Range& vec1, Range& vec2, Float emax,
     //    which simplifies to 
     //                 1 - tau^2 hbar2^2 / 4 m_n E
     legndr(u,p,nl-1);
+    //if (e < 0.006){std::cout << "                                      " << f << std::endl;}
+    //if (e < 0.006){std::cout << "                                      " << (p|ranges::view::all) << std::endl;}
     for ( int il = 0; il < nl; ++il ){
       s[il] += f*p[il];
     }
     if (i == vec1.size()-1 ) { elim = emax; }
   }
+  //std::cout << "                  nl    s1   " << nl << "     " << s[0] << std::endl;
   for ( int il = 0; il < nl; ++il ){
     s[il] *= scon/e;
   }

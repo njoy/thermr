@@ -22,7 +22,7 @@ auto do260( const Range& x, const Range& y, const Float& arg, int l, int il ){
 
 
 template <typename Range, typename Float>
-auto terp( Range x, Range y, Float arg, int il1 ){
+auto terp( Range x, Range y, Float arg, int il1, int nl = 0 ){
   /*-------------------------------------------------------------------
    * This function does Lagrangian interpolation or
    * extrapolation of ilth order on x and y for arg
@@ -34,8 +34,8 @@ auto terp( Range x, Range y, Float arg, int il1 ){
    *      il         order of interpolation
    *-------------------------------------------------------------------
    */
-  using std::abs;
-  int il=il1, l, iadd, il2, ilow, ihi, iusel, iuseh, ibeg, iend, last, m, nl = x.size();
+  int il=il1, l, iadd, il2, ilow, ihi, iusel, iuseh, ibeg, iend, last, m; 
+  if (nl == 0){ nl = x.size(); }
 
   // If order of interpolation is too large, set it to the size of input vector
   if ( nl <= il ){
@@ -58,10 +58,13 @@ auto terp( Range x, Range y, Float arg, int il1 ){
     last  = 2;                  iadd  = 1 - il%2;
   }
 
+  //if (arg > 0.17599 and arg < 0.1759987){ 
+  //    std::cout << nl << "   " << iadd << "   " << ilow << "   " << ihi << std::endl; 
+ // }
   // If arg is approximately equal to lowest value, return lowest known value
   // If arg is approximately equal to highest value, return highest value
-  if ( abs(arg-x[ilow-1]) < arg*1e-10 ) { return y[ilow-1]; }
-  if ( abs(arg-x[ihi-1])  < arg*1e-10 ) { return y[ihi -1]; }
+  if ( std::fabs(arg-x[ilow-1]) < arg*1e-10 ) { return y[ilow-1]; }
+  if ( std::fabs(arg-x[ihi-1])  < arg*1e-10 ) { return y[ihi -1]; }
 
   // If arg is lower than x[ilow-1], then set l = iusel and interpolate
   // If arg is higher than x[ihi-1], then set l = iuseh and interpolate
@@ -76,7 +79,7 @@ auto terp( Range x, Range y, Float arg, int il1 ){
 
     // If arg is approximately equal to a value in my x vector, just return its
     // corresponding value in the y vector
-    if ( abs(x[m-1] - arg) < 1e-10*arg ){ return y[m-1]; }
+    if ( std::fabs(x[m-1] - arg) < 1e-10*arg ){ return y[m-1]; }
 
     // If while iterating through my x vector, I pass over arg, then I should 
     // calculate l and interpolate
