@@ -4,7 +4,6 @@ using namespace njoy;
 #include <range/v3/all.hpp>
 #include "inelastic/e_ep_mu.h"
 #include "inelastic/e_mu_ep.h"
-//#include "coherentElastic/coherentElastic_util/sigcoh_util/terp.h"
 #include "coherentElastic/coherentElastic.h"
 #include "incoherentElastic/incoherentElastic.h"
 #include "generalTools/constants.h"
@@ -69,6 +68,75 @@ void prepareMF3_inelastic( std::vector<double>& MF3_energies,
   MF3_energies = desiredEnergies;
   MF3_XS       = finalXS;
 }
+
+
+
+
+section::Type<3> prepareMF3_cohElastic( std::vector<double> MF3CohElasticEnergies,
+  std::vector<double> MF3CohElasticCrossSections, int mtref, int za, 
+  double pendf_awr, double temp, std::vector<double>& MF3_energies, 
+  std::vector<double>& MF3_XS ){
+
+  std::vector<double> MF3_energies_New = MF3CohElasticEnergies;
+  std::vector<double> MF3_XS_New;
+
+  std::vector<long> interpolants = {2},
+                    boundaries = {long(MF3CohElasticEnergies.size())};
+
+        // Write out bragg peaks
+        section::Type< 3 > MF3_cohEl( mtref+1, za, pendf_awr, temp, 0.0, 0,
+                                std::move( boundaries ),
+                                std::move( interpolants ),
+                                std::move( MF3CohElasticEnergies), 
+                                std::move( MF3CohElasticCrossSections) );
+
+
+        // Write ensure that other cross sections are on same grid as bragg
+        int numSec3Energies = MF3_energies.size();
+
+        for (const auto& E : MF3_energies_New){
+          int begin = 0, end = 0;
+
+          for ( int j = 0; j < numSec3Energies; ++j){
+            if (MF3_energies[j] >= E){ 
+              begin = j-2;
+              end   = j+3;
+              if (j-3 < 0){
+                begin = 0;
+                end   = 5;
+              }
+
+              if (j+3 >= numSec3Energies ){
+                end = numSec3Energies - 1;
+                begin = end - 5;
+              }
+              break; 
+            }
+          }
+          int interpOrder = (begin == 0 or end == numSec3Energies - 1) ? 3 : 4;
+          int nl          = (begin == 0 or end == numSec3Energies - 1) ? 4 : 5;
+
+
+          std::vector<double> 
+            temporary1 (MF3_energies.begin()+begin,MF3_energies.begin()+end),
+            temporary2 (MF3_XS.begin()      +begin,MF3_XS.begin()      +end);
+
+          MF3_XS_New.push_back(terp(temporary1,temporary2,E,interpOrder,nl));
+    }
+    MF3_XS_New[MF3_XS_New.size()-2] = 0.0;
+    MF3_XS_New[MF3_XS_New.size()-1] = 0.0;
+
+    MF3_energies = MF3_energies_New;
+    MF3_XS = MF3_XS_New;
+
+  return MF3_cohEl;
+}
+
+
+
+
+
+
 
 
 
@@ -138,8 +206,6 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
     std::vector<double> MF3_energies;
     std::vector<double> MF3_XS;
 
-    std::vector<double> section3CohElEnergies;
-    std::vector<double> section3CohElCrossSections;
 
 
     std::vector<double> sab (alphas.size()*betas.size());
@@ -166,35 +232,30 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
         // E E' mu
         auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
         auto teff = effectiveTemp.effectiveTemperatures()[itemp]*kb;
-        auto tev  = temp*kb;
+        //auto tev  = temp*kb;
 
-        auto out = e_ep_mu( initialEnergies, tev, tol, lat,  iinc, lasym, 
+        auto E_Ep_Mu_output = e_ep_mu( initialEnergies, temp*kb, tol, lat,  iinc, lasym, 
                             alphas, betas, sab, awr, boundCrossSections, teff, 
                             nbin, temp );
  
-        auto incidentEnergies = std::get<0>(out);
-        auto totalSCR         = std::get<1>(out);
-        auto totalOutput      = std::get<2>(out);
-        int n2 = nbin+2;
+        auto incidentEnergies = std::get<0>(E_Ep_Mu_output);
+        auto totalSCR         = std::get<1>(E_Ep_Mu_output);
+        auto totalOutput      = std::get<2>(E_Ep_Mu_output);
 
-        auto firstSCR = totalSCR[0];
-        ThermalScatteringData chunk( incidentEnergies[0], n2, std::move(firstSCR) );
-        std::vector<Variant> chunks {chunk};
-        for ( size_t j = 1; j < incidentEnergies.size(); ++j){
-          auto scratch = totalSCR[j];
-          ThermalScatteringData chunk(incidentEnergies[j], n2, std::move(scratch));
+        std::vector<Variant> chunks;
+        for ( size_t j = 0; j < incidentEnergies.size(); ++j){
+          std::vector<double> scratch = totalSCR[j];
+          ThermalScatteringData chunk(incidentEnergies[j], nbin+2, std::move(scratch));
           chunks.push_back(chunk);
         }
 
-        long lep = 1;
-        ContinuumEnergyAngle continuumChunk( lep, 
-              {(long) incidentEnergies.size()}, {2}, std::move( chunks ) );
+        ContinuumEnergyAngle continuumChunk(1, {(long) incidentEnergies.size()}, 
+                                           {2}, std::move( chunks ) );
   
-        int jp = 0, lct = 1;
         std::vector<ReactionProduct> products = 
           {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
                            { 1., 1. }}, continuumChunk )};
-        section::Type<6> inelastic(mtref, za, pendf_awr, jp, lct, std::move(products));
+        section::Type<6> inelastic(mtref, za, pendf_awr, 0, 1, std::move(products));
         index.emplace_back( 6, mtref, inelastic.NC(), 0 );
         section6Vec.push_back( std::move(inelastic) );
 
@@ -203,7 +264,7 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
         // Do the MF3 stuff
         std::vector<double> xsi;
         for (const auto& entry : totalOutput){
-            xsi.emplace_back(entry[0]);
+          xsi.emplace_back(entry[0]);
         }
 
         prepareMF3_inelastic( MF3_energies, MF3_XS,  MF3_1, emax, initialEnergies, xsi );
@@ -212,11 +273,12 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
       }
       else {
         // E mu E' 
-        auto effectiveTemp = leapr_MT4.principalEffectiveTemperature();
-        auto teff = effectiveTemp.effectiveTemperatures()[itemp]*kb;
+        auto effectiveTempInfo = leapr_MT4.principalEffectiveTemperature();
+        auto effectiveTemp = effectiveTempInfo.effectiveTemperatures()[itemp]*kb;
 
-        auto output = e_mu_ep( alphas, betas, sab, iinc, 
-            egrid, temp, emax, tol, lat, lasym, awr, boundCrossSections, teff );
+        auto output = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, emax, 
+                      tol, lat, lasym, awr, boundCrossSections, effectiveTemp );
+
         LaboratoryAngleEnergy labAngleEnergy = std::get<0>(output);
         std::vector<double> esi = std::get<1>(output),
                             xsi = std::get<2>(output);
@@ -254,65 +316,16 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
                             cohElastic1 = MT2_law.thermalScatteringValues()[0];
         auto out = coh( temp, lat, emax, natom, MF3_energies, tol, 
                         cohElasticEnergies, cohElastic1 );
-        std::vector<double> finalE  = std::get<0>(out),
-                            finalXS = std::get<1>(out);
 
-        section3CohElEnergies = finalE;
-        section3CohElCrossSections = finalXS;
+        std::vector<double> MF3CohElasticEnergies      = std::get<0>(out);
+        std::vector<double> MF3CohElasticCrossSections = std::get<1>(out);
 
-        std::vector<double> MF3_energies_New = section3CohElEnergies;
-        std::vector<double> MF3_XS_New;
-
-        std::vector<long> interpolants = {2},
-                            boundaries = {long(section3CohElEnergies.size())};
-
-        // Write out bragg peaks
-        section::Type< 3 > MF3_cohEl( mtref+1, za, pendf_awr, temp, 0.0, 0,
-                                std::move( boundaries ),
-                                std::move( interpolants ),
-                                std::move( section3CohElEnergies), 
-                                std::move( section3CohElCrossSections) );
+        section::Type< 3 > MF3_cohEl = prepareMF3_cohElastic( MF3CohElasticEnergies,
+          MF3CohElasticCrossSections, mtref, za, pendf_awr, temp,
+          MF3_energies, MF3_XS );
 
         section3Vec.emplace_back(std::move(MF3_cohEl));
 
-
-        // Write ensure that other cross sections are on same grid as bragg
-        int numSec3Energies = MF3_energies.size();
-
-        for (const auto& E : MF3_energies_New){
-          int begin = 0, end = 0;
-
-          for ( int j = 0; j < numSec3Energies; ++j){
-            if (MF3_energies[j] >= E){ 
-              begin = j-2;
-              end   = j+3;
-              if (j-3 < 0){
-                begin = 0;
-                end   = 5;
-              }
-
-              if (j+3 >= numSec3Energies ){
-                end = numSec3Energies - 1;
-                begin = end - 5;
-              }
-              break; 
-            }
-          }
-          int interpOrder = (begin == 0 or end == numSec3Energies - 1) ? 3 : 4;
-          int nl          = (begin == 0 or end == numSec3Energies - 1) ? 4 : 5;
-
-
-          std::vector<double> 
-            temporary1 (MF3_energies.begin()+begin,MF3_energies.begin()+end),
-            temporary2 (MF3_XS.begin()      +begin,MF3_XS.begin()      +end);
-
-          MF3_XS_New.push_back(terp(temporary1,temporary2,E,interpOrder,nl));
-        }
-        MF3_XS_New[MF3_XS_New.size()-2] = 0.0;
-        MF3_XS_New[MF3_XS_New.size()-1] = 0.0;
-
-        MF3_energies = MF3_energies_New;
-        MF3_XS = MF3_XS_New;
 
       }
     }
@@ -349,9 +362,7 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
         {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
                          { 1., 1. }}, continuumChunk )};
 
-      int jp = 0, lct = 1;
-
-      section::Type<6> incElastic(mtref+1, za, pendf_awr, jp, lct, 
+      section::Type<6> incElastic(mtref+1, za, pendf_awr, 0, 1, 
                                   std::move(iel_products));
       index.emplace_back( 6, mtref+1, incElastic.NC(), 0 );
       section6Vec.push_back( std::move(incElastic) );
