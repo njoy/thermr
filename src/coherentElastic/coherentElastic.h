@@ -54,12 +54,7 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& finalXS,
       return eNextAfterRightBoundary;
   }
 
-  //std::cout << vec1[0] << "     " << vec2[0] << "     " << vec1[1] << std::endl;
-  //std::cout << vec2[1] << "     " << vec1[2] << "     " << vec2[2] << std::endl;
   computeCrossSections( xm, vec1, vec2, emax, scon, recon, sMid );
-  std::setprecision(20);
-  //std::cout << xm << "      " << sMid[0] << "    " << sMid[1]  << std::endl;
-  //std::cout << std::endl;
 
   Float ym = (s1[0]+s2[0])*0.5;
   if (abs(sMid[0]-ym) <= max(tol*sMid[0],1e-6) ){
@@ -78,30 +73,37 @@ Float addPoint( const Float& x1, const Float& x2, Range& finalE, Range& finalXS,
   }
 }
 
-template <typename Float, typename Range>
+template <typename Float>
 auto coh( const Float& temp, int lat, const Float& emax, int numAtoms, 
-          const Range& Egrid, const Float tol, const Range& cohElasticEnergies,
-          const Range& cohElastic1 ){
+  const std::vector<double>& Egrid, const Float tol, 
+  std::vector<double> cohElasticEnergies = std::vector<double>(),
+  std::vector<double> cohElastic1 = std::vector<double>() ){
   using std::abs;
-  std::vector<Float> vec1 (50,0.0), vec2 (50,0.0);
-  Float scon  = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
-  Float recon = (hbar*hbar)/(ev*8*(massNeutron))*1e4; 
-  auto enext = vec1[0]*recon;
 
-  enext = cohElasticEnergies[0];
-  vec1.resize(0);
-  vec2.resize(0);
-  double blast = 0;
-  for (size_t i = 0; i < cohElasticEnergies.size(); ++i){
-      vec1.push_back(cohElasticEnergies[i]/recon);
-      vec2.push_back(cohElastic1[i]-blast);
-      blast = cohElastic1[i];
+  std::vector<double> vec1 (50,0.0), vec2 (50,0.0);
+  double scon, enext, recon = (hbar*hbar)/(ev*8*(massNeutron))*1e4; 
+
+  if (cohElasticEnergies.size() == 0){
+    // Prepare bragg edges using thermr
+    scon  = prepareBraggEdges(lat,temp,emax,numAtoms,vec1,vec2);
+    enext = vec1[0]*recon;
   }
-  scon = 1.0;
+  else {
+    // Read in bragg edges that were pulled from leapr run
+    vec1.resize(0);
+    vec2.resize(0);
+    double blast = 0;
+    enext = cohElasticEnergies[0];
+    for (size_t i = 0; i < cohElasticEnergies.size(); ++i){
+        vec1.push_back(cohElasticEnergies[i]/recon);
+        vec2.push_back(cohElastic1[i]-blast);
+        blast = cohElastic1[i];
+    }
+    scon = 1.0;
+  }
 
-
-  Range finalE  (100,0.0), 
-        finalXS (100,0.0); 
+  std::vector<double> finalE  (100,0.0), 
+                      finalXS (100,0.0); 
   finalE[0]  = Egrid[0];
 
   int counter = 0, i_old = 0;// count2 = 0;
@@ -130,7 +132,7 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms,
 
   if (abs(c-a)/a > 1e-10 ){
     ++counter;
-    Range s(6,0.0);
+    std::vector<double> s(6,0.0);
     computeCrossSections( emax, vec1, vec2, emax, scon, recon, s );
     finalE[ counter] = finalE[ counter-1]; finalE[ counter-1] = emax;
     finalXS[counter] = finalXS[counter-1]; finalXS[counter-1] = s[0];
@@ -140,7 +142,7 @@ auto coh( const Float& temp, int lat, const Float& emax, int numAtoms,
   finalXS[counter+1] = 0.0;                   finalXS.resize(counter+2);
 
 
-  Range addedE = findWhichPointsWeAdded( finalE, Egrid );
+  std::vector<double> addedE = findWhichPointsWeAdded( finalE, Egrid );
 
   finalE.resize( counter+2);
   finalXS.resize(counter+2);

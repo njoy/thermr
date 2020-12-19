@@ -72,8 +72,10 @@ TEST_CASE( "E mu Eprime" ){
 
       AND_WHEN( "High Tolerance" ){
         tol = 0.5;      
-        auto my_law = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
+        auto out = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
                                 emax, tol, lat, lasym, az, boundXsVec, teff );
+        LaboratoryAngleEnergy my_law = std::get<0>(out);
+
         std::string endfFile = njoy::utility::slurpFileToMemory("test1_tape25");
         njoy::ENDFtk::tree::Tape<std::string> tape(endfFile);
         njoy::ENDFtk::file::Type<6> MF6 = 
@@ -87,8 +89,9 @@ TEST_CASE( "E mu Eprime" ){
 
       AND_WHEN( "Low Tolerance" ){
         tol = 0.05;
-        auto my_law = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
+        auto out = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
                                 emax, tol, lat, lasym, az, boundXsVec, teff );
+        LaboratoryAngleEnergy my_law = std::get<0>(out);
 
         std::string endfFile = njoy::utility::slurpFileToMemory("test2_tape25");
         njoy::ENDFtk::tree::Tape<std::string> tape(endfFile);
@@ -106,8 +109,9 @@ TEST_CASE( "E mu Eprime" ){
       emax = 6.0;
       AND_WHEN( "Low Tolerance" ){
         tol = 0.05;      
-        auto my_law = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
+        auto out = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
                                 emax, tol, lat, lasym, az, boundXsVec, teff );
+        LaboratoryAngleEnergy my_law = std::get<0>(out);
   
         std::string endfFile = njoy::utility::slurpFileToMemory("test3_tape25");
         njoy::ENDFtk::tree::Tape<std::string> tape(endfFile);
@@ -126,8 +130,9 @@ TEST_CASE( "E mu Eprime" ){
       emax = 11.0;
       AND_WHEN( "Low Tolerance" ){
         tol = 0.01;      
-        auto my_law = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
+        auto out = e_mu_ep( alphas, betas, sab, iinc, egrid, temp, 
                                 emax, tol, lat, lasym, az, boundXsVec, teff );
+        LaboratoryAngleEnergy my_law = std::get<0>(out);
   
         std::string endfFile = njoy::utility::slurpFileToMemory("test4_tape25");
         njoy::ENDFtk::tree::Tape<std::string> tape(endfFile);

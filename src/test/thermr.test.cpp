@@ -150,6 +150,7 @@ void checkContinuumEnergyAngle(Section good_inelastic, Section my_section){
 
 TEST_CASE( "thermr" ){
     /*
+  */
   GIVEN( "NJOY Test 9 - H in H2O Example" ){
     
     njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
@@ -283,7 +284,6 @@ TEST_CASE( "thermr" ){
     njoy::njoy21::lipservice::THERMR thermr(iss);
     nlohmann::json jsonTHERMR(thermr);
 
-
     rename( "h2oEmuEp_tape23" , "tape23");
     rename( "h2oEmuEp_tape24" , "tape24");
 
@@ -324,10 +324,8 @@ TEST_CASE( "thermr" ){
 
   } // GIVEN 
 
-  */
 
   GIVEN( "H in ZrH" ){
-
     WHEN( "1 temperature is provided" ){
     
       njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
@@ -363,10 +361,10 @@ TEST_CASE( "thermr" ){
 
       rename( "tape23" , "zrh_tape23");
       rename( "tape24" , "zrh_tape24");
+      rename( "tape25" , "zrh_output_tape25");
 
     } // WHEN
 
-    /*
     WHEN( "multiple temperatures are provided" ){
     
       njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
@@ -406,10 +404,10 @@ TEST_CASE( "thermr" ){
 
         
     } // WHEN
-    */
 
   } // GIVEN 
 
 
 } // TEST CASE
+
 

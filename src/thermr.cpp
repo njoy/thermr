@@ -80,54 +80,50 @@ section::Type<3> prepareMF3_cohElastic( std::vector<double> MF3CohElasticEnergie
   std::vector<double> MF3_energies_New = MF3CohElasticEnergies;
   std::vector<double> MF3_XS_New;
 
-  std::vector<long> interpolants = {2},
-                    boundaries = {long(MF3CohElasticEnergies.size())};
-
-        // Write out bragg peaks
-        section::Type< 3 > MF3_cohEl( mtref+1, za, pendf_awr, temp, 0.0, 0,
-                                std::move( boundaries ),
-                                std::move( interpolants ),
-                                std::move( MF3CohElasticEnergies), 
-                                std::move( MF3CohElasticCrossSections) );
+  // Write out bragg peaks
+  section::Type<3> MF3_cohEl( mtref+1, za, pendf_awr, temp, 0.0, 0,
+                              std::vector<long>(1,long(MF3CohElasticEnergies.size())),
+                              std::vector<long>(1,2),
+                              std::move( MF3CohElasticEnergies), 
+                              std::move( MF3CohElasticCrossSections) );
 
 
-        // Write ensure that other cross sections are on same grid as bragg
-        int numSec3Energies = MF3_energies.size();
+  // Write ensure that other cross sections are on same grid as bragg
+  int numSec3Energies = MF3_energies.size();
 
-        for (const auto& E : MF3_energies_New){
-          int begin = 0, end = 0;
-
-          for ( int j = 0; j < numSec3Energies; ++j){
-            if (MF3_energies[j] >= E){ 
-              begin = j-2;
-              end   = j+3;
-              if (j-3 < 0){
-                begin = 0;
-                end   = 5;
-              }
-
-              if (j+3 >= numSec3Energies ){
-                end = numSec3Energies - 1;
-                begin = end - 5;
-              }
-              break; 
-            }
-          }
-          int interpOrder = (begin == 0 or end == numSec3Energies - 1) ? 3 : 4;
-          int nl          = (begin == 0 or end == numSec3Energies - 1) ? 4 : 5;
-
-
-          std::vector<double> 
-            temporary1 (MF3_energies.begin()+begin,MF3_energies.begin()+end),
-            temporary2 (MF3_XS.begin()      +begin,MF3_XS.begin()      +end);
-
-          MF3_XS_New.push_back(terp(temporary1,temporary2,E,interpOrder,nl));
+  for (const auto& E : MF3_energies_New){
+    int begin = 0, end = 0;
+    for ( int j = 0; j < numSec3Energies; ++j){
+      if (MF3_energies[j] >= E){ 
+        if (j-3 < 0){
+          begin = 0;
+          end   = 5;
+        }
+        else if (j+3 >= numSec3Energies ){
+          end   = numSec3Energies - 1;
+          begin = end - 5;
+        }
+        else {
+          begin = j-2;
+          end   = j+3;
+        }
+        break; 
+      }
     }
-    MF3_XS_New[MF3_XS_New.size()-2] = 0.0;
-    MF3_XS_New[MF3_XS_New.size()-1] = 0.0;
+    int interpOrder = (begin == 0 or end == numSec3Energies - 1) ? 3 : 4,
+        nl          = (begin == 0 or end == numSec3Energies - 1) ? 4 : 5;
 
-    MF3_energies = MF3_energies_New;
-    MF3_XS = MF3_XS_New;
+    std::vector<double> 
+      temporary1 (MF3_energies.begin()+begin,MF3_energies.begin()+end),
+      temporary2 (MF3_XS.begin()      +begin,MF3_XS.begin()      +end);
+
+    MF3_XS_New.push_back(terp(temporary1,temporary2,E,interpOrder,nl));
+  }
+   MF3_XS_New[MF3_XS_New.size()-2] = 0.0;
+   MF3_XS_New[MF3_XS_New.size()-1] = 0.0;
+
+   MF3_energies = MF3_energies_New;
+   MF3_XS       = MF3_XS_New;
 
   return MF3_cohEl;
 }
@@ -308,6 +304,7 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
           { 1., 1, -nbragg, 0, {2}, {2}, {1.e-5, emax}, {1., 1.}}, Unknown() )};
  
         auto pendf_awr       = MF1.section( 451_c ).AWR();
+
         section::Type<6> cohElastic(mtref+1, za, pendf_awr, 0, 1, std::move(products));
         index.emplace_back( 6, mtref+1, cohElastic.NC(), 0 );
         section6Vec.push_back( std::move(cohElastic) );
@@ -353,8 +350,8 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
 
       auto chunks = incoherentElastic( law, nbin, debyeWallerFactor );
 
-      long lep = 1;
-      ContinuumEnergyAngle continuumChunk( lep, 
+      //long lep = 1;
+      ContinuumEnergyAngle continuumChunk( long(1), 
         {(long) chunks.size()}, {2}, std::move(chunks) );
 
       auto pendf_awr       = MF1.section( 451_c ).AWR();
@@ -370,12 +367,9 @@ auto finalTHERMR( const nlohmann::json jsonInput ){
     }
 
     // Get MF3 ready to write
-    std::vector< long > interpolants = { 2 };
-    std::vector< long > boundaries = { long(MF3_energies.size()) };
-
     section::Type< 3 > MF3( mtref, za, pendf_awr, temp, 0.0, 0,
-                            std::move( boundaries ),
-                            std::move( interpolants ),
+                            std::vector<long>(1,long(MF3_energies.size())),
+                            std::vector<long>(1,2),
                             std::move( MF3_energies), 
                             std::move( MF3_XS) );
 

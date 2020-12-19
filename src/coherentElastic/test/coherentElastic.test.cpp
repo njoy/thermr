@@ -24,7 +24,7 @@ void checkAddedEnergies( const Range& finalE, const Range& eGrid, const Range& a
 
 
 
-TEST_CASE( "coherent elastic" ){
+TEST_CASE( "coherent elastic - generate Bragg from scratch" ){
   std::vector<double> eGrid;
   eGrid = { 1E-5, 1.0625E-5, 1.125E-5, 1.1875E-5, 1.25E-5, 1.375E-5, 1.5E-5, 
   1.625E-5, 1.75E-5, 1.875E-5, 2E-5, 2.1875E-5, 2.375E-5, 2.5625E-5, 2.75E-5, 

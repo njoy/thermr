@@ -149,8 +149,7 @@ inline auto getPDF(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
       muLeft = muVec[i-1];
       xsLeft = xsVec[i-1];
       --i;
-      muRight = muVec[i-1];
-
+      if (i > 0){ muRight = muVec[i-1]; }
     } while ( i == 1 );
   } while ( i > 1 );
   return pdf;
@@ -176,6 +175,7 @@ inline auto sigl(Float ep, Float e, Float tev, Float tol, int lat, int iinc,
   // how much to fill up each bin
   Float pdf = getPDF(ep, e, tev, tol, lat, iinc, alphas, betas, sab, az, lasym, 
                      boundXsVec, teff);
+
 
   //Range s(nbin,0.0);
   if ( pdf <= 1e-32 ){ return pdf; }

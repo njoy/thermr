@@ -100,7 +100,9 @@ inline auto sig( const Float& e, const Float& ep, const Float& u,
         maxBeta  = betas [betas.size() -1];
 
   Float sigma_b  = boundXsVec[0];
-  Float sigma_b2 = boundXsVec[1];
+  Float sigma_b2 = 0.0;
+  if (boundXsVec.size() > 1){ sigma_b2 = boundXsVec[1]; }
+
  
   // ----------------------------------------------------------------------
   // ------------------------ FREE GAS SCATTERING ------------------------- 

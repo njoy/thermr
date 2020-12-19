@@ -132,6 +132,7 @@ auto do_330( const Float& enow, Range& x, Range& y, int& j, const Float& tev,
       Range s(nbin,0.0);
       Float pdf = sigl(xm,enow,tev,tol,lat,iinc,alphas,betas,sab,az,lasym,
                        boundXsVec,teff,s,true);
+
   
       if ( needMidpoint(x, y, xm, i, nbin, s, tol, pdf) == true ){ 
         insertPoint(i, x, y, s, xm, nbin, pdf );
