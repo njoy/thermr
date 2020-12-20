@@ -1,6 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include "thermr.cpp"
+#include "thermr.hpp"
 #include <range/v3/all.hpp>
 #include "generalTools/testing.h"
 #include <typeinfo>
@@ -8,9 +8,9 @@
 
 using namespace njoy::ENDFtk;
 using Tabulated = section::Type<7,4>::TabulatedFunctions;
-using ContinuumEnergyAngle = section::Type< 6 >::ContinuumEnergyAngle;
-using LaboratoryAngleEnergy = section::Type< 6 >::LaboratoryAngleEnergy;
-using ThermalScatteringData = section::Type< 6 >::ContinuumEnergyAngle::ThermalScatteringData;
+using ContinuumEnergyAngle = section::Type<6>::ContinuumEnergyAngle;
+using LaboratoryAngleEnergy = section::Type<6>::LaboratoryAngleEnergy;
+using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalScatteringData;
 
 
 
@@ -126,7 +126,8 @@ void checkContinuumEnergyAngle(Section good_inelastic, Section my_section){
 
     REQUIRE( good_subsection.LANG()   == my_subsection.LANG() );
     REQUIRE( good_subsection.LTT()    == my_subsection.LTT() );
-    REQUIRE( good_subsection.incidentEnergy() == Approx(my_subsection.incidentEnergy()).epsilon(1e-6) );
+    REQUIRE( good_subsection.incidentEnergy() == 
+        Approx(my_subsection.incidentEnergy()).epsilon(1e-6) );
     REQUIRE( good_subsection.NW()     == my_subsection.NW() );
     REQUIRE( good_subsection.N2()     == my_subsection.N2() );
 
@@ -149,8 +150,6 @@ void checkContinuumEnergyAngle(Section good_inelastic, Section my_section){
 
 
 TEST_CASE( "thermr" ){
-    /*
-  */
   GIVEN( "NJOY Test 9 - H in H2O Example" ){
     
     njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
@@ -164,7 +163,10 @@ TEST_CASE( "thermr" ){
     rename( "h2o_tape23" , "tape23");
     rename( "h2o_tape24" , "tape24");
 
-    finalTHERMR( jsonTHERMR );//, std::cout, std::cerr );
+    auto args = nlohmann::json::object();
+    njoy::THERMR::THERMR thermrInstance;
+    thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+
 
 
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2o_tape25"));
@@ -204,7 +206,11 @@ TEST_CASE( "thermr" ){
     rename( "be_tape23" , "tape23");
     rename( "be_tape24" , "tape24");
 
-    finalTHERMR( jsonTHERMR );//, std::cout, std::cerr );
+    auto args = nlohmann::json::object();
+    njoy::THERMR::THERMR thermrInstance;
+    thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+
+
 
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("be_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
@@ -247,7 +253,11 @@ TEST_CASE( "thermr" ){
     rename( "h2oMultT_tape23" , "tape23");
     rename( "h2oMultT_tape24" , "tape24");
 
-    finalTHERMR( jsonTHERMR );//, std::cout, std::cerr );
+    auto args = nlohmann::json::object();
+    njoy::THERMR::THERMR thermrInstance;
+    thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+
+
 
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oMultT_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
@@ -287,7 +297,12 @@ TEST_CASE( "thermr" ){
     rename( "h2oEmuEp_tape23" , "tape23");
     rename( "h2oEmuEp_tape24" , "tape24");
 
-    finalTHERMR( jsonTHERMR );//, std::cout, std::cerr );
+    auto args = nlohmann::json::object();
+    njoy::THERMR::THERMR thermrInstance;
+    thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+
+
+
 
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oEmuEp_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
@@ -339,7 +354,11 @@ TEST_CASE( "thermr" ){
       rename( "zrh_tape23" , "tape23");
       rename( "zrh_tape24" , "tape24");
 
-      finalTHERMR( jsonTHERMR );//, std::cout, std::cerr );
+      auto args = nlohmann::json::object();
+      njoy::THERMR::THERMR thermrInstance;
+      thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+
+
 
       tree::Tape<std::string> goodTape(utility::slurpFileToMemory("zrh_tape25"));
       tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
@@ -379,7 +398,11 @@ TEST_CASE( "thermr" ){
       rename( "zrhMultT_tape23" , "tape23");
       rename( "zrhMultT_tape24" , "tape24");
 
-      finalTHERMR( jsonTHERMR );//, std::cout, std::cerr );
+      auto args = nlohmann::json::object();
+      njoy::THERMR::THERMR thermrInstance;
+      thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+
+
 
       tree::Tape<std::string> goodTape(utility::slurpFileToMemory("zrhMultT_tape25"));
       tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));

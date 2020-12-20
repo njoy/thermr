@@ -52,21 +52,13 @@ endif()
 # Project targets
 ########################################################################
 
-add_library( thermr 
-    src/thermr.cpp
-    )
-target_include_directories( thermr PUBLIC src/ )
-target_link_libraries( thermr
-    PUBLIC ENDFtk
-    PUBLIC catch-adapter
-    PUBLIC range-v3-adapter
-    PUBLIC lipservice
-    )
-target_compile_options( thermr PRIVATE
-    ${common_flags}
-    $<$<BOOL:${strict_compile}>:${strict_flags}>
-    $<$<CONFIG:DEBUG>:${debug_flags}>
-    $<$<CONFIG:RELEASE>:${release_flags}>
+add_library( thermr INTERFACE )
+target_include_directories( thermr INTERFACE src/ )
+target_link_libraries( thermr 
+    INTERFACE ENDFtk
+    INTERFACE catch-adapter
+    INTERFACE range-v3-adapter
+    INTERFACE lipservice 
     )
 
 
