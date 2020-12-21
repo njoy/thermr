@@ -165,7 +165,7 @@ TEST_CASE( "thermr" ){
 
     auto args = nlohmann::json::object();
     njoy::THERMR::THERMR thermrInstance;
-    thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+    thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
 
 
 
@@ -208,7 +208,7 @@ TEST_CASE( "thermr" ){
 
     auto args = nlohmann::json::object();
     njoy::THERMR::THERMR thermrInstance;
-    thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+    thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
 
 
 
@@ -255,7 +255,7 @@ TEST_CASE( "thermr" ){
 
     auto args = nlohmann::json::object();
     njoy::THERMR::THERMR thermrInstance;
-    thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+    thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
 
 
 
@@ -299,7 +299,7 @@ TEST_CASE( "thermr" ){
 
     auto args = nlohmann::json::object();
     njoy::THERMR::THERMR thermrInstance;
-    thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+    thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
 
 
 
@@ -356,7 +356,7 @@ TEST_CASE( "thermr" ){
 
       auto args = nlohmann::json::object();
       njoy::THERMR::THERMR thermrInstance;
-      thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+      thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
 
 
 
@@ -400,7 +400,7 @@ TEST_CASE( "thermr" ){
 
       auto args = nlohmann::json::object();
       njoy::THERMR::THERMR thermrInstance;
-      thermrInstance( jsonTHERMR );//, std::cout, std::cerr, args );
+      thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
 
 
 

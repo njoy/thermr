@@ -44,10 +44,11 @@ class THERMR {
 
 public:
 void operator()( const nlohmann::json& jsonInput,
-        //         std::ostream& output,
-        //         std::ostream& error,
-        //         const nlohmann::json& ){
-        ){
+                 std::ostream& output,
+                 std::ostream& error,
+                 const nlohmann::json& ){
+
+  output << "Input arguments:\n" << jsonInput.dump(2) << std::endl;
 
   tree::Tape<std::string> leaprTape ( utility::slurpFileToMemory("tape" +
                                       std::to_string(int(jsonInput["nendf"]))));
@@ -237,8 +238,7 @@ void operator()( const nlohmann::json& jsonInput,
         
       if ( temp < 0.9*temperatures[0] or 
            temp > 1.1*temperatures[temperatures.size()-1] ){
-        std::cout << "oh no put an error here" << std::endl;
-        // cannot get dwf 
+        error << "Cannot obtain Debye-Waller factor - Temperature out of interpolation range" << std::endl;
       }
 
       double debyeWallerFactor = interpolate(temperatures, debyeWaller, temp);
@@ -248,7 +248,6 @@ void operator()( const nlohmann::json& jsonInput,
 
       auto chunks = incoherentElastic( law, nbin, debyeWallerFactor );
 
-      //long lep = 1;
       ContinuumEnergyAngle continuumChunk( long(1), 
         {(long) chunks.size()}, {2}, std::move(chunks) );
 
