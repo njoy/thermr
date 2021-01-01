@@ -150,6 +150,209 @@ void checkContinuumEnergyAngle(Section good_inelastic, Section my_section){
 
 
 TEST_CASE( "thermr" ){
+
+  GIVEN( "H in H2O - Free Gas" ){
+    
+    WHEN( "E Ep Mu Ordering" ){
+      
+      AND_WHEN( "LEAPR output is provided" ){
+        THEN( "LEAPR output is ignored" ){
+          njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
+            "24 23 25/\n"
+            "101 125 4 1 1 0 0 1 222 2/\n"
+            "296./\n"
+            ".5 .625/" ) );
+          njoy::njoy21::lipservice::THERMR thermr(iss);
+          nlohmann::json jsonTHERMR(thermr);
+    
+          rename( "h2oFreeGas_tape23" , "tape23");
+          rename( "h2oFreeGas_tape24" , "tape24");
+      
+          auto args = nlohmann::json::object();
+          njoy::THERMR::THERMR thermrInstance;
+          thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+    
+    
+          tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGas_tape25"));
+          tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
+    
+          file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
+          file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
+    
+          section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
+          section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
+    
+          checkContinuumEnergyAngle(good_inelastic, my_inelastic);
+    
+          file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
+          file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
+          section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
+          section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
+    
+          checkFile3( good_MF3, my_MF3 );
+          rename( "tape23" , "h2oFreeGas_tape23");
+          rename( "tape24" , "h2oFreeGas_tape24");
+
+        } // THEN
+      } // AND WHEN 
+      
+
+      AND_WHEN( "LEAPR output is not provided" ){
+        THEN( "No errors are thrown" ){
+          njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
+            "0 23 25/\n"
+            "0 125 4 1 1 0 0 1 222 2/\n"
+            "296./\n"
+            ".5 .625/" ) );
+          njoy::njoy21::lipservice::THERMR thermr(iss);
+          nlohmann::json jsonTHERMR(thermr);
+    
+          rename( "h2oFreeGas_tape23" , "tape23");
+          rename( "h2oFreeGas_tape24" , "tape24");
+      
+          auto args = nlohmann::json::object();
+          njoy::THERMR::THERMR thermrInstance;
+          thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+    
+    
+          tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGas_tape25"));
+          tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
+    
+          file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
+          file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
+    
+          section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
+          section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
+    
+          checkContinuumEnergyAngle(good_inelastic, my_inelastic);
+    
+          file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
+          file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
+          section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
+          section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
+    
+          checkFile3( good_MF3, my_MF3 );
+          rename( "tape23" , "h2oFreeGas_tape23");
+          rename( "tape24" , "h2oFreeGas_tape24");
+
+        } // THEN
+      } // AND WHEN 
+
+    } // WHEN
+
+
+
+
+    WHEN( "E Mu Ep Ordering" ){
+      AND_WHEN( "LEAPR output is provided" ){
+        THEN( "LEAPR output is ignored" ){
+
+          njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
+            "24 23 25/\n"
+            "101 125 4 1 1 0 1 1 222 2/\n"
+            "296./\n"
+            ".5 .625/" ) );
+          njoy::njoy21::lipservice::THERMR thermr(iss);
+          nlohmann::json jsonTHERMR(thermr);
+
+          rename( "h2oFreeGasEmuEp_tape23" , "tape23");
+          rename( "h2oFreeGasEmuEp_tape24" , "tape24");
+      
+          auto args = nlohmann::json::object();
+          njoy::THERMR::THERMR thermrInstance;
+          thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+
+          tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGasEmuEp_tape25"));
+          tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
+
+          file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
+          file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
+    
+
+          section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
+          section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
+
+          auto good_products = good_inelastic.reactionProducts();
+          auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
+
+          auto my_products = my_inelastic.reactionProducts();
+          auto my_law = std::get<LaboratoryAngleEnergy>(my_products[0].distribution() );
+
+          REQUIRE( my_inelastic.AWR() == good_inelastic.AWR() );
+          REQUIRE( my_inelastic.MT() == good_inelastic.MT() );
+
+          check_E_mu_Ep( good_law, my_law );
+
+          file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
+          file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
+          section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
+          section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
+
+          checkFile3( good_MF3, my_MF3 );
+          rename( "tape23" , "h2oFreeGasEmuEp_tape23");
+          rename( "tape24" , "h2oFreeGasEmuEp_tape24");
+
+        } // THEN
+      } // AND WHEN
+
+      AND_WHEN( "LEAPR output is not provided" ){
+        THEN( "No errors are thrown" ){
+    
+          njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
+            "0 23 25/\n"
+            "0 125 4 1 1 0 1 1 222 2/\n"
+            "296./\n"
+            ".5 .625/" ) );
+          njoy::njoy21::lipservice::THERMR thermr(iss);
+          nlohmann::json jsonTHERMR(thermr);
+    
+          rename( "h2oFreeGasEmuEp_tape23" , "tape23");
+          rename( "h2oFreeGasEmuEp_tape24" , "tape24");
+      
+          auto args = nlohmann::json::object();
+          njoy::THERMR::THERMR thermrInstance;
+          thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+    
+          tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGasEmuEp_tape25"));
+          tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
+    
+          file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
+          file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
+    
+    
+          section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
+          section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
+    
+          auto good_products = good_inelastic.reactionProducts();
+          auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
+    
+          auto my_products = my_inelastic.reactionProducts();
+          auto my_law = std::get<LaboratoryAngleEnergy>(my_products[0].distribution() );
+    
+          REQUIRE( my_inelastic.AWR() == good_inelastic.AWR() );
+          REQUIRE( my_inelastic.MT() == good_inelastic.MT() );
+    
+          check_E_mu_Ep( good_law, my_law );
+    
+          file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
+          file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
+          section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
+          section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
+    
+          checkFile3( good_MF3, my_MF3 );
+          rename( "tape23" , "h2oFreeGasEmuEp_tape23");
+          rename( "tape24" , "h2oFreeGasEmuEp_tape24");
+
+        } // THEN
+      } // AND WHEN
+    } // WHEN
+
+  } // GIVEN 
+
+
+
+  
+
   GIVEN( "NJOY Test 9 - H in H2O Example" ){
     
     njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
@@ -430,6 +633,7 @@ TEST_CASE( "thermr" ){
 
   } // GIVEN 
 
+  
 
 } // TEST CASE
 

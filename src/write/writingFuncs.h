@@ -1,14 +1,43 @@
 
 
 
+section::Type<6> prepareMF6_inelastic( const std::vector<double> incidentEnergies,
+  std::vector<std::vector<double>> totalSCR, int nbin, double emax, int mtref, 
+  double za, double pendf_awr){
+
+  std::vector<Variant> chunks;
+  for ( size_t j = 0; j < incidentEnergies.size(); ++j){
+    std::vector<double> scratch = totalSCR[j];
+    ThermalScatteringData chunk(incidentEnergies[j], nbin+2, std::move(scratch));
+    chunks.push_back(chunk);
+  }
+
+  ContinuumEnergyAngle continuumChunk(1, {(long) incidentEnergies.size()}, 
+                                     {2}, std::move( chunks ) );
+ 
+  std::vector<ReactionProduct> products = 
+    {ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
+                     { 1., 1. }}, continuumChunk )};
+  section::Type<6> inelastic(mtref, za, pendf_awr, 0, 1, std::move(products));
+  return inelastic;
+}
+
+
+
+
 void prepareMF3_inelastic( std::vector<double>& MF3_energies, 
-  std::vector<double>& MF3_XS, section::Type<3> MF3_1, double emax,
-  std::vector<double> initialEnergies, std::vector<double> xsi ) {
+  std::vector<double>& MF3_XS, section::Type<3> MF3_2, double emax,
+  std::vector<double> initialEnergies, std::vector<double> xsi, int iinc ) {
 
   std::vector<double> desiredEnergies; 
   std::vector<double> finalXS;
 
-  for (auto energy : MF3_1.energies()){
+  if (iinc == 1){
+    initialEnergies = MF3_2.energies();
+    xsi             = MF3_2.crossSections();
+  }
+
+  for (auto energy : MF3_2.energies()){
     if (energy >= emax or std::fabs((energy-emax)/emax) < 1e-10){ 
         if (energy > emax*(1+1e-10)){ 
             energy = emax; 
