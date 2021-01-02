@@ -14,7 +14,15 @@ using ThermalScatteringData = section::Type<6>::ContinuumEnergyAngle::ThermalSca
 
 
 
-void checkFile3( section::Type<3> good_MF3, section::Type<3> my_MF3 ){
+void checkFile3( tree::Tape<std::string> goodTape, 
+        tree::Tape<std::string> myTape, int mtref, int mat ){
+
+  file::Type<3> good_file3 = goodTape.material(mat).front().file(3).parse<3>();
+  file::Type<3> my_file3   =   myTape.material(mat).front().file(3).parse<3>();
+
+
+  section::Type<3> good_MF3 = good_file3.MT(mtref);
+  section::Type<3>   my_MF3 =   my_file3.MT(mtref);
 
   REQUIRE( good_MF3.MT() == my_MF3.MT() );
   REQUIRE( good_MF3.ZA() == my_MF3.ZA() );
@@ -90,14 +98,21 @@ void check_E_mu_Ep( LaboratoryAngleEnergy good_law, LaboratoryAngleEnergy my_law
 
 
 
-template <typename Section>
-void checkContinuumEnergyAngle(Section good_inelastic, Section my_section){
-  auto good_products = good_inelastic.reactionProducts();
+void checkContinuumEnergyAngle( tree::Tape<std::string> goodTape, 
+        tree::Tape<std::string> myTape, int mtref, int mat ){
+
+  file::Type<6> good_MF6 = goodTape.material(mat).front().file(6).parse<6>();
+  file::Type<6> my_MF6   =   myTape.material(mat).front().file(6).parse<6>();
+
+  section::Type<6> good_section = good_MF6.MT(mtref);
+  section::Type<6> my_section   =   my_MF6.MT(mtref);
+
+  auto good_products = good_section.reactionProducts();
   auto good_law      = std::get<ContinuumEnergyAngle>(good_products[0].distribution());
 
-  REQUIRE( my_section.ZA() == good_inelastic.ZA() );
-  REQUIRE( my_section.AWR() == good_inelastic.AWR() );
-  REQUIRE( my_section.MT() == good_inelastic.MT() );
+  REQUIRE( my_section.ZA() == good_section.ZA() );
+  REQUIRE( my_section.AWR() == good_section.AWR() );
+  REQUIRE( my_section.MT() == good_section.MT() );
 
   auto my_products = my_section.reactionProducts();
   auto my_law = std::get< ContinuumEnergyAngle >(my_products[0].distribution() );
@@ -163,33 +178,23 @@ TEST_CASE( "thermr" ){
             "296./\n"
             ".5 .625/" ) );
           njoy::njoy21::lipservice::THERMR thermr(iss);
-          nlohmann::json jsonTHERMR(thermr);
+          nlohmann::json json(thermr);
     
           rename( "h2oFreeGas_tape23" , "tape23");
           rename( "h2oFreeGas_tape24" , "tape24");
       
           auto args = nlohmann::json::object();
           njoy::THERMR::THERMR thermrInstance;
-          thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+          thermrInstance( json, std::cout, std::cerr, args );
     
     
           tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGas_tape25"));
           tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
     
-          file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
-          file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
-    
-          section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-          section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
-    
-          checkContinuumEnergyAngle(good_inelastic, my_inelastic);
-    
-          file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
-          file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
-          section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-          section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
-    
-          checkFile3( good_MF3, my_MF3 );
+          checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+
+          checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+
           rename( "tape23" , "h2oFreeGas_tape23");
           rename( "tape24" , "h2oFreeGas_tape24");
 
@@ -205,33 +210,23 @@ TEST_CASE( "thermr" ){
             "296./\n"
             ".5 .625/" ) );
           njoy::njoy21::lipservice::THERMR thermr(iss);
-          nlohmann::json jsonTHERMR(thermr);
+          nlohmann::json json(thermr);
     
           rename( "h2oFreeGas_tape23" , "tape23");
           rename( "h2oFreeGas_tape24" , "tape24");
       
           auto args = nlohmann::json::object();
           njoy::THERMR::THERMR thermrInstance;
-          thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+          thermrInstance( json, std::cout, std::cerr, args );
     
     
           tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGas_tape25"));
           tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
     
-          file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
-          file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
-    
-          section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-          section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
-    
-          checkContinuumEnergyAngle(good_inelastic, my_inelastic);
-    
-          file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
-          file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
-          section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-          section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
-    
-          checkFile3( good_MF3, my_MF3 );
+          checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+
+          checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+
           rename( "tape23" , "h2oFreeGas_tape23");
           rename( "tape24" , "h2oFreeGas_tape24");
 
@@ -253,14 +248,14 @@ TEST_CASE( "thermr" ){
             "296./\n"
             ".5 .625/" ) );
           njoy::njoy21::lipservice::THERMR thermr(iss);
-          nlohmann::json jsonTHERMR(thermr);
+          nlohmann::json json(thermr);
 
           rename( "h2oFreeGasEmuEp_tape23" , "tape23");
           rename( "h2oFreeGasEmuEp_tape24" , "tape24");
       
           auto args = nlohmann::json::object();
           njoy::THERMR::THERMR thermrInstance;
-          thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+          thermrInstance( json, std::cout, std::cerr, args );
 
           tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGasEmuEp_tape25"));
           tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
@@ -269,8 +264,8 @@ TEST_CASE( "thermr" ){
           file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
     
 
-          section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-          section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
+          section::Type<6> good_inelastic  = good_MF6.MT(int(json["mtref"]));
+          section::Type<6> my_inelastic    =   my_MF6.MT(int(json["mtref"]));
 
           auto good_products = good_inelastic.reactionProducts();
           auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
@@ -283,12 +278,8 @@ TEST_CASE( "thermr" ){
 
           check_E_mu_Ep( good_law, my_law );
 
-          file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
-          file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
-          section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-          section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
+          checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
-          checkFile3( good_MF3, my_MF3 );
           rename( "tape23" , "h2oFreeGasEmuEp_tape23");
           rename( "tape24" , "h2oFreeGasEmuEp_tape24");
 
@@ -304,14 +295,14 @@ TEST_CASE( "thermr" ){
             "296./\n"
             ".5 .625/" ) );
           njoy::njoy21::lipservice::THERMR thermr(iss);
-          nlohmann::json jsonTHERMR(thermr);
+          nlohmann::json json(thermr);
     
           rename( "h2oFreeGasEmuEp_tape23" , "tape23");
           rename( "h2oFreeGasEmuEp_tape24" , "tape24");
       
           auto args = nlohmann::json::object();
           njoy::THERMR::THERMR thermrInstance;
-          thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+          thermrInstance( json, std::cout, std::cerr, args );
     
           tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGasEmuEp_tape25"));
           tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
@@ -320,8 +311,8 @@ TEST_CASE( "thermr" ){
           file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
     
     
-          section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-          section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
+          section::Type<6> good_inelastic  = good_MF6.MT(int(json["mtref"]));
+          section::Type<6> my_inelastic    =   my_MF6.MT(int(json["mtref"]));
     
           auto good_products = good_inelastic.reactionProducts();
           auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
@@ -334,12 +325,8 @@ TEST_CASE( "thermr" ){
     
           check_E_mu_Ep( good_law, my_law );
     
-          file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
-          file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
-          section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-          section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
-    
-          checkFile3( good_MF3, my_MF3 );
+          checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+
           rename( "tape23" , "h2oFreeGasEmuEp_tape23");
           rename( "tape24" , "h2oFreeGasEmuEp_tape24");
 
@@ -361,34 +348,24 @@ TEST_CASE( "thermr" ){
       "296./\n"
       ".5 .625/" ) );
     njoy::njoy21::lipservice::THERMR thermr(iss);
-    nlohmann::json jsonTHERMR(thermr);
+    nlohmann::json json(thermr);
 
     rename( "h2o_tape23" , "tape23");
     rename( "h2o_tape24" , "tape24");
 
     auto args = nlohmann::json::object();
     njoy::THERMR::THERMR thermrInstance;
-    thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+    thermrInstance( json, std::cout, std::cerr, args );
 
 
 
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2o_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-    file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
-    file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
+    checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
-    section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-    section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
+    checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
-    checkContinuumEnergyAngle(good_inelastic, my_inelastic);
-
-    file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
-    file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
-    section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-    section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
-
-    checkFile3( good_MF3, my_MF3 );
     rename( "tape23" , "h2o_tape23");
     rename( "tape24" , "h2o_tape24");
 
@@ -404,38 +381,23 @@ TEST_CASE( "thermr" ){
      " 296./\n"
      " .5 .2/" ));
     njoy::njoy21::lipservice::THERMR thermr(iss);
-    nlohmann::json jsonTHERMR(thermr);
+    nlohmann::json json(thermr);
 
     rename( "be_tape23" , "tape23");
     rename( "be_tape24" , "tape24");
 
     auto args = nlohmann::json::object();
     njoy::THERMR::THERMR thermrInstance;
-    thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+    thermrInstance( json, std::cout, std::cerr, args );
 
 
 
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("be_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-    file::Type<6> good_MF6 = goodTape.material(425).front().file(6).parse<6>();
-    file::Type<6> my_MF6   =   myTape.material(425).front().file(6).parse<6>();
+    checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
-    section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-    section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
-
-    checkContinuumEnergyAngle(good_inelastic, my_inelastic);
-
-    file::Type<3> good_file3 = goodTape.material(425).front().file(3).parse<3>();
-    file::Type<3> my_file3   =   myTape.material(425).front().file(3).parse<3>();
-    section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-    section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
-
-    section::Type<3> good_MF3Bragg = good_file3.MT(int(jsonTHERMR["mtref"])+1);
-    section::Type<3>   my_MF3Bragg =   my_file3.MT(int(jsonTHERMR["mtref"])+1);
-
-    checkFile3( good_MF3, my_MF3 );
-    checkFile3( good_MF3Bragg, my_MF3Bragg );
+    checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
     rename( "tape23" , "be_tape23");
     rename( "tape24" , "be_tape24");
@@ -451,34 +413,23 @@ TEST_CASE( "thermr" ){
      "296. 500.0/\n"
      "0.5 .05/" ));
     njoy::njoy21::lipservice::THERMR thermr(iss);
-    nlohmann::json jsonTHERMR(thermr);
+    nlohmann::json json(thermr);
 
     rename( "h2oMultT_tape23" , "tape23");
     rename( "h2oMultT_tape24" , "tape24");
 
     auto args = nlohmann::json::object();
     njoy::THERMR::THERMR thermrInstance;
-    thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+    thermrInstance( json, std::cout, std::cerr, args );
 
 
 
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oMultT_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-    file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
-    file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
+    checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
-    section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-    section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
-
-    checkContinuumEnergyAngle(good_inelastic, my_inelastic);
-
-    file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
-    file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
-    section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-    section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
-
-    checkFile3( good_MF3, my_MF3 );
+    checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
     rename( "tape23" , "h2oMultT_tape23");
     rename( "tape24" , "h2oMultT_tape24");
@@ -495,14 +446,14 @@ TEST_CASE( "thermr" ){
      "296./\n"
      "0.5 .625/" ));
     njoy::njoy21::lipservice::THERMR thermr(iss);
-    nlohmann::json jsonTHERMR(thermr);
+    nlohmann::json json(thermr);
 
     rename( "h2oEmuEp_tape23" , "tape23");
     rename( "h2oEmuEp_tape24" , "tape24");
 
     auto args = nlohmann::json::object();
     njoy::THERMR::THERMR thermrInstance;
-    thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+    thermrInstance( json, std::cout, std::cerr, args );
 
 
 
@@ -514,8 +465,8 @@ TEST_CASE( "thermr" ){
     file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
 
 
-    section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-    section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
+    section::Type<6> good_inelastic  = good_MF6.MT(int(json["mtref"]));
+    section::Type<6> my_inelastic    =   my_MF6.MT(int(json["mtref"]));
 
     auto good_products = good_inelastic.reactionProducts();
     auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
@@ -528,12 +479,7 @@ TEST_CASE( "thermr" ){
 
     check_E_mu_Ep( good_law, my_law );
 
-    file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
-    file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
-    section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-    section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
-
-    checkFile3( good_MF3, my_MF3 );
+    checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
 
     rename( "tape23" , "h2oEmuEp_tape23");
@@ -552,38 +498,24 @@ TEST_CASE( "thermr" ){
         "296./\n"
         ".5 .625/" ));
       njoy::njoy21::lipservice::THERMR thermr(iss);
-      nlohmann::json jsonTHERMR(thermr);
+      nlohmann::json json(thermr);
 
       rename( "zrh_tape23" , "tape23");
       rename( "zrh_tape24" , "tape24");
 
       auto args = nlohmann::json::object();
       njoy::THERMR::THERMR thermrInstance;
-      thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
-
-
+      thermrInstance( json, std::cout, std::cerr, args );
 
       tree::Tape<std::string> goodTape(utility::slurpFileToMemory("zrh_tape25"));
       tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-      file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
-      file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
+      checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
-      section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-      section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
-
-      checkContinuumEnergyAngle(good_inelastic, my_inelastic);
-
-      file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
-      file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
-      section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-      section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
-
-      checkFile3( good_MF3, my_MF3 );
+      checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
       rename( "tape23" , "zrh_tape23");
       rename( "tape24" , "zrh_tape24");
-      rename( "tape25" , "zrh_output_tape25");
 
     } // WHEN
 
@@ -595,7 +527,7 @@ TEST_CASE( "thermr" ){
         "300. 900. 1200./\n"
         "0.5 .25/" ));
       njoy::njoy21::lipservice::THERMR thermr(iss);
-      nlohmann::json jsonTHERMR(thermr);
+      nlohmann::json json(thermr);
 
 
       rename( "zrhMultT_tape23" , "tape23");
@@ -603,27 +535,16 @@ TEST_CASE( "thermr" ){
 
       auto args = nlohmann::json::object();
       njoy::THERMR::THERMR thermrInstance;
-      thermrInstance( jsonTHERMR, std::cout, std::cerr, args );
+      thermrInstance( json, std::cout, std::cerr, args );
 
 
 
       tree::Tape<std::string> goodTape(utility::slurpFileToMemory("zrhMultT_tape25"));
       tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-      file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
-      file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
+      checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
-      section::Type<6> good_inelastic  = good_MF6.MT(int(jsonTHERMR["mtref"]));
-      section::Type<6> my_inelastic    =   my_MF6.MT(int(jsonTHERMR["mtref"]));
-
-      checkContinuumEnergyAngle(good_inelastic, my_inelastic);
-
-      file::Type<3> good_file3 = goodTape.material(125).front().file(3).parse<3>();
-      file::Type<3> my_file3   =   myTape.material(125).front().file(3).parse<3>();
-      section::Type<3> good_MF3 = good_file3.MT(int(jsonTHERMR["mtref"]));
-      section::Type<3>   my_MF3 =   my_file3.MT(int(jsonTHERMR["mtref"]));
-
-      checkFile3( good_MF3, my_MF3 );
+      checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
       rename( "tape23" , "zrhMultT_tape23");
       rename( "tape24" , "zrhMultT_tape24");
