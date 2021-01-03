@@ -70,7 +70,28 @@ void checkCohElastic( section::Type<6> my_elastic_section,
 
 
 
-void check_E_mu_Ep( LaboratoryAngleEnergy good_law, LaboratoryAngleEnergy my_law ){
+void check_E_mu_Ep( tree::Tape<std::string> goodTape, 
+        tree::Tape<std::string> myTape, int mtref, int mat ){
+
+
+
+    file::Type<6> good_MF6 = goodTape.material(mat).front().file(6).parse<6>();
+    file::Type<6> my_MF6   =   myTape.material(mat).front().file(6).parse<6>();
+
+
+    section::Type<6> good_inelastic  = good_MF6.MT(mtref);
+    section::Type<6> my_inelastic    =   my_MF6.MT(mtref);
+
+    auto good_products = good_inelastic.reactionProducts();
+    auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
+
+    auto my_products = my_inelastic.reactionProducts();
+    auto my_law = std::get<LaboratoryAngleEnergy>(my_products[0].distribution() );
+
+    REQUIRE( my_inelastic.AWR() == good_inelastic.AWR() );
+    REQUIRE( my_inelastic.MT() == good_inelastic.MT() );
+
+
     auto good_energies = good_law.angularDistributions();
     auto   my_energies =   my_law.angularDistributions();
 
@@ -102,7 +123,7 @@ void check_E_mu_Ep( LaboratoryAngleEnergy good_law, LaboratoryAngleEnergy my_law
 
 
 
-void checkContinuumEnergyAngle( tree::Tape<std::string> goodTape, 
+void check_E_Ep_Mu( tree::Tape<std::string> goodTape, 
         tree::Tape<std::string> myTape, int mtref, int mat ){
 
   file::Type<6> good_MF6 = goodTape.material(mat).front().file(6).parse<6>();
@@ -195,7 +216,7 @@ TEST_CASE( "thermr" ){
           tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGas_tape25"));
           tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
     
-          checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+          check_E_Ep_Mu(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
           checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
@@ -227,7 +248,7 @@ TEST_CASE( "thermr" ){
           tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGas_tape25"));
           tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
     
-          checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+          check_E_Ep_Mu(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
           checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
@@ -264,23 +285,7 @@ TEST_CASE( "thermr" ){
           tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oFreeGasEmuEp_tape25"));
           tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-          file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
-          file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
-    
-
-          section::Type<6> good_inelastic  = good_MF6.MT(int(json["mtref"]));
-          section::Type<6> my_inelastic    =   my_MF6.MT(int(json["mtref"]));
-
-          auto good_products = good_inelastic.reactionProducts();
-          auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
-
-          auto my_products = my_inelastic.reactionProducts();
-          auto my_law = std::get<LaboratoryAngleEnergy>(my_products[0].distribution() );
-
-          REQUIRE( my_inelastic.AWR() == good_inelastic.AWR() );
-          REQUIRE( my_inelastic.MT() == good_inelastic.MT() );
-
-          check_E_mu_Ep( good_law, my_law );
+          check_E_mu_Ep(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
           checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
@@ -327,7 +332,7 @@ TEST_CASE( "thermr" ){
           REQUIRE( my_inelastic.AWR() == good_inelastic.AWR() );
           REQUIRE( my_inelastic.MT() == good_inelastic.MT() );
     
-          check_E_mu_Ep( good_law, my_law );
+          check_E_mu_Ep(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
     
           checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
@@ -367,7 +372,7 @@ TEST_CASE( "thermr" ){
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2o_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-    checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+    check_E_Ep_Mu(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
     checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
@@ -400,7 +405,7 @@ TEST_CASE( "thermr" ){
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("be_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-    checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+    check_E_Ep_Mu(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
     checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
@@ -432,7 +437,7 @@ TEST_CASE( "thermr" ){
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oMultT_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-    checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+    check_E_Ep_Mu(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
     checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
@@ -461,28 +466,11 @@ TEST_CASE( "thermr" ){
     thermrInstance( json, std::cout, std::cerr, args );
 
 
-
-
     tree::Tape<std::string> goodTape(utility::slurpFileToMemory("h2oEmuEp_tape25"));
     tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-    file::Type<6> good_MF6 = goodTape.material(125).front().file(6).parse<6>();
-    file::Type<6> my_MF6   =   myTape.material(125).front().file(6).parse<6>();
 
-
-    section::Type<6> good_inelastic  = good_MF6.MT(int(json["mtref"]));
-    section::Type<6> my_inelastic    =   my_MF6.MT(int(json["mtref"]));
-
-    auto good_products = good_inelastic.reactionProducts();
-    auto good_law      = std::get<LaboratoryAngleEnergy>(good_products[0].distribution());
-
-    auto my_products = my_inelastic.reactionProducts();
-    auto my_law = std::get<LaboratoryAngleEnergy>(my_products[0].distribution() );
-
-    REQUIRE( my_inelastic.AWR() == good_inelastic.AWR() );
-    REQUIRE( my_inelastic.MT() == good_inelastic.MT() );
-
-    check_E_mu_Ep( good_law, my_law );
+    check_E_mu_Ep(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
     checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
@@ -515,7 +503,7 @@ TEST_CASE( "thermr" ){
       tree::Tape<std::string> goodTape(utility::slurpFileToMemory("zrh_tape25"));
       tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-      checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+      check_E_Ep_Mu(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
       checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
@@ -545,7 +533,7 @@ TEST_CASE( "thermr" ){
       tree::Tape<std::string> goodTape(utility::slurpFileToMemory("zrhMultT_tape25"));
       tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
-      checkContinuumEnergyAngle(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
+      check_E_Ep_Mu(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
       checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 

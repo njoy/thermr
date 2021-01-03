@@ -40,11 +40,8 @@ namespace THERMR {
 class THERMR {
 
 public:
-void operator()( const nlohmann::json& json,
-                 std::ostream& output,
-                 std::ostream& error,
-                 const nlohmann::json& ){
-
+void operator()( const nlohmann::json& json, std::ostream& output,
+                 std::ostream& error, const nlohmann::json& ){
 
   tree::Tape<std::string> pendf (utility::slurpFileToMemory("tape" + 
                                       std::to_string(int(json["nin"]))));
@@ -64,6 +61,10 @@ void operator()( const nlohmann::json& json,
          pendf_awr = MF1.section( 451_c ).AWR(),
          awr;
 
+  std::vector<double> initialEnergies;
+  int i = 0;
+  do { initialEnergies.push_back(egrid[i]); }
+  while (egrid[i++] <= emax);
 
   // Read in the data from LEAPR output [or set to default values if free gas]
   std::vector<double> freeXS, analyticalFunctionTypes, awrVec, boundXS, alphas, 
@@ -85,11 +86,6 @@ void operator()( const nlohmann::json& json,
     
     // compute incoherent inelastic cross sections
     if (iinc != 0){
-      std::vector<double> initialEnergies;
-      for (size_t i = 0; i < egrid.size(); ++i){
-        initialEnergies.push_back(egrid[i]);
-        if (egrid[i] > emax){ break; }
-      }
 
       if (json["iform"] == 0){
         // E E' mu
