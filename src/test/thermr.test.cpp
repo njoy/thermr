@@ -20,28 +20,32 @@ void checkFile3( tree::Tape<std::string> goodTape,
   file::Type<3> good_file3 = goodTape.material(mat).front().file(3).parse<3>();
   file::Type<3> my_file3   =   myTape.material(mat).front().file(3).parse<3>();
 
+  auto checkMF3_MT = [=](int mt) {
+    section::Type<3> good_MF3 = good_file3.MT(mt);
+    section::Type<3>   my_MF3 =   my_file3.MT(mt);
 
-  section::Type<3> good_MF3 = good_file3.MT(mtref);
-  section::Type<3>   my_MF3 =   my_file3.MT(mtref);
+    REQUIRE( good_MF3.MT() == my_MF3.MT() );
+    REQUIRE( good_MF3.ZA() == my_MF3.ZA() );
+    REQUIRE( good_MF3.AWR() == Approx(my_MF3.AWR()) );
+    REQUIRE( good_MF3.LR() == my_MF3.LR() );
+    REQUIRE( good_MF3.QM() == Approx(my_MF3.QM()) );
+    REQUIRE( good_MF3.QI() == Approx(my_MF3.QI()) );
+    REQUIRE( good_MF3.NP() == my_MF3.NP() );
+    REQUIRE( good_MF3.NR() == my_MF3.NR() );
+    checkVec( good_MF3.interpolants(), my_MF3.interpolants() );
+    checkVec( good_MF3.boundaries(), my_MF3.boundaries() );
+    checkVec( good_MF3.energies(), my_MF3.energies() );
+    checkVec( good_MF3.crossSections(), my_MF3.crossSections() );
+    REQUIRE( good_MF3.NC() == my_MF3.NC() );
+  };
 
-  REQUIRE( good_MF3.MT() == my_MF3.MT() );
-  REQUIRE( good_MF3.ZA() == my_MF3.ZA() );
-  REQUIRE( good_MF3.AWR() == Approx(my_MF3.AWR()) );
-  REQUIRE( good_MF3.LR() == my_MF3.LR() );
-  REQUIRE( good_MF3.QM() == Approx(my_MF3.QM()) );
-  REQUIRE( good_MF3.QI() == Approx(my_MF3.QI()) );
-  REQUIRE( good_MF3.NP() == my_MF3.NP() );
-  REQUIRE( good_MF3.NR() == my_MF3.NR() );
-  checkVec( good_MF3.interpolants(), my_MF3.interpolants() );
-  checkVec( good_MF3.boundaries(), my_MF3.boundaries() );
-  checkVec( good_MF3.energies(), my_MF3.energies() );
-  checkVec( good_MF3.crossSections(), my_MF3.crossSections() );
-  REQUIRE( good_MF3.NC() == my_MF3.NC() );
+
+  checkMF3_MT(mtref);
+  if (good_file3.hasMT(mtref+1)){
+    checkMF3_MT(mtref+1);
+  }
 
 }
-
-
-
 
 void checkCohElastic( section::Type<6> my_elastic_section, 
                       section::Type<6> good_elastic_section ){
@@ -338,6 +342,7 @@ TEST_CASE( "thermr" ){
 
 
 
+
   
 
   GIVEN( "NJOY Test 9 - H in H2O Example" ){
@@ -537,8 +542,6 @@ TEST_CASE( "thermr" ){
       njoy::THERMR::THERMR thermrInstance;
       thermrInstance( json, std::cout, std::cerr, args );
 
-
-
       tree::Tape<std::string> goodTape(utility::slurpFileToMemory("zrhMultT_tape25"));
       tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
@@ -554,8 +557,5 @@ TEST_CASE( "thermr" ){
 
   } // GIVEN 
 
-  
-
 } // TEST CASE
-
 

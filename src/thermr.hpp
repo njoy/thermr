@@ -34,37 +34,33 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
 
 
-
-
 namespace njoy {
 namespace THERMR {
 
 class THERMR {
 
 public:
-void operator()( const nlohmann::json& jsonInput,
+void operator()( const nlohmann::json& json,
                  std::ostream& output,
                  std::ostream& error,
                  const nlohmann::json& ){
 
-  output << "Input arguments:\n" << jsonInput.dump(2) << std::endl;
 
-  tree::Tape<std::string> pendfTape ( utility::slurpFileToMemory("tape" + 
-                                      std::to_string(int(jsonInput["nin"]))));
+  tree::Tape<std::string> pendf (utility::slurpFileToMemory("tape" + 
+                                      std::to_string(int(json["nin"]))));
 
-  file::Type<1> MF1 = pendfTape.material(
-                      int(jsonInput["matdp"])).front().file(1).parse<1>();
-  file::Type<3> MF3 = pendfTape.material(
-                      int(jsonInput["matdp"])).front().file(3).parse<3>();
+  file::Type<1> MF1 = pendf.material(int(json["matdp"])).front().file(1).parse<1>();
+  file::Type<3> MF3 = pendf.material(int(json["matdp"])).front().file(3).parse<3>();
   section::Type<3> MF3_2 = MF3.MT(2_c);
 
-  int matde   = jsonInput["matde"], nendf   = jsonInput["nendf"],
-      nbin    = jsonInput["nbin" ], iinc    = jsonInput["iin"  ],
-      icoh    = jsonInput["icoh" ], natom   = jsonInput["natom"],
-      mtref   = jsonInput["mtref"], lat, lasym;
-  double tol  = jsonInput["tol"  ],
-         emax = jsonInput["emax" ],
-         za   = MF1.section( 451_c ).ZA(),
+  int matde  = json["matde"], nendf  = json["nendf"],
+      nbin   = json["nbin" ], iinc   = json["iin"  ],
+      icoh   = json["icoh" ], natom  = json["natom"],
+      mtref  = json["mtref"], lat, lasym;
+
+  double tol       = json["tol"  ],
+         emax      = json["emax" ],
+         za        = MF1.section( 451_c ).ZA(),
          pendf_awr = MF1.section( 451_c ).AWR(),
          awr;
 
@@ -73,18 +69,19 @@ void operator()( const nlohmann::json& jsonInput,
   std::vector<double> freeXS, analyticalFunctionTypes, awrVec, boundXS, alphas, 
                       betas, effectiveTemps;
   auto sabVec = readLEAPRData( awr, lat, lasym, freeXS, analyticalFunctionTypes, 
-       awrVec, boundXS, alphas, betas, effectiveTemps, pendf_awr, jsonInput );
+       awrVec, boundXS, alphas, betas, effectiveTemps, pendf_awr, json );
 
 
   std::vector<Material>        materials {};
   std::vector<DirectoryRecord> index     {};
 
-  for (size_t itemp = 0; itemp < jsonInput["tempr"].size(); ++itemp){
-    double temp = jsonInput["tempr"][itemp];
+  for (size_t itemp = 0; itemp < json["tempr"].size(); ++itemp){
+    double temp = json["tempr"][itemp];
 
     std::vector<section::Type<6>> section6Vec {};
     std::vector<section::Type<3>> section3Vec {};
-    std::vector<double> MF3_energies, MF3_XS, sab = sabVec[itemp];
+    std::vector<double> MF3_energies, MF3_XS, sab = sabVec[itemp],
+                        inelasticEnergies;
     
     // compute incoherent inelastic cross sections
     if (iinc != 0){
@@ -94,7 +91,7 @@ void operator()( const nlohmann::json& jsonInput,
         if (egrid[i] > emax){ break; }
       }
 
-      if (jsonInput["iform"] == 0){
+      if (json["iform"] == 0){
         // E E' mu
         auto E_Ep_Mu_output = e_ep_mu( initialEnergies, temp*kb, tol, lat,  iinc, 
              lasym, alphas, betas, sab, awr, boundXS, effectiveTemps[itemp], 
@@ -105,9 +102,13 @@ void operator()( const nlohmann::json& jsonInput,
 
         // Prepare and write inelastic MF3
         std::vector<double> xsi;
+        inelasticEnergies = std::get<0>(E_Ep_Mu_output);
         auto totalOutput = std::get<2>(E_Ep_Mu_output);
         for (const auto& entry : totalOutput){ xsi.emplace_back(entry[0]); }
-        prepareMF3_inelastic( MF3_energies, MF3_XS,  MF3_2, emax, initialEnergies, xsi, iinc );
+
+        prepareMF3_inelastic( MF3_energies, MF3_XS,  MF3_2, emax, 
+                       initialEnergies, xsi, iinc, mtref, za, pendf_awr, temp );
+
 
       }
       else {
@@ -124,68 +125,60 @@ void operator()( const nlohmann::json& jsonInput,
 
         // Prepare and write inelastic MF3
         prepareMF3_inelastic( MF3_energies, MF3_XS,  MF3_2, emax, 
-                              initialEnergies, xsi, iinc );
+                       initialEnergies, xsi, iinc, mtref, za, pendf_awr, temp );
+
+
       }
     }
 
     // Coherent Elastic
     if (icoh > 0 and icoh <= 10 and matde != 0){
-      tree::Tape<std::string> leaprTape ( utility::slurpFileToMemory("tape" +
-                                          std::to_string(nendf)));
-      file::Type<7> MF7 = leaprTape.material(matde).front().file(7).parse<7>();
-      if (MF7.hasMT(2)){   
 
-        // MF6 Coherent Elastic
-        auto cohElasticInfo = prepareMF6_cohElastic( MF7, emax, mtref, za, 
-                                                pendf_awr, index, section6Vec );
-        // Pull out Bragg Edges and create MF3
-        std::vector<double> 
-          cohElasticEnergies = cohElasticInfo.energies(),
-          cohElasticWeights  = cohElasticInfo.thermalScatteringValues()[0];
+      // MF6 Coherent Elastic
+      auto cohElastic = prepareMF6_cohElastic( nendf, matde, emax, mtref, za, 
+                                              pendf_awr, index, section6Vec );
 
-        auto out = coh( temp, lat, emax, natom, MF3_energies, tol, 
-                        cohElasticEnergies, cohElasticWeights );
+      // Pull out Bragg Edges and create MF3
+      auto out = coh( temp, lat, emax, natom, MF3_energies, tol, 
+              cohElastic.energies(), cohElastic.thermalScatteringValues()[0] );
 
-        std::vector<double> MF3CohElasticEnergies = std::get<0>(out),
-                            MF3CohElasticXS       = std::get<1>(out);
-
-        section3Vec.emplace_back(prepareMF3_cohElastic( out, mtref, za, 
-                                       pendf_awr, temp, MF3_energies, MF3_XS ));
-      } 
+      section3Vec.emplace_back(prepareMF3_cohElastic( out, mtref, za, 
+                                      pendf_awr, temp, MF3_energies, MF3_XS ));
     } 
 
     else if (icoh > 10 and matde != 0){
       // Incoherent Elastic
-      prepareMF6_incohElastic( nendf, matde, temp, emax, nbin, mtref, za, 
-                               pendf_awr, section6Vec, error, index );
+      double debyeWallerFactor = prepareMF6_incohElastic( nendf, matde, temp, 
+              emax, nbin, mtref, za, pendf_awr, section6Vec, error, index );
+
+      section3Vec.emplace_back(prepareMF3_incohElastic( inelasticEnergies,
+        MF3_energies, boundXS[0], debyeWallerFactor, mtref, natom, za, 
+        pendf_awr, temp));
+
     } 
 
-    // Get MF3 ready to write
-    section::Type< 3 > MF3( mtref, za, pendf_awr, temp, 0.0, 0,
-                            std::vector<long>(1,long(MF3_energies.size())),
-                            std::vector<long>(1,2),
-                            std::move( MF3_energies), 
-                            std::move( MF3_XS) );
+
+    section::Type<3> MF3( mtref, za, pendf_awr, temp, 0.0, 0,
+      std::vector<long>(1,long(MF3_energies.size())), std::vector<long>(1,2), 
+      std::move( MF3_energies ), std::move( MF3_XS ) );
+
 
     section3Vec.emplace_back(std::move(MF3));
 
+
     file::Type<1> MF1_copy = MF1;
-    Material material( int(jsonInput["matdp"]), std::move(MF1_copy), 
+    Material material( int(json["matdp"]), std::move(MF1_copy), 
                        file::Type<3>(std::move(section3Vec)),
                        file::Type<6>(std::move(section6Vec)) );
     materials.emplace_back(std::move(material));
   
   }
 
-  Tape tape( TapeIdentification(std::string(pendfTape.TPID().text()),1), 
-             std::move(materials) );
-  std::string buffer;
-  auto materialOutput = std::back_inserter( buffer );
-  tape.print( materialOutput );
-  std::string name = "tape"+std::to_string(int(jsonInput["nout"]));
-  std::ofstream out(name);
-  out << buffer;
-  out.close();
+  writeTape( materials, pendf, int(json["nout"]) );
+
+  return;
+
+  output << "Input arguments:\n" << json.dump(2) << std::endl;
 
 }
 

@@ -5,9 +5,14 @@ using CoherentElastic = section::Type<7,2>::CoherentElastic;
 using Unknown = section::Type<6>::Unknown;
 
 
-auto prepareMF6_cohElastic( const file::Type<7>& MF7, double emax, int mtref, 
+auto prepareMF6_cohElastic( int nendf, int matde, double emax, int mtref, 
   double za, double pendf_awr, std::vector<DirectoryRecord>& index, 
   std::vector<section::Type<6>>& section6Vec ){
+
+  tree::Tape<std::string> leaprTape ( utility::slurpFileToMemory("tape" +
+                                      std::to_string(nendf)));
+
+  file::Type<7> MF7 = leaprTape.material(matde).front().file(7).parse<7>();
 
   auto cohElasticInfo = std::get<CoherentElastic>((MF7.MT(2_c)).scatteringLaw());
 
@@ -27,7 +32,7 @@ auto prepareMF6_cohElastic( const file::Type<7>& MF7, double emax, int mtref,
 
 
 
-void prepareMF6_incohElastic(int nendf, int matde, double temp,
+double prepareMF6_incohElastic(int nendf, int matde, double temp,
   double emax, int nbin, int mtref, double za, double pendf_awr,
   std::vector<section::Type<6>>& section6Vec, std::ostream& error,
   std::vector<DirectoryRecord>& index ){
@@ -70,6 +75,7 @@ void prepareMF6_incohElastic(int nendf, int matde, double temp,
   index.emplace_back( 6, mtref+1, incElastic.NC(), 0 );
   section6Vec.push_back( std::move(incElastic) );
 
+  return debyeWallerFactor;
 
 }
 
@@ -123,10 +129,10 @@ void prepareMF6_E_Mu_Ep( double emax, LaboratoryAngleEnergy labAngleEnergy,
 
 void prepareMF3_inelastic( std::vector<double>& MF3_energies, 
   std::vector<double>& MF3_XS, section::Type<3> MF3_2, double emax,
-  std::vector<double> initialEnergies, std::vector<double> xsi, int iinc ) {
+  std::vector<double> initialEnergies, std::vector<double> xsi, int iinc,
+  int mtref, double za, double pendf_awr, double temp ) {
 
-  std::vector<double> desiredEnergies; 
-  std::vector<double> finalXS;
+  std::vector<double> desiredEnergies, finalXS;
 
   if (iinc == 1){
     initialEnergies = MF3_2.energies();
@@ -157,8 +163,45 @@ void prepareMF3_inelastic( std::vector<double>& MF3_energies,
 
   MF3_energies = desiredEnergies;
   MF3_XS       = finalXS;
+
+  //return MF3;
+
 }
 
+
+
+section::Type<3> prepareMF3_incohElastic( std::vector<double> inelasticEnergies,
+  std::vector<double> MF3_energies, double boundXS, double debyeWallerFactor,
+  int mtref, int natom, double za, double pendf_awr, double temp ){
+
+  double c1 = boundXS/(2*natom);
+  std::vector<double> MF3_XS_oldGrid;
+  for (auto& energy : inelasticEnergies){
+    double c2 = debyeWallerFactor*energy*2;
+    MF3_XS_oldGrid.push_back(c1/c2*(1.0-exp(-2*c2)));
+  }
+
+  std::vector<double> MF3_XS;
+  for (auto& energy : MF3_energies){
+    MF3_XS.push_back(terp(inelasticEnergies,MF3_XS_oldGrid,energy,3,
+                          inelasticEnergies.size()));
+  } 
+
+
+
+
+
+  MF3_XS[MF3_XS.size()-2] = 0.0;
+  MF3_XS[MF3_XS.size()-1] = 0.0;
+  section::Type<3> MF3_incohEl( mtref+1, za, pendf_awr, temp, 0.0, 0,
+                              std::vector<long>(1,long(MF3_energies.size())),
+                              std::vector<long>(1,2),
+                              std::move( MF3_energies), 
+                              std::move( MF3_XS) );
+
+  return MF3_incohEl;
+
+}
 
 
 
@@ -221,7 +264,20 @@ section::Type<3> prepareMF3_cohElastic( std::tuple<std::vector<double>,
 }
 
 
+void writeTape( std::vector<Material> materials, tree::Tape<std::string> pendf,
+                int nout ){
 
+  Tape tape( TapeIdentification(std::string(pendf.TPID().text()),1), 
+             std::move(materials) );
+  std::string buffer;
+  auto materialOutput = std::back_inserter( buffer );
+  tape.print( materialOutput );
+  std::string name = "tape"+std::to_string(nout);
+  std::ofstream out(name);
+  out << buffer;
+  out.close();
+  }
+  
 
 
 
