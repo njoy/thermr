@@ -503,6 +503,14 @@ TEST_CASE( "thermr" ){
       tree::Tape<std::string> goodTape(utility::slurpFileToMemory("zrh_tape25"));
       tree::Tape<std::string> myTape  (utility::slurpFileToMemory("tape25"    ));
 
+      int mat   = json["matdp"];
+      int mtref = json["mtref"];
+
+      tree::Tape<std::string> tape25(utility::slurpFileToMemory("tape25"));
+      file::Type<1>      MF1_b     = tape25.material(mat).front().file(1).parse<1>();
+      section::Type<1,451> section_b = MF1_b.MT(451_c);
+
+
       check_E_Ep_Mu(goodTape, myTape, int(json["mtref"]), int(json["matdp"]));
 
       checkFile3( goodTape, myTape, int(json["mtref"]), int(json["matdp"]));

@@ -172,7 +172,8 @@ void prepareMF3_inelastic( std::vector<double>& MF3_energies,
 
 section::Type<3> prepareMF3_incohElastic( std::vector<double> inelasticEnergies,
   std::vector<double> MF3_energies, double boundXS, double debyeWallerFactor,
-  int mtref, int natom, double za, double pendf_awr, double temp ){
+  int mtref, int natom, double za, double pendf_awr, double temp,
+  std::vector<DirectoryRecord>& index ){
 
   double c1 = boundXS/(2*natom);
   std::vector<double> MF3_XS_oldGrid;
@@ -199,6 +200,8 @@ section::Type<3> prepareMF3_incohElastic( std::vector<double> inelasticEnergies,
                               std::move( MF3_energies), 
                               std::move( MF3_XS) );
 
+  index.emplace_back( 3, mtref+1, MF3_incohEl.NC(), 0 );
+
   return MF3_incohEl;
 
 }
@@ -208,7 +211,7 @@ section::Type<3> prepareMF3_incohElastic( std::vector<double> inelasticEnergies,
 section::Type<3> prepareMF3_cohElastic( std::tuple<std::vector<double>,
   std::vector<double>,std::vector<double>> cohElasticOutput, int mtref, int za, 
   double pendf_awr, double temp, std::vector<double>& MF3_energies, 
-  std::vector<double>& MF3_XS ){
+  std::vector<double>& MF3_XS, std::vector<DirectoryRecord>& index ){
 
   std::vector<double> MF3CohElasticEnergies = std::get<0>(cohElasticOutput),
                       MF3CohElasticXS       = std::get<1>(cohElasticOutput);
@@ -221,6 +224,7 @@ section::Type<3> prepareMF3_cohElastic( std::tuple<std::vector<double>,
                               std::vector<long>(1,2),
                               std::move( MF3CohElasticEnergies), 
                               std::move( MF3CohElasticXS ) );
+  index.emplace_back( 3, mtref+1, MF3_cohEl.NC(), 0 );
 
   // Write ensure that other cross sections are on same grid as bragg
   int numSec3Energies = MF3_energies.size();

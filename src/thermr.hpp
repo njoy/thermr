@@ -34,6 +34,156 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
 
 
+template <typename Sec3, typename Sec6>
+void write2( Sec3 sec3_vec, Sec6 sec6_vec, std::vector<double> temperatures,
+        nlohmann::json json){
+  tree::Tape<std::string> tape (utility::slurpFileToMemory("tape" + 
+                                std::to_string(int(json["nin"]))));
+
+  std::string newtape;
+  auto output = std::back_inserter( newtape );
+  tape.TPID().print( output, 1, 0, 0 );
+
+  double currentTemperature;
+  bool addedMF3 = false;
+  bool addedMF6 = false;
+  //std::cout << "added mf3? mf6?      " << addedMF3 << "   " << addedMF6 << std::endl;
+
+  for ( const auto& material : tape.materials() ) {
+
+    //std::cout << "starting material" << std::endl;
+    // std::cout << "-----------------" << std::endl;
+    int MAT = material.MAT();
+
+    std::string newmaterial;
+    std::vector< DirectoryRecord > newindex;
+    std::string description_451;
+    double za,awr;
+
+    for ( const auto& file : material.files() ) {
+      std::cout << "starting new file in material" << std::endl;
+      switch ( file.MF() ) {
+        case 1 : { 
+          std::cout << "Doing 1" << std::endl;
+          section::Type<1,451> section_451 = file.parse(1_c).section(451_c);
+          currentTemperature = section_451.TEMP();
+          description_451 = section_451.description();
+          za  = section_451.ZA();
+          awr = section_451.AWR();
+          continue;
+        }
+        case 3 : { 
+          std::cout << "Doing 3" << std::endl;
+          std::vector<section::Type<3>> sections = file.parse(3_c).sections();
+          for (size_t i = 0; i < temperatures.size(); ++i){ 
+            if (std::fabs(currentTemperature-temperatures[i]) < 1e-2){
+              for (auto& sec3_chunk : sec3_vec[i]){sections.emplace_back(sec3_chunk);}
+              addedMF3 = true; 
+              break;
+            }
+          }
+          file::Type< 3 > newfile( std::move( sections ) );
+          for ( const auto& section : newfile.sections() ) {
+            newindex.emplace_back( 3, section.MT(), section.NC(), 0 );
+          }
+          output = std::back_inserter( newmaterial );
+          newfile.print( output, MAT );
+          continue;
+        }
+        case 6: { std::cout << "Doing 6" << std::endl;
+          std::vector< section::Type< 6 > > sections = file.parse( 6_c ).sections();
+          for (size_t i = 0; i < temperatures.size(); ++i){ 
+            if (std::fabs(currentTemperature-temperatures[i]) < 1e-2){
+              for (auto& sec6_chunk : sec6_vec[i]){sections.emplace_back(sec6_chunk);}
+              addedMF6 = true; 
+              break;
+            }
+          }
+          file::Type< 6 > newfile( std::move( sections ) );
+          for ( const auto& section : newfile.sections() ) {
+            newindex.emplace_back( 6, section.MT(), section.NC(), 0 );
+          }
+          output = std::back_inserter( newmaterial );
+          newfile.print( output, MAT );
+          continue;
+        }
+        default : { std::cout << "Doing other" << std::endl;
+          std::string string( file.buffer() );
+          newmaterial += string;
+          for ( const auto& section : file.sections() ) {
+            newindex.emplace_back(file.MF(),section.MT(),ranges::count(section.buffer(),'\n'),0);
+          }
+          continue;
+        }
+      }
+    }
+    std::cout << "added mf3? mf6?      " << addedMF3 << "   " << addedMF6 << std::endl;
+
+    if (not addedMF3){ std::cout << "Doing 3 (later)" << std::endl;
+      std::vector<section::Type<3>> sections {};
+      for (size_t i = 0; i < temperatures.size(); ++i){ 
+        if (std::fabs(currentTemperature-temperatures[i]) < 1e-2){
+          for (auto& sec3_chunk : sec3_vec[i]){
+            sections.emplace_back(sec3_chunk);
+          }
+          break;
+        }
+      }
+
+      file::Type<3> newfile(std::move(sections));
+      for (const auto& section : newfile.sections()){
+        newindex.emplace_back(3,section.MT(),section.NC(),0);
+      }
+      output = std::back_inserter(newmaterial);
+      newfile.print(output,MAT);
+    }
+    
+    if (not addedMF6){ std::cout << "Doing 6 (later)" << std::endl;
+      std::vector<section::Type<6>> sections {};
+      for (size_t i = 0; i < temperatures.size(); ++i){ 
+        if (std::fabs(currentTemperature-temperatures[i]) < 1e-2){
+          for (auto& sec6_chunk : sec6_vec[i]){
+            sections.emplace_back(sec6_chunk);
+          }
+          break;
+        }
+      }
+
+      file::Type<6> newfile(std::move(sections));
+      for (const auto& section : newfile.sections()){
+        newindex.emplace_back(6,section.MT(),section.NC(),0);
+      }
+      output = std::back_inserter(newmaterial);
+      newfile.print(output,MAT);
+    }
+
+    section::Type<1,451> new451 (za, awr, 2, 0, 0, 0, 0, 0, 0, 0, 6, 1, 2e7, 
+                                 0, 10, 8, currentTemperature, 1, 
+                                 description_451, std::move(newindex) );
+    file::Type<1> newMF1 (std::move(new451));
+
+    std::string buffer_451;
+    auto output2 = std::back_inserter( buffer_451 );
+    newMF1.print( output2, MAT );
+
+    newtape += buffer_451 + newmaterial;
+
+    output = std::back_inserter( newtape );
+    MEND().print( output );
+  }
+
+  output = std::back_inserter( newtape );
+  TEND().print( output );
+
+  std::string name = "tape"+std::to_string(int(json["nout"]));
+  std::ofstream out(name);
+  out << newtape;
+ 
+}
+
+
+
+
 namespace njoy {
 namespace THERMR {
 
@@ -73,11 +223,16 @@ void operator()( const nlohmann::json& json, std::ostream& output,
        awrVec, boundXS, alphas, betas, effectiveTemps, pendf_awr, json );
 
 
-  std::vector<Material>        materials {};
-  std::vector<DirectoryRecord> index     {};
+  //std::vector<Material>        materials {};
+
+  std::vector<std::vector<section::Type<3>>> Sec3Vec {};
+  std::vector<std::vector<section::Type<6>>> Sec6Vec {};
+  std::vector<double> temperatures;;
 
   for (size_t itemp = 0; itemp < json["tempr"].size(); ++itemp){
     double temp = json["tempr"][itemp];
+    temperatures.emplace_back(temp);
+    std::vector<DirectoryRecord> index     {};
 
     std::vector<section::Type<6>> section6Vec {};
     std::vector<section::Type<3>> section3Vec {};
@@ -139,7 +294,7 @@ void operator()( const nlohmann::json& json, std::ostream& output,
               cohElastic.energies(), cohElastic.thermalScatteringValues()[0] );
 
       section3Vec.emplace_back(prepareMF3_cohElastic( out, mtref, za, 
-                                      pendf_awr, temp, MF3_energies, MF3_XS ));
+                               pendf_awr, temp, MF3_energies, MF3_XS, index ));
     } 
 
     else if (icoh > 10 and matde != 0){
@@ -149,7 +304,7 @@ void operator()( const nlohmann::json& json, std::ostream& output,
 
       section3Vec.emplace_back(prepareMF3_incohElastic( inelasticEnergies,
         MF3_energies, boundXS[0], debyeWallerFactor, mtref, natom, za, 
-        pendf_awr, temp));
+        pendf_awr, temp, index));
 
     } 
 
@@ -158,19 +313,36 @@ void operator()( const nlohmann::json& json, std::ostream& output,
       std::vector<long>(1,long(MF3_energies.size())), std::vector<long>(1,2), 
       std::move( MF3_energies ), std::move( MF3_XS ) );
 
+    index.emplace_back( 3, mtref, MF3.NC(), 0 );
 
     section3Vec.emplace_back(std::move(MF3));
 
 
-    file::Type<1> MF1_copy = MF1;
-    Material material( int(json["matdp"]), std::move(MF1_copy), 
-                       file::Type<3>(std::move(section3Vec)),
-                       file::Type<6>(std::move(section6Vec)) );
-    materials.emplace_back(std::move(material));
+    Sec3Vec.emplace_back(std::move(section3Vec));
+    Sec6Vec.emplace_back(std::move(section6Vec));
+
+
+    //file::Type<1> MF1_copy = MF1;
+    //section::Type<1,451> section_451 = MF1.MT(451_c);
+    //for (const auto& val : section_451.index()){
+    //  index.emplace_back(val.MF(), val.MT(), val.NC(), 0);
+    //}
+
+    //section::Type<1,451> new451 (za, awr, 2, 0, 0, 0, 0, 0, 0, 0, 6, 1, 2e7, 
+    //                             0, 10, 8, temp, 1, section_451.description(), 
+    //                             std::move(index) );
+    //file::Type<1> newMF1 (std::move(new451));
+
+    //Material material( int(json["matdp"]), std::move(newMF1), 
+    //                   file::Type<3>(std::move(section3Vec)),
+    //                   file::Type<6>(std::move(section6Vec)) );
+    //materials.emplace_back(std::move(material));
   
   }
 
-  writeTape( materials, pendf, int(json["nout"]) );
+  //writeTape( materials, pendf, int(json["nout"]) );
+  //write(section3Vec,section6Vec,json);
+  write2(Sec3Vec,Sec6Vec,temperatures,json);
 
   return;
 
@@ -181,3 +353,10 @@ void operator()( const nlohmann::json& json, std::ostream& output,
 };
 }
 }
+
+
+
+
+
+
+
