@@ -66,7 +66,7 @@ double prepareMF6_incohElastic(int nendf, int matde, double temp,
     {(long) chunks.size()}, {2}, std::move(chunks) );
 
   std::vector<ReactionProduct> iel_products = 
-                   { ReactionProduct({ 1., 1, -1, 1, {2}, {2}, { 1.e-5, emax }, 
+                   { ReactionProduct({ 1., 1, -2, 1, {2}, {2}, { 1.e-5, emax }, 
                                      { 1., 1. }}, continuumChunk ) };
 
   section::Type<6> incElastic(mtref+1, za, pendf_awr, 0, 1, 
@@ -268,6 +268,8 @@ section::Type<3> prepareMF3_cohElastic( std::tuple<std::vector<double>,
 }
 
 
+/*
+
 void writeTape( std::vector<Material> materials, tree::Tape<std::string> pendf,
                 int nout ){
 
@@ -281,7 +283,7 @@ void writeTape( std::vector<Material> materials, tree::Tape<std::string> pendf,
   out << buffer;
   out.close();
   }
-  
+*/  
 
 
 

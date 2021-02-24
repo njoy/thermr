@@ -39,7 +39,6 @@ void checkFile3( tree::Tape<std::string> goodTape,
     REQUIRE( good_MF3.NC() == my_MF3.NC() );
   };
 
-
   checkMF3_MT(mtref);
   if (good_file3.hasMT(mtref+1)){
     checkMF3_MT(mtref+1);
@@ -520,6 +519,7 @@ TEST_CASE( "thermr" ){
 
     } // WHEN
 
+    /*
     WHEN( "multiple temperatures are provided" ){
     
       njoy::njoy21::lipservice::iRecordStream<char> iss( std::istringstream(
@@ -550,6 +550,7 @@ TEST_CASE( "thermr" ){
 
         
     } // WHEN
+    */
 
   } // GIVEN 
 

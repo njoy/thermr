@@ -34,9 +34,27 @@ std::vector<double> egrid { 1.e-5, 1.78e-5, 2.5e-5, 3.5e-5, 5.0e-5, 7.0e-5,
    5.85, 6.40, 7.00, 7.65, 8.40, 9.15, 9.85, 10.00 };
 
 
+std::string tail(std::string const& source, size_t const length) {
+      if (length >= source.size()) { return source; }
+  return source.substr(source.size() - length);
+} // tail
+
+template <typename FileType>
+void updateIndexAndPrint( FileType newfile, int MF, int MAT, 
+  std::vector<DirectoryRecord>& newindex, std::string& newmaterial ){
+  for ( const auto& section : newfile.sections() ) {
+    newindex.emplace_back( MF, section.MT(), section.NC(), 0 );
+  }
+  auto output = std::back_inserter( newmaterial );
+  newfile.print( output, MAT );
+}
+
+
+
 template <typename Sec3, typename Sec6>
 void write2( Sec3 sec3_vec, Sec6 sec6_vec, std::vector<double> temperatures,
         nlohmann::json json){
+
   tree::Tape<std::string> tape (utility::slurpFileToMemory("tape" + 
                                 std::to_string(int(json["nin"]))));
 
@@ -45,19 +63,20 @@ void write2( Sec3 sec3_vec, Sec6 sec6_vec, std::vector<double> temperatures,
   tape.TPID().print( output, 1, 0, 0 );
 
   double currentTemperature;
-  bool addedMF3 = false;
-  bool addedMF6 = false;
-  //std::cout << "added mf3? mf6?      " << addedMF3 << "   " << addedMF6 << std::endl;
 
   for ( const auto& material : tape.materials() ) {
 
-    //std::cout << "starting material" << std::endl;
-    // std::cout << "-----------------" << std::endl;
-    int MAT = material.MAT();
+    bool addedMF3 = false;
+    bool addedMF6 = false;
+
+    std::cout << "\nstarting material" << std::endl;
+    std::cout << "-----------------\n" << std::endl;
 
     std::string newmaterial;
     std::vector< DirectoryRecord > newindex;
     std::string description_451;
+
+    int MAT = material.MAT();
     double za,awr;
 
     for ( const auto& file : material.files() ) {
@@ -66,10 +85,10 @@ void write2( Sec3 sec3_vec, Sec6 sec6_vec, std::vector<double> temperatures,
         case 1 : { 
           std::cout << "Doing 1" << std::endl;
           section::Type<1,451> section_451 = file.parse(1_c).section(451_c);
-          currentTemperature = section_451.TEMP();
-          description_451 = section_451.description();
           za  = section_451.ZA();
           awr = section_451.AWR();
+          currentTemperature = section_451.TEMP();
+          description_451    = section_451.description();
           continue;
         }
         case 3 : { 
@@ -77,39 +96,37 @@ void write2( Sec3 sec3_vec, Sec6 sec6_vec, std::vector<double> temperatures,
           std::vector<section::Type<3>> sections = file.parse(3_c).sections();
           for (size_t i = 0; i < temperatures.size(); ++i){ 
             if (std::fabs(currentTemperature-temperatures[i]) < 1e-2){
-              for (auto& sec3_chunk : sec3_vec[i]){sections.emplace_back(sec3_chunk);}
+              for (auto& sec3_chunk : sec3_vec[i]){
+                sections.emplace_back(sec3_chunk);
+              }
               addedMF3 = true; 
               break;
             }
           }
           file::Type< 3 > newfile( std::move( sections ) );
-          for ( const auto& section : newfile.sections() ) {
-            newindex.emplace_back( 3, section.MT(), section.NC(), 0 );
-          }
-          output = std::back_inserter( newmaterial );
-          newfile.print( output, MAT );
+          updateIndexAndPrint( newfile, 3, MAT, newindex, newmaterial );
           continue;
         }
         case 6: { std::cout << "Doing 6" << std::endl;
-          std::vector< section::Type< 6 > > sections = file.parse( 6_c ).sections();
+          std::vector<section::Type<6>> sections = file.parse( 6_c ).sections();
+
           for (size_t i = 0; i < temperatures.size(); ++i){ 
             if (std::fabs(currentTemperature-temperatures[i]) < 1e-2){
-              for (auto& sec6_chunk : sec6_vec[i]){sections.emplace_back(sec6_chunk);}
+              for (auto& sec6_chunk : sec6_vec[i]){
+                sections.emplace_back(sec6_chunk);
+              }
               addedMF6 = true; 
               break;
             }
           }
           file::Type< 6 > newfile( std::move( sections ) );
-          for ( const auto& section : newfile.sections() ) {
-            newindex.emplace_back( 6, section.MT(), section.NC(), 0 );
-          }
-          output = std::back_inserter( newmaterial );
-          newfile.print( output, MAT );
+          updateIndexAndPrint( newfile, 6, MAT, newindex, newmaterial );
           continue;
         }
         default : { std::cout << "Doing other" << std::endl;
           std::string string( file.buffer() );
           newmaterial += string;
+    
           for ( const auto& section : file.sections() ) {
             newindex.emplace_back(file.MF(),section.MT(),ranges::count(section.buffer(),'\n'),0);
           }
@@ -117,28 +134,24 @@ void write2( Sec3 sec3_vec, Sec6 sec6_vec, std::vector<double> temperatures,
         }
       }
     }
-    std::cout << "added mf3? mf6?      " << addedMF3 << "   " << addedMF6 << std::endl;
 
-    if (not addedMF3){ std::cout << "Doing 3 (later)" << std::endl;
+    if (not addedMF3){ // In case MF3 didn't already exist
       std::vector<section::Type<3>> sections {};
       for (size_t i = 0; i < temperatures.size(); ++i){ 
         if (std::fabs(currentTemperature-temperatures[i]) < 1e-2){
-          for (auto& sec3_chunk : sec3_vec[i]){
+          for (const auto& sec3_chunk : sec3_vec[i]){
             sections.emplace_back(sec3_chunk);
           }
           break;
         }
       }
-
       file::Type<3> newfile(std::move(sections));
-      for (const auto& section : newfile.sections()){
-        newindex.emplace_back(3,section.MT(),section.NC(),0);
-      }
-      output = std::back_inserter(newmaterial);
-      newfile.print(output,MAT);
+      updateIndexAndPrint( newfile, 3, MAT, newindex, newmaterial );
+ 
     }
-    
-    if (not addedMF6){ std::cout << "Doing 6 (later)" << std::endl;
+
+
+    if (not addedMF6){ // In case MF6 didn't already exist
       std::vector<section::Type<6>> sections {};
       for (size_t i = 0; i < temperatures.size(); ++i){ 
         if (std::fabs(currentTemperature-temperatures[i]) < 1e-2){
@@ -149,17 +162,21 @@ void write2( Sec3 sec3_vec, Sec6 sec6_vec, std::vector<double> temperatures,
         }
       }
 
+      std::string end = tail(newmaterial, 380);
+      std::cout << end << std::endl;
+      std::cout << std::endl;
+
       file::Type<6> newfile(std::move(sections));
-      for (const auto& section : newfile.sections()){
-        newindex.emplace_back(6,section.MT(),section.NC(),0);
-      }
-      output = std::back_inserter(newmaterial);
-      newfile.print(output,MAT);
+      updateIndexAndPrint( newfile, 6, MAT, newindex, newmaterial );
+
+      end = tail(newmaterial, 380);
+      std::cout << end << std::endl;
+      std::cout << std::endl;
+
     }
 
     section::Type<1,451> new451 (za, awr, 2, 0, 0, 0, 0, 0, 0, 0, 6, 1, 2e7, 
-                                 0, 10, 8, currentTemperature, 1, 
-                                 description_451, std::move(newindex) );
+       0, 10, 8, currentTemperature, 1, description_451, std::move(newindex) );
     file::Type<1> newMF1 (std::move(new451));
 
     std::string buffer_451;
